@@ -59,8 +59,9 @@ const ProjectsCarousel = () => {
               <article
                 key={project.title}
                 className="
-                  relative px-1 flex w-full shrink-0 flex-col overflow-hidden
+                  relative flex w-full shrink-0 flex-col overflow-hidden
                   rounded-2xl bg-white shadow-sm ring-1 ring-black/5
+                  dark:bg-[#1a1a1a] dark:shadow-none dark:ring-white/10
                   md:min-h-[380px] md:flex-row
                 "
               >
@@ -117,17 +118,17 @@ const ProjectsCarousel = () => {
                     md:order-1 md:w-[52%] md:gap-4 md:px-9 md:py-10
                   "
                 >
-                  <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-black/45">
+                  <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-black/45 dark:text-white/45">
                     {project.category[0]}
-                    <span className="mx-2 text-black/25">·</span>
+                    <span className="mx-2 text-black/25 dark:text-white/25">·</span>
                     {project.year}
                   </p>
 
-                  <h2 className="text-lg font-semibold leading-snug tracking-tight text-neutral-900 sm:text-xl md:text-2xl">
+                  <h2 className="text-lg font-semibold leading-snug tracking-tight text-neutral-900 dark:text-neutral-50 sm:text-xl md:text-2xl">
                     {project.title}
                   </h2>
 
-                  <p className="max-w-md text-sm leading-relaxed text-neutral-600 md:text-[15px]">
+                  <p className="max-w-md text-sm leading-relaxed text-neutral-600 dark:text-neutral-400 md:text-[15px]">
                     {project.description}
                   </p>
 
@@ -138,6 +139,7 @@ const ProjectsCarousel = () => {
                         className="
                           rounded-md border border-black/8 bg-neutral-50
                           px-2 py-0.5 text-[11px] font-medium text-neutral-700
+                          dark:border-white/10 dark:bg-white/5 dark:text-neutral-300
                         "
                       >
                         {tech}
@@ -155,6 +157,7 @@ const ProjectsCarousel = () => {
                         text-sm font-medium text-neutral-900
                         underline decoration-black/25 underline-offset-4
                         transition-opacity duration-200 hover:opacity-60
+                        dark:text-neutral-100 dark:decoration-white/30
                       "
                     >
                       Acesse o projeto
@@ -181,6 +184,8 @@ const ProjectsCarousel = () => {
             active:bg-neutral-100
             sm:min-w-[7.5rem] sm:px-4
             hover:border-black/30
+            dark:border-white/15 dark:bg-[#1a1a1a] dark:text-neutral-200
+            dark:active:bg-white/10 dark:hover:border-white/30
           "
         >
           <span className="sm:hidden" aria-hidden>
@@ -207,7 +212,7 @@ const ProjectsCarousel = () => {
               />
             ))}
           </div>
-          <p className="text-[11px] tabular-nums tracking-wide text-black/40">
+          <p className="text-[11px] tabular-nums tracking-wide text-black/40 dark:text-white/40">
             {current + 1} / {projects.length}
           </p>
         </div>
@@ -223,6 +228,8 @@ const ProjectsCarousel = () => {
             active:bg-neutral-100
             sm:min-w-[7.5rem] sm:px-4
             hover:border-black/30
+            dark:border-white/15 dark:bg-[#1a1a1a] dark:text-neutral-200
+            dark:active:bg-white/10 dark:hover:border-white/30
           "
         >
           <span className="sm:hidden" aria-hidden>
