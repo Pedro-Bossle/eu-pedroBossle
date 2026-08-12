@@ -1,0 +1,62 @@
+[
+  {
+    "title": "Site Capítulo Farrapos",
+    "description": "Site institucional do Capítulo Farrapos Nº1111 da Ordem DeMolay, feito nos primeiros meses de curso da Alura",
+    "stack": ["HTML", "CSS", "Javascript"],
+    "visibility": "public",
+    "category": ["Site institucional"],
+    "year": 2025,
+    "featured": true,
+    "openSource": false,
+    "image": "farrapos",
+    "visual": {
+      "background": "#172554",
+      "accent": "#60A5FA"
+    }
+  },
+  {
+    "title": "Casa de Axé Sango & Ossun",
+    "description": "Site institucional e sistema de gerenciamento interno de uma casa de religião localizada em Caxias do Sul",
+    "stack": ["Typescript", "Javascript", "CSS", "Supabase", "HTML"],
+    "visibility": "public",
+    "category": ["Site Institucional", "SaaS"],
+    "year": 2026,
+    "featured": true,
+    "openSource": false,
+    "image": "sango-ossun",
+    "visual": {
+      "background": "#3B1D5A",
+      "accent": "#C084FC"
+    }
+  },
+  {
+    "title": "Emerdog Tudo em Um",
+    "description": "Sistema privado que unifica 9+ ferramentas para automatizar o fluxo de trabalho dos setores de Venda e Credenciamento da Emerdog.",
+    "stack": ["Javascript", "CSS", "Supabase", "Typescript", "REACT", "VITE"],
+    "visibility": "private",
+    "category": ["SaaS"],
+    "year": 2026,
+    "featured": true,
+    "openSource": false,
+    "image": "emerdog",
+    "visual": {
+      "background": "#0F3D56",
+      "accent": "#38BDF8"
+    }
+  },
+  {
+    "title": "Templo Virtual",
+    "description": "Sistema de código aberto multi-tenant e multi-realm para gerenciamento de Organizações Paramaçônicas e Lojas Maçônicas.",
+    "stack": ["Javascript", "CSS", "Supabase", "Typescript", "REACT", "VITE"],
+    "visibility": "public",
+    "category": ["SaaS"],
+    "year": 2026,
+    "featured": true,
+    "openSource": true,
+    "image": "templo-virtual",
+    "visual": {
+      "background": "#172554",
+      "accent": "#60A5FA"
+    }
+  }
+]

@@ -1,8 +1,20 @@
 @import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
 
 :root {
   --bg-color: #f9f9f9;
   --main-font: "Montserrat", sans-serif;
+}
+
+@keyframes bounce-dot {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-8px);
+  }
 }
 
 body {
@@ -11,6 +23,6 @@ body {
 }
 
 .dark {
-  --bg-color: #000000;
+  --bg-color: #121212;
   color: #f9f9f9;
 }
