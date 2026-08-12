@@ -76,7 +76,7 @@ function Nav() {
             onClick={() => setDark((v) => !v)}
           >
             <img
-              src={dark ? "/sun.png" : "/moon.png"}
+              src={`${import.meta.env.BASE_URL}${dark ? "sun.png" : "moon.png"}`}
               className="w-5 cursor-pointer sm:w-6"
               alt={dark ? "Modo claro" : "Modo escuro"}
             />
