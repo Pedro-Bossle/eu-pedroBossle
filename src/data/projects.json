@@ -9,9 +9,10 @@
     "featured": true,
     "openSource": false,
     "image": "farrapos",
+    "link": "https://site-farrapos.vercel.app/",
     "visual": {
-      "background": "#172554",
-      "accent": "#60A5FA"
+      "background": "#395937",
+      "accent": "#ff8989"
     }
   },
   {
@@ -24,9 +25,10 @@
     "featured": true,
     "openSource": false,
     "image": "sango-ossun",
+    "link": "https://www.casadease.com.br/",
     "visual": {
-      "background": "#3B1D5A",
-      "accent": "#C084FC"
+      "background": "#770000",
+      "accent": "#ffdc16"
     }
   },
   {
@@ -40,8 +42,8 @@
     "openSource": false,
     "image": "emerdog",
     "visual": {
-      "background": "#0F3D56",
-      "accent": "#38BDF8"
+      "background": "#a8bfff",
+      "accent": "#e8eeff"
     }
   },
   {
@@ -54,9 +56,26 @@
     "featured": true,
     "openSource": true,
     "image": "templo-virtual",
+    "link": "https://templovirtual.app/",
     "visual": {
-      "background": "#172554",
-      "accent": "#60A5FA"
+      "background": "#304787",
+      "accent": "#a0fbff"
+    }
+  },
+  {
+    "title": "Flow Finanças",
+    "description": "Um sistema pra registro de despesas, visando a facilidade de registrar entradas e saidas na palma da mão, com ajudante de IA e relatórios mensais de análise bancária.",
+    "stack": ["Javascript", "CSS", "Supabase", "Typescript", "REACT", "VITE"],
+    "visibility": "public",
+    "category": ["SaaS"],
+    "year": 2026,
+    "featured": true,
+    "openSource": false,
+    "image": "flow-logo",
+    "link": "https://flow-finance-olive.vercel.app/#",
+    "visual": {
+      "background": "#1C332E",
+      "accent": "#7BE0A8"
     }
   }
 ]

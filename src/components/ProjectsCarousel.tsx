@@ -62,25 +62,36 @@ const ProjectsCarousel = () => {
                   relative flex w-full shrink-0 flex-col overflow-hidden
                   rounded-2xl bg-white shadow-sm ring-1 ring-black/5
                   dark:bg-[#1a1a1a] dark:shadow-none dark:ring-white/10
-                  md:min-h-[380px] md:flex-row
+                  md:min-h-95 md:flex-row
+                  [--card-bg:#ffffff] dark:[--card-bg:#1a1a1a]
                 "
               >
                 {/* Visual / logo — topo no mobile, direita no desktop */}
                 <div
                   className="
-                    relative order-1 flex min-h-[200px] items-center justify-center
-                    overflow-hidden px-6 py-10
-                    sm:min-h-[220px]
-                    md:order-2 md:min-h-full md:w-[48%] md:px-10 md:py-12
-                  "
-                  style={{ backgroundColor: project.visual.background }}
+                    relative order-1 flex min-h-50 items-center justify-center
+    overflow-hidden
+    px-6 py-10
+    sm:min-h-55
+    md:order-2 md:min-h-full md:w-[48%] md:px-10 md:py-12
+  "
+                  style={{
+                    background: `
+      linear-gradient(
+        to right,
+        transparent 0%,
+        ${project.visual.background} 25%,
+        ${project.visual.background} 100%
+      )
+    `,
+                  }}
                 >
                   <div
                     aria-hidden
                     className="
                       pointer-events-none absolute inset-0 opacity-25
-                      [background-image:radial-gradient(circle,currentColor_1px,transparent_1px)]
-                      [background-size:12px_12px]
+                      bg-[radial-gradient(circle,currentColor_1px,transparent_1px)]
+                      bg-size-[12px_12px]
                     "
                     style={{ color: project.visual.accent }}
                   />
@@ -94,6 +105,34 @@ const ProjectsCarousel = () => {
                       md:h-56 md:w-56
                     "
                     style={{ backgroundColor: project.visual.accent }}
+                  />
+
+                  {/* Degradê mobile: cor → fundo do card */}
+                  <div
+                    aria-hidden
+                    className="pointer-events-none absolute inset-x-0 bottom-0 z-1 h-[60%] md:hidden"
+                    style={{
+                      background: `linear-gradient(
+                        to bottom,
+                        transparent 0%,
+                        transparent 25%,
+                        var(--card-bg) 100%
+                      )`,
+                    }}
+                  />
+
+                  {/* Degradê desktop: cor → fundo do card */}
+                  <div
+                    aria-hidden
+                    className="pointer-events-none absolute inset-y-0 left-0 z-1 hidden w-[55%] md:block"
+                    style={{
+                      background: `linear-gradient(
+                        to right,
+                        var(--card-bg) 0%,
+                        transparent 75%,
+                        transparent 100%
+                      )`,
+                    }}
                   />
 
                   {logo && (
@@ -119,8 +158,10 @@ const ProjectsCarousel = () => {
                   "
                 >
                   <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-black/45 dark:text-white/45">
-                    {project.category[0]}
-                    <span className="mx-2 text-black/25 dark:text-white/25">·</span>
+                    {project.category.join(" • ")}{" "}
+                    <span className="mx-2 text-black/25 dark:text-white/25">
+                      ·
+                    </span>
                     {project.year}
                   </p>
 
@@ -147,11 +188,12 @@ const ProjectsCarousel = () => {
                     ))}
                   </div>
 
-                  {project.link && (
+                  {project.visibility !== "private" && (
                     <a
-                      href={project.link}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                      href={project.link || "#"}
+                      {...(project.link
+                        ? { target: "_blank", rel: "noopener noreferrer" }
+                        : {})}
                       className="
                         mt-2 inline-flex w-fit items-center gap-1
                         text-sm font-medium text-neutral-900
@@ -182,10 +224,11 @@ const ProjectsCarousel = () => {
             border border-black/15 bg-white px-3 text-sm text-neutral-800
             transition-colors duration-200
             active:bg-neutral-100
-            sm:min-w-[7.5rem] sm:px-4
+            sm:min-w-30 sm:px-4
             hover:border-black/30
             dark:border-white/15 dark:bg-[#1a1a1a] dark:text-neutral-200
             dark:active:bg-white/10 dark:hover:border-white/30
+            cursor-pointer
           "
         >
           <span className="sm:hidden" aria-hidden>
@@ -203,7 +246,7 @@ const ProjectsCarousel = () => {
                 onClick={() => goTo(index)}
                 aria-label={`Ir para ${project.title}`}
                 aria-current={current === index ? "true" : undefined}
-                className="h-2 rounded-full transition-all duration-300"
+                className="h-2 rounded-full transition-all duration-300 cursor-pointer"
                 style={{
                   width: current === index ? 22 : 8,
                   backgroundColor: projects[current].visual.accent,
@@ -226,10 +269,11 @@ const ProjectsCarousel = () => {
             border border-black/15 bg-white px-3 text-sm text-neutral-800
             transition-colors duration-200
             active:bg-neutral-100
-            sm:min-w-[7.5rem] sm:px-4
+            sm:min-w-30 sm:px-4
             hover:border-black/30
             dark:border-white/15 dark:bg-[#1a1a1a] dark:text-neutral-200
             dark:active:bg-white/10 dark:hover:border-white/30
+            cursor-pointer
           "
         >
           <span className="sm:hidden" aria-hidden>
