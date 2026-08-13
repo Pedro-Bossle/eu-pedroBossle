@@ -1,13 +1,22 @@
-import { useCallback, useRef, useState, type TouchEvent } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type TouchEvent,
+} from "react";
 import projectsData from "../data/projects.json";
 import type { Project } from "../types/project";
 import { projectLogos } from "../data/projectLogos";
 
 const projects = projectsData as Project[];
 const SWIPE_THRESHOLD = 48;
+const AUTO_PLAY_MS = 5500;
 
 const ProjectsCarousel = () => {
   const [current, setCurrent] = useState(0);
+  const [hoverPaused, setHoverPaused] = useState(false);
+  const [hiddenPaused, setHiddenPaused] = useState(false);
   const touchStartX = useRef<number | null>(null);
   const touchDeltaX = useRef(0);
 
@@ -16,12 +25,35 @@ const ProjectsCarousel = () => {
     setCurrent(((index % total) + total) % total);
   }, []);
 
-  const nextProject = () => goTo(current + 1);
-  const previousProject = () => goTo(current - 1);
+  const nextProject = useCallback(() => {
+    setCurrent((prev) => (prev + 1) % projects.length);
+  }, []);
+
+  const previousProject = useCallback(() => {
+    setCurrent((prev) => (prev === 0 ? projects.length - 1 : prev - 1));
+  }, []);
+
+  useEffect(() => {
+    const onVisibility = () => setHiddenPaused(document.hidden);
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => document.removeEventListener("visibilitychange", onVisibility);
+  }, []);
+
+  useEffect(() => {
+    if (hoverPaused || hiddenPaused) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    const id = window.setInterval(() => {
+      setCurrent((prev) => (prev + 1) % projects.length);
+    }, AUTO_PLAY_MS);
+
+    return () => window.clearInterval(id);
+  }, [current, hoverPaused, hiddenPaused]);
 
   const onTouchStart = (e: TouchEvent) => {
     touchStartX.current = e.touches[0].clientX;
     touchDeltaX.current = 0;
+    setHoverPaused(true);
   };
 
   const onTouchMove = (e: TouchEvent) => {
@@ -36,10 +68,17 @@ const ProjectsCarousel = () => {
     }
     touchStartX.current = null;
     touchDeltaX.current = 0;
+    setHoverPaused(false);
   };
 
   return (
-    <div className="w-full">
+    <div
+      className="w-full"
+      onMouseEnter={() => {
+        if (window.matchMedia("(hover: hover)").matches) setHoverPaused(true);
+      }}
+      onMouseLeave={() => setHoverPaused(false)}
+    >
       <div
         className="overflow-hidden touch-pan-y"
         onTouchStart={onTouchStart}
@@ -47,8 +86,8 @@ const ProjectsCarousel = () => {
         onTouchEnd={onTouchEnd}
       >
         <div
-          className="flex transition-transform duration-500 ease-out"
-          style={{ transform: `translateX(-${current * 100}%)` }}
+          className="flex gap-4 transition-transform duration-500 ease-out"
+          style={{ transform: `translateX(calc(-${current} * (100% + 1rem)))` }}
         >
           {projects.map((project) => {
             const logo = project.image
@@ -75,16 +114,7 @@ const ProjectsCarousel = () => {
     sm:min-h-55
     md:order-2 md:min-h-full md:w-[48%] md:px-10 md:py-12
   "
-                  style={{
-                    background: `
-      linear-gradient(
-        to right,
-        transparent 0%,
-        ${project.visual.background} 25%,
-        ${project.visual.background} 100%
-      )
-    `,
-                  }}
+                  style={{ backgroundColor: project.visual.background }}
                 >
                   <div
                     aria-hidden
@@ -107,15 +137,14 @@ const ProjectsCarousel = () => {
                     style={{ backgroundColor: project.visual.accent }}
                   />
 
-                  {/* Degradê mobile: cor → fundo do card */}
+                  {/* Degradê mobile: só na base, onde encontra o texto */}
                   <div
                     aria-hidden
-                    className="pointer-events-none absolute inset-x-0 bottom-0 z-1 h-[60%] md:hidden"
+                    className="pointer-events-none absolute inset-x-0 bottom-0 z-1 h-14 md:hidden"
                     style={{
                       background: `linear-gradient(
                         to bottom,
                         transparent 0%,
-                        transparent 25%,
                         var(--card-bg) 100%
                       )`,
                     }}

@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <circle cx="32" cy="32" r="31" fill="#ffffff"/>
+
+  <!-- cubo de trás -->
+  <path fill="#A5B4FC" d="M38 14 52 22 38 30 24 22Z"/>
+  <path fill="#818CF8" d="M24 22 38 30 38 42 24 34Z"/>
+  <path fill="#4F46E5" d="M38 30 52 22 52 34 38 42Z"/>
+
+  <!-- cubo da frente -->
+  <path fill="#C7D2FE" d="M26 26 40 34 26 42 12 34Z"/>
+  <path fill="#6366F1" d="M12 34 26 42 26 54 12 46Z"/>
+  <path fill="#3730A3" d="M26 42 40 34 40 46 26 54Z"/>
+</svg>

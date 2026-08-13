@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "lenis/dist/lenis.css";
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
@@ -14,6 +15,49 @@
 
   50% {
     transform: translateY(-8px);
+  }
+}
+
+@keyframes plane-fly {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, 45vh) rotate(18deg) scale(0.7);
+  }
+
+  22% {
+    opacity: 1;
+    transform: translate(-18%, -18vh) rotate(-12deg) scale(1.15);
+  }
+
+  55% {
+    opacity: 1;
+    transform: translate(28vw, -38vh) rotate(-26deg) scale(1.25);
+  }
+
+  100% {
+    opacity: 0.2;
+    transform: translate(8vw, 75vh) rotate(14deg) scale(0.9);
+  }
+}
+
+@keyframes blocks-travel {
+  0% {
+    opacity: 0;
+    transform: translate(-120%, -50%) rotate(-18deg) scale(0.55);
+  }
+
+  40% {
+    opacity: 1;
+    transform: translate(28px, -50%) rotate(8deg) scale(1.2);
+  }
+
+  68% {
+    transform: translate(12px, -50%) rotate(-4deg) scale(1.08);
+  }
+
+  100% {
+    opacity: 0.25;
+    transform: translate(20px, 70vh) rotate(6deg) scale(0.85);
   }
 }
 
