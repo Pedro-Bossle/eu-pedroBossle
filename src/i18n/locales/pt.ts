@@ -53,7 +53,6 @@ export type TranslationKeys = {
     pageTitle: string;
     downloadPdf: string;
     downloadingPdf: string;
-    editHint: string;
     certificate: string;
     companyInstagram: string;
     summaryHeading: string;
@@ -110,10 +109,10 @@ const pt: TranslationKeys = {
     logoAlt: "Logo do projeto",
   },
   cases: {
-    eyebrow: "Relatos de quem usou e aprovou",
+    eyebrow: "Relatos relacionados aos projetos",
     title: "Estudos de Caso",
     subtitle:
-      "Aqui você pode ver alguns relatos de quem usou e aprovou meus serviços.",
+      "Aqui você pode ver alguns relatos de usuários das minhas plataformas.",
   },
   contact: {
     eyebrow: "Contato",
@@ -124,7 +123,6 @@ const pt: TranslationKeys = {
     pageTitle: "Currículo",
     downloadPdf: "Baixar PDF",
     downloadingPdf: "Gerando PDF…",
-    editHint: "# edite src/data/resume.json",
     certificate: "certificado",
     companyInstagram: "Instagram da empresa",
     summaryHeading: "Resumo profissional",

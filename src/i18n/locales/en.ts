@@ -45,10 +45,10 @@ const en: TranslationKeys = {
     logoAlt: "Project logo",
   },
   cases: {
-    eyebrow: "Stories from people who used and approved",
+    eyebrow: "Stories related to the projects",
     title: "Case Studies",
     subtitle:
-      "Here you can read a few stories from people who used and approved my work.",
+      "Here you can read a few stories from users of my platforms.",
   },
   contact: {
     eyebrow: "Contact",
@@ -59,7 +59,6 @@ const en: TranslationKeys = {
     pageTitle: "Resume",
     downloadPdf: "Download PDF",
     downloadingPdf: "Generating PDF…",
-    editHint: "# edit src/data/resume.json",
     certificate: "certificate",
     companyInstagram: "Company Instagram",
     summaryHeading: "Professional summary",

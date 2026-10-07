@@ -23,7 +23,7 @@ function hostOf(url: string) {
 
 function Prompt({ children }: { children: string }) {
   return (
-    <p className="resume-prompt text-sm text-emerald-700 dark:text-emerald-400">
+    <p className="resume-prompt text-xs text-emerald-700 sm:text-sm dark:text-emerald-400">
       <span aria-hidden>$ </span>
       {children}
     </p>
@@ -65,14 +65,14 @@ function CompanyLinks({
   if (!instagramUrl && !siteUrl) return null;
 
   return (
-    <span className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
+    <span className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs sm:text-sm">
       {siteUrl ? (
         <a
           href={siteUrl}
           target="_blank"
           rel="noopener noreferrer"
           onClick={(event) => event.stopPropagation()}
-          className="underline decoration-emerald-800/30 underline-offset-4 opacity-75 hover:opacity-100 dark:decoration-emerald-300/30"
+          className="inline-block whitespace-nowrap underline decoration-emerald-800/30 underline-offset-4 opacity-75 hover:opacity-100 dark:decoration-emerald-300/30"
         >
           {hostOf(siteUrl)}
         </a>
@@ -83,10 +83,10 @@ function CompanyLinks({
           target="_blank"
           rel="noopener noreferrer"
           onClick={(event) => event.stopPropagation()}
-          className="inline-flex items-center gap-1.5 opacity-75 hover:opacity-100"
+          className="inline-flex min-h-9 items-center gap-1.5 opacity-75 hover:opacity-100 sm:min-h-0"
           aria-label={instagramAria}
         >
-          <InstagramIcon className="h-3.5 w-3.5" />
+          <InstagramIcon className="h-3.5 w-3.5 shrink-0" />
           <span className="underline decoration-emerald-800/30 underline-offset-4 dark:decoration-emerald-300/30">
             Instagram
           </span>
@@ -108,14 +108,14 @@ function CredentialList({
   showGraduation?: boolean;
 }) {
   return (
-    <div className="mt-3 space-y-4">
+    <div className="mt-3 space-y-5 sm:space-y-4">
       {items.map((item) => (
         <article
           key={`${tx(item.title, locale)}-${tx(item.period, locale)}`}
           className="resume-pdf-block break-inside-avoid"
         >
-          <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-            <h3 className="font-medium">
+          <div className="flex flex-col gap-1 sm:flex-row sm:flex-wrap sm:items-baseline sm:justify-between sm:gap-x-4 sm:gap-y-1">
+            <h3 className="min-w-0 text-[15px] font-medium leading-snug break-words sm:text-base">
               {item.certificate ? (
                 <a
                   href={item.certificate}
@@ -130,10 +130,12 @@ function CredentialList({
               )}
             </h3>
             {item.period && (
-              <p className="text-sm opacity-60">{tx(item.period, locale)}</p>
+              <p className="shrink-0 text-xs opacity-60 sm:text-sm">
+                {tx(item.period, locale)}
+              </p>
             )}
           </div>
-          <p className="text-sm opacity-75">
+          <p className="mt-0.5 text-xs leading-relaxed break-words opacity-75 sm:text-sm">
             {item.place}
             {item.certificate ? (
               <>
@@ -146,12 +148,12 @@ function CredentialList({
             ) : null}
           </p>
           {showGraduation && item.graduation ? (
-            <p className="mt-1 text-sm opacity-70">
+            <p className="mt-1 text-xs opacity-70 sm:text-sm">
               {tx(item.graduation, locale)}
             </p>
           ) : null}
           {item.description ? (
-            <p className="mt-2 text-sm leading-relaxed opacity-80">
+            <p className="mt-2 text-xs leading-relaxed opacity-80 sm:text-sm">
               {tx(item.description, locale)}
             </p>
           ) : null}
@@ -171,12 +173,16 @@ function ExperienceItem({
   instagramAria: string;
 }) {
   return (
-    <details className="resume-exp group break-inside-avoid border-t border-emerald-900/10 py-3 first:border-t-0 dark:border-emerald-300/15">
-      <summary className="flex cursor-pointer list-none items-baseline justify-between gap-4 [&::-webkit-details-marker]:hidden">
-        <span>
-          <span className="font-medium">{tx(item.title, locale)}</span>
+    <details className="resume-exp group break-inside-avoid border-t border-emerald-900/10 first:border-t-0 dark:border-emerald-300/15">
+      <summary className="flex cursor-pointer list-none flex-col gap-2 py-3 touch-manipulation [-webkit-tap-highlight-color:transparent] sm:flex-row sm:items-start sm:justify-between sm:gap-4 [&::-webkit-details-marker]:hidden">
+        <span className="min-w-0 flex-1">
+          <span className="block text-[15px] font-medium leading-snug break-words sm:text-base">
+            {tx(item.title, locale)}
+          </span>
           {item.place && (
-            <span className="mt-0.5 block text-sm opacity-70">{item.place}</span>
+            <span className="mt-0.5 block text-xs leading-snug break-words opacity-70 sm:text-sm">
+              {item.place}
+            </span>
           )}
           <CompanyLinks
             instagram={item.instagram}
@@ -184,16 +190,16 @@ function ExperienceItem({
             instagramAria={instagramAria}
           />
           {item.summary && (
-            <span className="mt-1 block text-sm leading-relaxed opacity-80">
+            <span className="mt-1.5 block text-xs leading-relaxed opacity-80 sm:mt-1 sm:text-sm">
               {tx(item.summary, locale)}
             </span>
           )}
         </span>
-        <span className="flex shrink-0 items-center gap-3 text-sm">
+        <span className="flex shrink-0 items-center justify-between gap-3 text-xs sm:items-baseline sm:justify-end sm:pt-0.5 sm:text-sm">
           <span className="opacity-60">{tx(item.period, locale)}</span>
           <span
             aria-hidden
-            className="resume-prompt text-emerald-700 dark:text-emerald-400"
+            className="flex h-8 w-8 items-center justify-center rounded-md border border-emerald-900/15 text-base leading-none text-emerald-800 sm:h-auto sm:w-auto sm:border-0 sm:text-sm dark:border-emerald-300/25 dark:text-emerald-300"
           >
             <span className="group-open:hidden">+</span>
             <span className="hidden group-open:inline">−</span>
@@ -201,9 +207,14 @@ function ExperienceItem({
         </span>
       </summary>
       {txList(item.points, locale).length > 0 && (
-        <ul className="mt-3 list-disc space-y-1 pl-5 text-sm leading-relaxed opacity-80">
+        <ul className="mt-1 space-y-2 pb-3 pl-4 text-xs leading-relaxed opacity-80 sm:mt-3 sm:list-disc sm:space-y-1 sm:pl-5 sm:text-sm">
           {txList(item.points, locale).map((point) => (
-            <li key={point}>{point}</li>
+            <li
+              key={point}
+              className="border-l-2 border-emerald-900/15 pl-3 sm:border-l-0 sm:pl-0 dark:border-emerald-300/20"
+            >
+              {point}
+            </li>
           ))}
         </ul>
       )}
@@ -220,7 +231,7 @@ function ProjectCard({
 }) {
   return (
     <article className="resume-pdf-block break-inside-avoid border-t border-emerald-900/10 py-4 first:border-t-0 dark:border-emerald-300/15">
-      <h3 className="font-medium">
+      <h3 className="text-[15px] font-medium leading-snug break-words sm:text-base">
         {project.url ? (
           <a
             href={project.url}
@@ -234,10 +245,10 @@ function ProjectCard({
           project.name
         )}
       </h3>
-      <p className="mt-2 text-sm leading-relaxed opacity-80">
+      <p className="mt-2 text-xs leading-relaxed opacity-80 sm:text-sm">
         {tx(project.case, locale)}
       </p>
-      <p className="mt-2 text-sm opacity-60">
+      <p className="mt-2 text-xs leading-relaxed opacity-60 sm:text-sm">
         <span className="resume-prompt text-emerald-700 dark:text-emerald-400">
           stack{" "}
         </span>
@@ -249,7 +260,7 @@ function ProjectCard({
               href={project.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="underline decoration-emerald-800/30 underline-offset-4 dark:decoration-emerald-300/30"
+              className="inline-block whitespace-nowrap underline decoration-emerald-800/30 underline-offset-4 dark:decoration-emerald-300/30"
             >
               {hostOf(project.url)}
             </a>
@@ -298,7 +309,7 @@ function ResumePage() {
               href={resume.linkedin}
               target="_blank"
               rel="noopener noreferrer"
-              className="underline decoration-emerald-800/30 underline-offset-4 dark:decoration-emerald-300/30"
+              className="inline-flex min-h-9 items-center underline decoration-emerald-800/30 underline-offset-4 sm:min-h-0 dark:decoration-emerald-300/30"
             >
               LinkedIn
             </a>
@@ -311,7 +322,7 @@ function ResumePage() {
           node: (
             <a
               href={`mailto:${resume.email}`}
-              className="underline decoration-emerald-800/30 underline-offset-4 dark:decoration-emerald-300/30"
+              className="inline-flex min-h-9 max-w-full items-center underline decoration-emerald-800/30 underline-offset-4 sm:min-h-0 dark:decoration-emerald-300/30 [overflow-wrap:anywhere]"
             >
               {resume.email}
             </a>
@@ -321,16 +332,16 @@ function ResumePage() {
   ].filter((bit) => bit !== null);
 
   return (
-    <section className="mx-auto w-full max-w-6xl px-4 py-10 sm:px-6 sm:py-14 print:max-w-none print:px-0 print:py-0">
-      <article className="resume-terminal overflow-hidden rounded-2xl border border-black/10 bg-[#f4f6f3] font-mono text-[#142016] shadow-sm dark:border-emerald-300/15 dark:bg-[#0c1210] dark:text-[#d7f5df] print:rounded-none print:border-0 print:bg-white print:font-[Montserrat,sans-serif] print:text-black print:shadow-none">
-        <div className="resume-chrome flex items-center justify-between gap-3 border-b border-black/10 px-4 py-3 sm:px-6 dark:border-emerald-300/15 print:hidden">
-          <div className="flex min-w-0 items-center gap-3">
-            <span className="flex gap-1.5" aria-hidden>
+    <section className="mx-auto w-full max-w-6xl px-3 py-6 sm:px-6 sm:py-14 print:max-w-none print:px-0 print:py-0">
+      <article className="resume-terminal overflow-hidden rounded-xl border border-black/10 bg-[#f4f6f3] font-mono text-[#142016] shadow-sm sm:rounded-2xl dark:border-emerald-300/15 dark:bg-[#0c1210] dark:text-[#d7f5df] print:rounded-none print:border-0 print:bg-white print:font-[Montserrat,sans-serif] print:text-black print:shadow-none">
+        <div className="resume-chrome flex items-center justify-between gap-2 border-b border-black/10 px-3 py-2.5 sm:gap-3 sm:px-6 sm:py-3 dark:border-emerald-300/15 print:hidden">
+          <div className="flex min-w-0 items-center gap-2 sm:gap-3">
+            <span className="flex shrink-0 gap-1.5" aria-hidden>
               <span className="h-2.5 w-2.5 rounded-full bg-red-500" />
               <span className="h-2.5 w-2.5 rounded-full bg-yellow-500" />
               <span className="h-2.5 w-2.5 rounded-full bg-green-500" />
             </span>
-            <p className="truncate text-xs opacity-60 sm:text-sm">
+            <p className="truncate text-[11px] opacity-60 sm:text-sm">
               pedro@bossle:~/curriculo
             </p>
           </div>
@@ -338,7 +349,7 @@ function ResumePage() {
             type="button"
             onClick={handleDownloadPdf}
             disabled={downloading}
-            className="shrink-0 cursor-pointer rounded-md border border-emerald-900/20 px-3 py-1.5 text-xs text-emerald-900 transition-colors hover:bg-emerald-900 hover:text-[#f4f6f3] disabled:cursor-wait disabled:opacity-60 sm:text-sm dark:border-emerald-300/30 dark:text-emerald-300 dark:hover:bg-emerald-300 dark:hover:text-[#0c1210]"
+            className="min-h-9 shrink-0 cursor-pointer rounded-md border border-emerald-900/20 px-2.5 py-1.5 text-[11px] text-emerald-900 transition-colors hover:bg-emerald-900 hover:text-[#f4f6f3] disabled:cursor-wait disabled:opacity-60 sm:min-h-0 sm:px-3 sm:text-sm dark:border-emerald-300/30 dark:text-emerald-300 dark:hover:bg-emerald-300 dark:hover:text-[#0c1210]"
           >
             {downloading ? t.resume.downloadingPdf : t.resume.downloadPdf}
           </button>
@@ -346,53 +357,53 @@ function ResumePage() {
 
         <div
           ref={pdfRef}
-          className="px-4 py-6 sm:px-8 sm:py-8 print:px-0 print:py-0"
+          className="px-3 py-5 sm:px-8 sm:py-8 print:px-0 print:py-0"
         >
-          <p className="resume-pdf-hide mb-6 text-xs opacity-50 print:hidden">
-            {t.resume.editHint}
-          </p>
-
           <header>
             <Prompt>whoami</Prompt>
-            <h1 className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">
+            <h1 className="mt-2 text-2xl font-semibold tracking-tight break-words sm:text-4xl">
               {resume.name}
             </h1>
-            <p className="mt-1 text-base opacity-80">
+            <p className="mt-1 text-sm opacity-80 sm:text-base">
               {tx(resume.role, locale)}
             </p>
             {headerBits.length > 0 && (
-              <p className="mt-3 flex flex-wrap gap-x-3 gap-y-1 text-sm opacity-75">
+              <div className="mt-3 flex flex-col gap-0.5 text-xs opacity-75 sm:mt-3 sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-3 sm:gap-y-1 sm:text-sm">
                 {headerBits.map((bit, index) => (
-                  <span key={bit.key}>
-                    {index > 0 && <span className="mr-3 opacity-40">·</span>}
+                  <span key={bit.key} className="min-w-0 sm:inline">
+                    {index > 0 && (
+                      <span className="mr-3 hidden opacity-40 sm:inline">·</span>
+                    )}
                     {bit.node}
                   </span>
                 ))}
-              </p>
+              </div>
             )}
           </header>
 
           {resume.summary && (
-            <section className="mt-8">
+            <section className="mt-6 sm:mt-8">
               <Prompt>cat resumo.txt</Prompt>
               <h2 className="sr-only">{t.resume.summaryHeading}</h2>
-              <p className="mt-3 max-w-4xl text-sm leading-relaxed opacity-85 sm:text-[15px]">
+              <p className="mt-3 max-w-4xl text-xs leading-relaxed opacity-85 sm:text-[15px]">
                 {tx(resume.summary, locale)}
               </p>
             </section>
           )}
 
           {resume.skills.length > 0 && (
-            <section className="mt-8 break-inside-avoid">
+            <section className="mt-6 break-inside-avoid sm:mt-8">
               <Prompt>ls competencias/</Prompt>
-              <h2 className="mt-3 text-sm font-medium uppercase tracking-[0.14em] opacity-60">
+              <h2 className="mt-3 text-[11px] font-medium uppercase tracking-[0.14em] opacity-60 sm:text-sm">
                 {t.resume.skillsHeading}
               </h2>
               <dl className="mt-3 space-y-3">
                 {resume.skills.map((skill) => (
                   <div key={tx(skill.topic, locale)}>
-                    <dt className="font-medium">{tx(skill.topic, locale)}</dt>
-                    <dd className="text-sm leading-relaxed opacity-75">
+                    <dt className="text-[15px] font-medium sm:text-base">
+                      {tx(skill.topic, locale)}
+                    </dt>
+                    <dd className="text-xs leading-relaxed opacity-75 sm:text-sm">
                       {tx(skill.description, locale)}
                     </dd>
                   </div>
@@ -402,12 +413,12 @@ function ResumePage() {
           )}
 
           {resume.experience.length > 0 && (
-            <section className="mt-8">
+            <section className="mt-6 sm:mt-8">
               <Prompt>cat experiencia.log</Prompt>
-              <h2 className="mt-3 text-sm font-medium uppercase tracking-[0.14em] opacity-60">
+              <h2 className="mt-3 text-[11px] font-medium uppercase tracking-[0.14em] opacity-60 sm:text-sm">
                 {t.resume.experienceHeading}
               </h2>
-              <div className="mt-2">
+              <div className="mt-1 sm:mt-2">
                 {resume.experience.map((item) => (
                   <ExperienceItem
                     key={`${tx(item.title, locale)}-${tx(item.period, locale)}`}
@@ -421,12 +432,12 @@ function ResumePage() {
           )}
 
           {resume.featuredProjects.length > 0 && (
-            <section className="mt-8">
+            <section className="mt-6 sm:mt-8">
               <Prompt>cat projetos/destaque</Prompt>
-              <h2 className="mt-3 text-sm font-medium uppercase tracking-[0.14em] opacity-60">
+              <h2 className="mt-3 text-[11px] font-medium uppercase tracking-[0.14em] opacity-60 sm:text-sm">
                 {t.resume.featuredHeading}
               </h2>
-              <div className="mt-2">
+              <div className="mt-1 sm:mt-2">
                 {resume.featuredProjects.map((project) => (
                   <ProjectCard
                     key={project.name}
@@ -439,9 +450,9 @@ function ResumePage() {
           )}
 
           {resume.education.length > 0 && (
-            <section className="mt-8 break-inside-avoid">
+            <section className="mt-6 break-inside-avoid sm:mt-8">
               <Prompt>cat formacao.txt</Prompt>
-              <h2 className="mt-3 text-sm font-medium uppercase tracking-[0.14em] opacity-60">
+              <h2 className="mt-3 text-[11px] font-medium uppercase tracking-[0.14em] opacity-60 sm:text-sm">
                 {t.resume.educationHeading}
               </h2>
               <CredentialList
@@ -454,9 +465,9 @@ function ResumePage() {
           )}
 
           {resume.courses.length > 0 && (
-            <section className="mt-8 break-inside-avoid">
+            <section className="mt-6 break-inside-avoid pb-1 sm:mt-8 sm:pb-0">
               <Prompt>cat cursos.txt</Prompt>
-              <h2 className="mt-3 text-sm font-medium uppercase tracking-[0.14em] opacity-60">
+              <h2 className="mt-3 text-[11px] font-medium uppercase tracking-[0.14em] opacity-60 sm:text-sm">
                 {t.resume.coursesHeading}
               </h2>
               <CredentialList

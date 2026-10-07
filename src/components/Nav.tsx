@@ -1,13 +1,47 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type MouseEvent } from "react";
+import { useLenis } from "lenis/react";
 import { Link, useLocation } from "react-router";
 import { useLanguage } from "../i18n/LanguageContext";
 import type { Locale } from "../i18n/localize";
 
+const TOP_SCROLL_THRESHOLD = 48;
+
+function LangButton({
+  code,
+  label,
+  ariaLabel,
+  active,
+  onSelect,
+}: {
+  code: Locale;
+  label: string;
+  ariaLabel: string;
+  active: boolean;
+  onSelect: (code: Locale) => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={() => onSelect(code)}
+      aria-label={ariaLabel}
+      aria-pressed={active}
+      className={`cursor-pointer text-xs font-medium tracking-wide transition-opacity sm:text-sm ${
+        active ? "opacity-100" : "opacity-40 hover:opacity-70"
+      }`}
+    >
+      {label}
+    </button>
+  );
+}
+
 function Nav() {
   const { pathname } = useLocation();
+  const isHome = pathname === "/";
   const { locale, setLocale, t } = useLanguage();
   const [isBouncing, setIsBouncing] = useState(false);
-  const [onHero, setOnHero] = useState(pathname === "/");
+  const [heroInView, setHeroInView] = useState(true);
+  const [atPageTop, setAtPageTop] = useState(true);
+  const onHero = isHome ? heroInView : atPageTop;
   const handleAnimationEnd = () => {
     setIsBouncing(false);
   };
@@ -17,25 +51,30 @@ function Nav() {
     document.documentElement.classList.toggle("dark", dark);
   }, [dark]);
 
+  // Home: compact while the hero is in view.
   useEffect(() => {
+    if (!isHome) return;
+
     const hero = document.getElementById("inicio");
-    if (!hero) {
-      setTimeout(() => {
-        setOnHero(false);
-      }, 100);
-      return;
-    }
+    if (!hero) return;
 
     const observer = new IntersectionObserver(
       ([entry]) => {
-        setOnHero(entry.isIntersecting);
+        setHeroInView(entry.isIntersecting);
       },
       { threshold: 0.35 },
     );
 
     observer.observe(hero);
     return () => observer.disconnect();
-  }, [pathname]);
+  }, [isHome, pathname]);
+
+  // Resume and other pages: compact at top, expands after scroll (same as home).
+  useLenis((instance) => {
+    if (isHome) return;
+    const atTop = instance.scroll < TOP_SCROLL_THRESHOLD;
+    setAtPageTop((prev) => (prev === atTop ? prev : atTop));
+  });
 
   useEffect(() => {
     const header = document.getElementById("site-header");
@@ -54,7 +93,7 @@ function Nav() {
     return () => resizeObserver.disconnect();
   }, [onHero]);
 
-  const toggleDarkMode = (event: React.MouseEvent<HTMLButtonElement>) => {
+  const toggleDarkMode = (event: MouseEvent<HTMLButtonElement>) => {
     const button = event.currentTarget;
     const rect = button.getBoundingClientRect();
 
@@ -73,22 +112,6 @@ function Nav() {
       setDark((prev) => !prev);
     });
   };
-
-  const LangButton = ({ code, label, aria }: { code: Locale; label: string; aria: string }) => (
-    <button
-      type="button"
-      onClick={() => setLocale(code)}
-      aria-label={aria}
-      aria-pressed={locale === code}
-      className={`cursor-pointer text-xs font-medium tracking-wide transition-opacity sm:text-sm ${
-        locale === code
-          ? "opacity-100"
-          : "opacity-40 hover:opacity-70"
-      }`}
-    >
-      {label}
-    </button>
-  );
 
   return (
     <header
@@ -233,11 +256,23 @@ function Nav() {
           )}
 
           <div className="flex items-center gap-1.5" role="group" aria-label="Language">
-            <LangButton code="pt" label={t.nav.langPt} aria={t.nav.switchToPt} />
+            <LangButton
+              code="pt"
+              label={t.nav.langPt}
+              ariaLabel={t.nav.switchToPt}
+              active={locale === "pt"}
+              onSelect={setLocale}
+            />
             <span className="text-xs opacity-30" aria-hidden>
               /
             </span>
-            <LangButton code="en" label={t.nav.langEn} aria={t.nav.switchToEn} />
+            <LangButton
+              code="en"
+              label={t.nav.langEn}
+              ariaLabel={t.nav.switchToEn}
+              active={locale === "en"}
+              onSelect={setLocale}
+            />
           </div>
 
           <button type="button" id="modeToggle" onClick={toggleDarkMode}>
