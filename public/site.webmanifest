@@ -1,0 +1,28 @@
+{
+  "name": "Pedro Bossle | Desenvolvedor Web",
+  "short_name": "devbossle",
+  "description": "Transformo processos complexos em sistemas simples, rápidos e fáceis de usar.",
+  "start_url": "/",
+  "display": "standalone",
+  "lang": "pt-BR",
+  "theme_color": "#0c1210",
+  "background_color": "#0c1210",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
