@@ -1,13 +1,55 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useLocation } from "react-router";
 import { useLenis } from "lenis/react";
 
 const ScrollToTop = () => {
+  const { pathname, hash } = useLocation();
   const [visible, setVisible] = useState(false);
 
   const lenis = useLenis((instance) => {
     const shouldShow = instance.scroll > 320;
     setVisible((prev) => (prev === shouldShow ? prev : shouldShow));
   });
+
+  useEffect(() => {
+    document.documentElement.dataset.sectionsSeen = "0";
+
+    let cancelled = false;
+    let attempts = 0;
+    let retryTimer = 0;
+
+    const scrollTop = () => {
+      if (lenis) lenis.scrollTo(0, { immediate: true });
+      else window.scrollTo(0, 0);
+    };
+
+    const go = () => {
+      if (cancelled) return;
+
+      if (hash) {
+        const target = document.querySelector(hash);
+        if (target) {
+          lenis?.scrollTo(hash, { immediate: true });
+          return;
+        }
+        // Lazy sections may still be mounting.
+        if (attempts < 24) {
+          attempts += 1;
+          retryTimer = window.setTimeout(go, 40);
+          return;
+        }
+      }
+
+      scrollTop();
+    };
+
+    const frame = window.requestAnimationFrame(go);
+    return () => {
+      cancelled = true;
+      window.cancelAnimationFrame(frame);
+      window.clearTimeout(retryTimer);
+    };
+  }, [pathname, hash, lenis]);
 
   return (
     <button

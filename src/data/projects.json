@@ -2,14 +2,22 @@
   {
     "title": "Site Capítulo Farrapos",
     "description": {
-      "pt": "Site institucional do Capítulo Farrapos Nº1111 da Ordem DeMolay, feito nos primeiros meses de curso da Alura",
-      "en": "Institutional website for Capítulo Farrapos Nº1111 of the DeMolay Order, built in the first months of the Alura course"
+      "pt": "Site institucional do Capítulo Farrapos Nº 1111 da Ordem DeMolay, feito nos primeiros meses de curso da Alura.",
+      "en": "Institutional website for Capítulo Farrapos Nº 1111 of the DeMolay Order, built in the first months of the Alura course."
     },
-    "stack": ["HTML", "CSS", "Javascript"],
+    "stack": [
+      "HTML",
+      "CSS",
+      "Javascript"
+    ],
     "visibility": "public",
     "category": {
-      "pt": ["Site institucional"],
-      "en": ["Institutional website"]
+      "pt": [
+        "Site institucional"
+      ],
+      "en": [
+        "Institutional website"
+      ]
     },
     "year": 2025,
     "featured": true,
@@ -24,14 +32,26 @@
   {
     "title": "Casa de Axé Sango & Ossun",
     "description": {
-      "pt": "Site institucional e sistema de gerenciamento interno de uma casa de religião localizada em Caxias do Sul",
-      "en": "Institutional website and internal management system for a religious house in Caxias do Sul"
+      "pt": "Site institucional e sistema de gerenciamento interno de uma casa de religião localizada em Caxias do Sul.",
+      "en": "Institutional website and internal management system for a religious house in Caxias do Sul."
     },
-    "stack": ["Typescript", "Javascript", "CSS", "Supabase SQL", "HTML"],
+    "stack": [
+      "Typescript",
+      "Javascript",
+      "CSS",
+      "Supabase SQL",
+      "HTML"
+    ],
     "visibility": "public",
     "category": {
-      "pt": ["Site Institucional", "SaaS"],
-      "en": ["Institutional website", "SaaS"]
+      "pt": [
+        "Site Institucional",
+        "SaaS"
+      ],
+      "en": [
+        "Institutional website",
+        "SaaS"
+      ]
     },
     "year": 2026,
     "featured": true,
@@ -43,8 +63,32 @@
       "accent": "#ffdc16"
     },
     "case": {
-      "pt": "Antigamente, registrávamos as nossas mensalidades e informações dos membros e participantes da casa em um caderninho com mais de uma década. Hoje, conseguimos manter tudo à um toque de distância com controle de caixa, mensalidades, atendimento ao cliente e cobranças dos participantes. Além de toda organização de agenda e rotina que foi facilitada pela plataforma com os devidos módulos de Agenda e Eventos. - Dirigente do Terreiro.",
-      "en": "We used to record membership fees and member information in a notebook that was more than a decade old. Today, everything is a tap away — cash control, fees, customer service, and participant billing. Agenda and Events modules also made scheduling and daily routines much easier. — House leader."
+      "context": {
+        "pt": "Casa de religião em Caxias do Sul · Site institucional + sistema de gestão interna · 2026",
+        "en": "Religious house in Caxias do Sul · Institutional website + internal management system · 2026"
+      },
+      "challenge": {
+        "pt": "Mensalidades e dados de membros e participantes ficavam num caderno usado havia mais de uma década.",
+        "en": "Membership fees and member and participant records were kept in a notebook used for more than a decade."
+      },
+      "solution": {
+        "pt": "Site institucional com sistema de gestão: controle de caixa, mensalidades, atendimento e cobranças dos participantes, além dos módulos de Agenda e Eventos.",
+        "en": "An institutional website with a management system: cash control, membership fees, customer service and participant billing, plus Agenda and Events modules."
+      },
+      "result": {
+        "pt": "A casa saiu do caderno e organiza caixa, cobranças, agenda e rotina numa única plataforma.",
+        "en": "The house moved off the notebook and now runs cash, billing, scheduling and routines on one platform."
+      },
+      "quote": {
+        "text": {
+          "pt": "Antigamente, registrávamos as nossas mensalidades e informações dos membros e participantes da casa em um caderninho com mais de uma década. Hoje, conseguimos manter tudo a um toque de distância com controle de caixa, mensalidades, atendimento ao cliente e cobranças dos participantes. Além de toda a organização de agenda e rotina, que foi facilitada pela plataforma com os devidos módulos de Agenda e Eventos.",
+          "en": "We used to record membership fees and member information in a notebook that was more than a decade old. Today, everything is a tap away: cash control, fees, customer service, and participant billing. The Agenda and Events modules also made scheduling and daily routines much easier."
+        },
+        "attribution": {
+          "pt": "Dirigente do Terreiro",
+          "en": "House leader"
+        }
+      }
     }
   },
   {
@@ -63,8 +107,12 @@
     ],
     "visibility": "private",
     "category": {
-      "pt": ["SaaS"],
-      "en": ["SaaS"]
+      "pt": [
+        "SaaS"
+      ],
+      "en": [
+        "SaaS"
+      ]
     },
     "year": 2026,
     "featured": true,
@@ -75,8 +123,22 @@
       "accent": "#e8eeff"
     },
     "case": {
-      "pt": "A Emerdog utilizava várias ferramentas diferentes para organizar a empresa, entre elas o Excel, Word, Canva, Meta entre outras várias. Hoje, a Emerdog utiliza uma unica ferramenta que abrange todos os setores da empresa unindo funcionalidades de controle de repasses, cadastros de parceiros, tabelas de valores e impressão de planos, prospecção de credenciados, agenda de marketing e agendamento de postagens, e várias outras que otimizaram o fluxo de trabalho de vários setores da empresa que se encontravam perdidos em meio à tabelas de informações.",
-      "en": "Emerdog used many different tools to run the company — Excel, Word, Canva, Meta, and more. Today it uses a single platform covering every department: payout control, partner registration, pricing tables and plan printing, credentialed partner prospecting, marketing calendar and post scheduling, and more — streamlining workflows that were previously lost across scattered spreadsheets."
+      "context": {
+        "pt": "Emerdog Planos Pet · Sistema interno privado · 2026 · Projetado e desenvolvido por mim como Gestor de Credenciamento",
+        "en": "Emerdog Planos Pet · Private internal system · 2026 · Designed and built by me as Credentialing Manager"
+      },
+      "challenge": {
+        "pt": "A empresa se organizava com várias ferramentas soltas (Excel, Word, Canva, Meta e outras), e as informações dos setores se perdiam em planilhas.",
+        "en": "The company ran on scattered tools (Excel, Word, Canva, Meta and others), and each department's information got lost across spreadsheets."
+      },
+      "solution": {
+        "pt": "Uma plataforma única que junta mais de 9 ferramentas para Vendas, Credenciamento, Marketing e Prospecção de parceiros, com controle de repasses, cadastro de parceiros, tabelas de valores com impressão de planos, prospecção de credenciados, agenda de marketing e agendamento de postagens.",
+        "en": "A single platform that brings together 9+ tools for Sales, Credentialing, Marketing and partner prospecting: payout control, partner registration, pricing tables with plan printing, credentialed partner prospecting, a marketing calendar and post scheduling."
+      },
+      "result": {
+        "pt": "Todos os setores passaram a usar uma só ferramenta, e o fluxo de trabalho ficou mais ágil.",
+        "en": "Every department now works in one tool, with streamlined workflows."
+      }
     }
   },
   {
@@ -95,8 +157,12 @@
     ],
     "visibility": "public",
     "category": {
-      "pt": ["SaaS"],
-      "en": ["SaaS"]
+      "pt": [
+        "SaaS"
+      ],
+      "en": [
+        "SaaS"
+      ]
     },
     "year": 2026,
     "featured": true,
@@ -108,14 +174,28 @@
       "accent": "#cca655"
     },
     "case": {
-      "pt": "Por um longo período fizemos uma pesquisa de utilidades que mais impactavam os capítulos durante a gestão administrativa, e vimos que vários tinham dificuldade em controlar o caixa, secretaria e a gestão de eventos. Então fizemos uma plataforma na qual unifique todas as dores de um capítulo e auxilie na hora de sana-las com simples cliques e engenharia dedicada ao mobile.",
-      "en": "After researching what hurt chapters most in day-to-day admin, we found many struggled with cash control, secretariat work, and event management. So we built a platform that unifies those pain points and helps solve them with simple clicks and mobile-first engineering."
+      "context": {
+        "pt": "Organizações Paramaçônicas e Lojas Maçônicas · Plataforma de código aberto, multi-tenant e multi-realm · 2026",
+        "en": "Para-Masonic organizations and Masonic lodges · Open-source, multi-tenant, multi-realm platform · 2026"
+      },
+      "challenge": {
+        "pt": "Uma pesquisa longa sobre a gestão administrativa dos capítulos mostrou que muitos tinham dificuldade com caixa, secretaria e gestão de eventos.",
+        "en": "Long-running research into chapter administration showed many chapters struggled with cash control, secretariat work and event management."
+      },
+      "solution": {
+        "pt": "Uma plataforma que reúne essas três frentes num só lugar, com tarefas resolvidas em poucos cliques e pensada primeiro para o celular.",
+        "en": "A platform that brings those three areas together, with tasks handled in a few clicks and a mobile-first design."
+      },
+      "result": {
+        "pt": "Os principais problemas de um capítulo cabem numa única ferramenta aberta, disponível em templovirtual.app.",
+        "en": "A chapter's main pain points now live in one open tool, available at templovirtual.app."
+      }
     }
   },
   {
     "title": "Flow Finanças",
     "description": {
-      "pt": "Um sistema feito sob medida para registro de despesas, visando a facilidade de registrar entradas e saidas na palma da mão, com ajudante de IA e relatórios mensais de análise bancária.",
+      "pt": "Um sistema feito sob medida para registro de despesas, visando a facilidade de registrar entradas e saídas na palma da mão, com ajudante de IA e relatórios mensais de análise bancária.",
       "en": "A custom expense tracker built for easy in/out recording on the phone, with an AI assistant and monthly banking analysis reports."
     },
     "stack": [
@@ -128,8 +208,12 @@
     ],
     "visibility": "private",
     "category": {
-      "pt": ["SaaS"],
-      "en": ["SaaS"]
+      "pt": [
+        "SaaS"
+      ],
+      "en": [
+        "SaaS"
+      ]
     },
     "year": 2026,
     "featured": true,
@@ -140,21 +224,44 @@
       "accent": "#7BE0A8"
     },
     "case": {
-      "pt": "Um sistema feito sob medida para uma pessoa que mantinha um caderninho com todas as suas despesas e receitas, visando a facilidade de registrar entradas e saidas na palma da mão, com ajudante de IA e relatórios mensais de análise bancária.",
-      "en": "Built for someone who kept every expense and income in a notebook — now they can log transactions on their phone, with an AI helper and monthly banking analysis reports."
+      "context": {
+        "pt": "Sistema sob medida para uso pessoal · Privado · 2026",
+        "en": "Custom personal finance system · Private · 2026"
+      },
+      "challenge": {
+        "pt": "O cliente anotava todas as despesas e receitas num caderninho.",
+        "en": "The client kept every expense and income in a notebook."
+      },
+      "solution": {
+        "pt": "Um sistema feito sob medida para registrar entradas e saídas pelo celular, com assistente de IA e relatórios mensais de análise bancária.",
+        "en": "A custom system for logging income and expenses on the phone, with an AI assistant and monthly banking analysis reports."
+      },
+      "result": {
+        "pt": "O controle financeiro saiu do caderno e foi para a palma da mão, com análise mensal dos gastos.",
+        "en": "Money tracking moved from a notebook to the client's phone, with a monthly analysis of spending."
+      }
     }
   },
   {
     "title": "Maxi Metal",
     "description": {
-      "pt": "Landingpage para empresa metalúrgica feito em conjunto com a equipe da VERSO NÚCLEO CRIATIVO.",
-      "en": "Landing page for a metalworking company, built together with the VERSO NÚCLEO CRIATIVO team."
+      "pt": "Landing page para empresa metalúrgica, feita em conjunto com a equipe da VERSO Núcleo Criativo.",
+      "en": "Landing page for a metalworking company, built together with the VERSO Núcleo Criativo team."
     },
-    "stack": ["Javascript", "CSS", "REACT", "VITE"],
+    "stack": [
+      "Javascript",
+      "CSS",
+      "REACT",
+      "VITE"
+    ],
     "visibility": "public",
     "category": {
-      "pt": ["Site Institucional"],
-      "en": ["Institutional website"]
+      "pt": [
+        "Site Institucional"
+      ],
+      "en": [
+        "Institutional website"
+      ]
     },
     "year": 2026,
     "featured": true,
@@ -170,13 +277,22 @@
     "title": "SQuaRE QUEST - Missão Nexus-9",
     "description": {
       "pt": "Quiz interativo feito para a disciplina de Qualidade e Auditoria sobre as 9 características de qualidade do produto da ISO/IEC 25010:2023. Auditoria gamificada do NEXUS-9, com banco de questões editável e documentação integrada. Contém um banco de dados temporário que foi utilizado para gravar os melhores jogadores durante o período de apresentações do projeto em aula.",
-      "en": "Interactive quiz for the Quality and Audit course on the 9 product quality characteristics of ISO/IEC 25010:2023. Gamified NEXUS-9 audit with an editable question bank and integrated docs. Includes a temporary database used to store top players during class presentations."
+      "en": "Interactive quiz for the Quality and Audit course on the nine product quality characteristics of ISO/IEC 25010:2023. Gamified NEXUS-9 audit with an editable question bank and integrated docs. Includes a temporary database used to store top players during class presentations."
     },
-    "stack": ["Javascript", "CSS", "Postgre SQL", "HTML"],
+    "stack": [
+      "Javascript",
+      "CSS",
+      "Postgre SQL",
+      "HTML"
+    ],
     "visibility": "public",
     "category": {
-      "pt": ["Jogo"],
-      "en": ["Game"]
+      "pt": [
+        "Jogo"
+      ],
+      "en": [
+        "Game"
+      ]
     },
     "year": 2026,
     "featured": true,
@@ -188,8 +304,22 @@
       "accent": "#C9A0FF"
     },
     "case": {
-      "pt": "Um quiz interativo com estilo retro que foi feito para apresentação de um projeto da disciplina de Qualidade e Auditoria da turma online de 2026/02 conduzida pela professora Stefani Mano Valmini da faculdade UNIFtec com a missão de fixar o conteudo aprendido durante o semestre.",
-      "en": "A retro-styled interactive quiz presented for the Quality and Audit course (online 2026/02 class with professor Stefani Mano Valmini at UNIFtec), designed to reinforce what was learned during the semester."
+      "context": {
+        "pt": "Projeto acadêmico · Qualidade e Auditoria, UniFTEC, turma online 2026/02 (Profª Stefani Mano Valmini) · Jogo de código aberto · 2026",
+        "en": "Academic project · Quality and Audit course, UniFTEC, online class 2026/02 (Prof. Stefani Mano Valmini) · Open-source game · 2026"
+      },
+      "challenge": {
+        "pt": "Fixar o conteúdo do semestre sobre as 9 características de qualidade de produto da ISO/IEC 25010:2023.",
+        "en": "Reinforce the semester's content on the 9 product quality characteristics of ISO/IEC 25010:2023."
+      },
+      "solution": {
+        "pt": "Um quiz interativo em estilo retrô, com uma auditoria gamificada da NEXUS-9, banco de questões editável, documentação integrada e um banco de dados temporário para o ranking.",
+        "en": "A retro-style interactive quiz with a gamified NEXUS-9 audit, an editable question bank, built-in documentation and a temporary database for the leaderboard."
+      },
+      "result": {
+        "pt": "O jogo foi usado nas apresentações em aula, e o ranking registrou os melhores jogadores.",
+        "en": "It was used during the class presentations, where the leaderboard recorded the top players."
+      }
     }
   }
 ]

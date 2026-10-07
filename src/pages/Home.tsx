@@ -3,7 +3,7 @@ import Hero from "../components/Hero";
 
 const Projects = lazy(() => import("../components/Projects"));
 const Cases = lazy(() => import("../components/Cases"));
-const Contact = lazy(() => import("../components/Contact"));
+const Stack = lazy(() => import("../components/Stack"));
 
 function Home() {
   return (
@@ -12,7 +12,7 @@ function Home() {
       <Suspense fallback={null}>
         <Projects />
         <Cases />
-        <Contact />
+        <Stack />
       </Suspense>
     </>
   );

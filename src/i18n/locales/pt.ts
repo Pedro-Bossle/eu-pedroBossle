@@ -43,11 +43,24 @@ export type TranslationKeys = {
     eyebrow: string;
     title: string;
     subtitle: string;
+    challenge: string;
+    solution: string;
+    result: string;
+  };
+  stack: {
+    eyebrow: string;
+    title: string;
+    subtitle: string;
   };
   contact: {
     eyebrow: string;
     title: string;
+    linkedin: string;
+    github: string;
+    instagram: string;
+    email: string;
     resumeLink: string;
+    tagline: string;
   };
   resume: {
     pageTitle: string;
@@ -91,7 +104,7 @@ const pt: TranslationKeys = {
     tagline:
       "Transformo processos complexos em sistemas simples, rápidos e fáceis de usar.",
     passion:
-      "Apaixonado por soluções tecnológicas, automatizar processos e simplificar fluxos de trabalho.",
+      "Apaixonado por soluções tecnológicas, por automatizar processos e por simplificar fluxos de trabalho.",
     seeProjects: "Ver projetos",
     getInTouch: "Entre em contato",
     balloonProjects: "Projetos",
@@ -120,11 +133,25 @@ const pt: TranslationKeys = {
     title: "Estudos de Caso",
     subtitle:
       "Aqui você pode ver alguns relatos de usuários das minhas plataformas.",
+    challenge: "Desafio",
+    solution: "Solução",
+    result: "Resultado",
+  },
+  stack: {
+    eyebrow: "Competências",
+    title: "Stack e habilidades",
+    subtitle:
+      "Algumas das tecnologias que já trabalhei e que tenho familiaridade. Juntamente de habilidades e competências profissionais.",
   },
   contact: {
     eyebrow: "Contato",
     title: "Vamos conversar",
-    resumeLink: "Meu Currículo Virtual",
+    linkedin: "LinkedIn",
+    github: "GitHub",
+    instagram: "Instagram",
+    email: "Email",
+    resumeLink: "Currículo",
+    tagline: "Desenvolvimento web e sistemas.",
   },
   resume: {
     pageTitle: "Currículo",

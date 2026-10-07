@@ -218,12 +218,21 @@ function Nav() {
             </Link>
           )}
 
-          <a
-            href="#"
-            className="hidden text-gray-600 transition-all duration-200 ease-in-out hover:scale-95 hover:text-gray-950 active:scale-90 md:inline dark:text-white dark:hover:text-gray-100"
-          >
-            {t.nav.stack}
-          </a>
+          {pathname === "/" ? (
+            <a
+              href="#stack"
+              className="hidden text-gray-600 transition-all duration-200 ease-in-out hover:scale-95 hover:text-gray-950 active:scale-90 md:inline dark:text-white dark:hover:text-gray-100"
+            >
+              {t.nav.stack}
+            </a>
+          ) : (
+            <Link
+              to="/#stack"
+              className="hidden text-gray-600 transition-all duration-200 ease-in-out hover:scale-95 hover:text-gray-950 active:scale-90 md:inline dark:text-white dark:hover:text-gray-100"
+            >
+              {t.nav.stack}
+            </Link>
+          )}
 
           <Link
             to="/curriculo-virtual"

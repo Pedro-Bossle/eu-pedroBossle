@@ -1,5 +1,16 @@
 import type { LocalizedString, LocalizedStringList } from "../i18n/localize";
 
+export type ProjectCase = {
+  context: LocalizedString;
+  challenge: LocalizedString;
+  solution: LocalizedString;
+  result: LocalizedString;
+  quote?: {
+    text: LocalizedString;
+    attribution: LocalizedString;
+  };
+};
+
 export type Project = {
   title: string;
   description: LocalizedString;
@@ -18,5 +29,5 @@ export type Project = {
     accent: string;
     text?: string;
   };
-  case?: LocalizedString;
+  case?: ProjectCase;
 };

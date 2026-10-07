@@ -20,7 +20,7 @@ const en: TranslationKeys = {
     tagline:
       "I turn complex processes into simple, fast, and easy-to-use systems.",
     passion:
-      "Passionate about technology solutions, automating processes, and simplifying workflows.",
+      "Passionate about technology solutions, about automating processes, and about simplifying workflows.",
     seeProjects: "View projects",
     getInTouch: "Get in touch",
     balloonProjects: "Projects",
@@ -47,13 +47,26 @@ const en: TranslationKeys = {
   cases: {
     eyebrow: "Stories related to the projects",
     title: "Case Studies",
+    subtitle: "Here you can read a few stories from users of my platforms.",
+    challenge: "Challenge",
+    solution: "Solution",
+    result: "Result",
+  },
+  stack: {
+    eyebrow: "Skills",
+    title: "Stack and skills",
     subtitle:
-      "Here you can read a few stories from users of my platforms.",
+      "Some of the technologies I've worked with and have familiarity with. Along with professional skills and competencies.",
   },
   contact: {
     eyebrow: "Contact",
     title: "Let's talk",
-    resumeLink: "My Virtual Resume",
+    linkedin: "LinkedIn",
+    github: "GitHub",
+    instagram: "Instagram",
+    email: "Email",
+    resumeLink: "Resume",
+    tagline: "Web development and systems.",
   },
   resume: {
     pageTitle: "Resume",

@@ -45,12 +45,12 @@
     },
     {
       "topic": {
-        "pt": "Soft-Skills",
-        "en": "Soft Skills"
+        "pt": "Soft skills",
+        "en": "Soft skills"
       },
       "description": {
-        "pt": "Comunicação, Negociação, Liderança de equipe, Proatividade.",
-        "en": "Communication, Negotiation, Team leadership, Proactivity."
+        "pt": "Comunicação, negociação, liderança de equipe, proatividade.",
+        "en": "Communication, negotiation, team leadership, proactivity."
       }
     },
     {
@@ -61,6 +61,16 @@
       "description": {
         "pt": "Edição de Vídeo em DaVinci Resolve e Movavi, Edição de Imagem com Canva e Photoshop, Gestão de Mídias Sociais (Instagram, YouTube).",
         "en": "Video editing in DaVinci Resolve and Movavi, image editing with Canva and Photoshop, social media management (Instagram, YouTube)."
+      }
+    },
+    {
+      "topic": {
+        "pt": "Idiomas",
+        "en": "Languages"
+      },
+      "description": {
+        "pt": "Português (nativo), Inglês (avançado).",
+        "en": "Portuguese (native), English (advanced)."
       }
     }
   ],
@@ -78,14 +88,14 @@
         "en": "April 2026 — present"
       },
       "summary": {
-        "pt": "Desenvolvimento web de sistemas e sites comerciais",
-        "en": "Web development of commercial systems and websites"
+        "pt": "Desenvolvimento web de sistemas e sites comerciais.",
+        "en": "Web development of commercial systems and websites."
       },
       "points": {
         "pt": [
-          "Sistemas para gerenciamento de comércios e web-services.",
-          "Sites institucionais e a landing pages.",
-          "TypeScript, JavaScript, SQL, HTML, CSS e React"
+          "Sistemas para gerenciamento de comércios e web services.",
+          "Sites institucionais e landing pages.",
+          "TypeScript, JavaScript, SQL, HTML, CSS e React."
         ],
         "en": [
           "Commerce management systems and web services.",
@@ -107,13 +117,13 @@
         "en": "September 2023 — present"
       },
       "summary": {
-        "pt": "Atuei inicialmente como Auxiliar Administrativo na parte de credenciamentos, parcerias e negociações além das tarefas mais simples. Posteriormente assumi o posto de Gestor de Credenciamentos e Parcerias, liderando o time de credenciamento e desenvolvendo soluções tecnológicas para empresa como no caso do EmerLab e derivados.",
+        "pt": "Atuei inicialmente como Auxiliar Administrativo na área de credenciamentos, parcerias e negociações, além das tarefas mais simples. Posteriormente assumi o posto de Gestor de Credenciamentos e Parcerias, liderando o time de credenciamento e desenvolvendo soluções tecnológicas para a empresa, como no caso do EmerLAB e derivados.",
         "en": "I started as an Administrative Assistant handling credentialing, partnerships, negotiations, and day-to-day tasks. I later became Credentialing and Partnerships Manager, leading the team and building internal tools such as EmerLAB and related products."
       },
       "points": {
         "pt": [
           "Situação: Empresa com processos administrativos manuais e baixa presença digital, demandando soluções de eficiência interna.",
-          "Tarefa: Automatizar rotinas do setor, credenciar parceiros veterinários, ampliar alcance nas mídias sociais e, posteriormente, unificar as operações em uma plataforma própria",
+          "Tarefa: Automatizar rotinas do setor, credenciar parceiros veterinários, ampliar o alcance nas mídias sociais e, posteriormente, unificar as operações em uma plataforma própria.",
           "Ação: Desenvolveu ferramentas em Excel e Office que eliminaram etapas manuais repetitivas; conduziu reuniões de negociação e credenciamento com clínicas parceiras; criou e editou conteúdo para Instagram e YouTube da empresa. Projetou e desenvolveu o EmerLAB, plataforma web interna completa que unificou tabelas de valores, negociações, credenciamento, geração de contratos com assinatura digital, registro de pagamentos, impressão de planos e RCs, mapa georreferenciado e prospecção — substituindo o uso fragmentado de Excel, Jotform, Word, Canva e Google Maps.",
           "Resultado: Redução de tempo em processos administrativos por outros setores; expansão da rede de parceiros credenciados; aumento de engajamento nas redes sociais com produção de vídeos e imagens consistentes. Com o EmerLAB, padronizou a operação, acelerou entregas documentais, reduziu retrabalho e inconsistências entre planilhas e documentos, e trouxe rastreabilidade e controle de permissões ao processo."
         ],
@@ -145,7 +155,7 @@
         "pt": [
           "Situação: Ambiente de alta rotatividade de clientes com exigência de atendimento ágil e personalizado.",
           "Tarefa: Garantir experiência positiva ao cliente e contribuir com as metas de vendas do estabelecimento.",
-          "Ação: Atuou com comunicação ativa, resolveu demandas no dia a dia e desenvolveu abordagem consultiva em vendas",
+          "Ação: Atuou com comunicação ativa, resolveu demandas no dia a dia e desenvolveu abordagem consultiva em vendas.",
           "Resultado: Consolidação de habilidades interpessoais e de vendas em ambiente de alta pressão."
         ],
         "en": [
@@ -224,11 +234,11 @@
       },
       "place": "UniFTEC — Caxias do Sul, RS",
       "period": {
-        "pt": "março 2023 – presente",
+        "pt": "Março 2023 – presente",
         "en": "March 2023 – present"
       },
       "description": {
-        "pt": "Projetos práticos: desenvolvimento de aplicações web responsivas com abordagem Mobile First; utilização de React, SQL e Excel em projetos acadêmicos; geração de PDFs, mapeamento por geolocalização, automação de processos e integração de funcionalidades voltadas à experiência do usuário, otimização de fluxo e funcionamento de redes",
+        "pt": "Projetos práticos: desenvolvimento de aplicações web responsivas com abordagem mobile first; utilização de React, SQL e Excel em projetos acadêmicos; geração de PDFs, mapeamento por geolocalização, automação de processos e integração de funcionalidades voltadas à experiência do usuário, otimização de fluxo e funcionamento de redes.",
         "en": "Hands-on projects: responsive mobile-first web apps; React, SQL, and Excel in coursework; PDF generation, geolocation, process automation, and UX-focused features for workflows and network operations."
       },
       "graduation": {

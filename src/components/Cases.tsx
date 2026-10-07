@@ -2,14 +2,62 @@ import { useEffect, useRef, useState } from "react";
 import { flushSync } from "react-dom";
 import { useLenis } from "lenis/react";
 import projectsData from "../data/projects.json";
-import type { Project } from "../types/project";
+import type { Project, ProjectCase } from "../types/project";
 import { projectLogos } from "../data/projectLogos";
 import { useLanguage } from "../i18n/LanguageContext";
-import { tx } from "../i18n/localize";
+import { tx, type Locale } from "../i18n/localize";
 
 const projects = projectsData as Project[];
 const MOVE_MS = 480;
 const REVEAL_DELAY_MS = MOVE_MS;
+
+function CaseBody({
+  projectCase,
+  locale,
+  labels,
+}: {
+  projectCase: ProjectCase;
+  locale: Locale;
+  labels: { challenge: string; solution: string; result: string };
+}) {
+  const sections = [
+    { label: labels.challenge, text: tx(projectCase.challenge, locale) },
+    { label: labels.solution, text: tx(projectCase.solution, locale) },
+    { label: labels.result, text: tx(projectCase.result, locale) },
+  ];
+
+  return (
+    <div className="space-y-5 px-4 pb-5 pt-1 sm:px-5">
+      <p className="text-xs leading-relaxed tracking-wide text-neutral-500 dark:text-neutral-400">
+        {tx(projectCase.context, locale)}
+      </p>
+
+      <dl className="space-y-4">
+        {sections.map((section) => (
+          <div key={section.label}>
+            <dt className="text-xs font-medium uppercase tracking-[0.14em] text-neutral-400 dark:text-neutral-500">
+              {section.label}
+            </dt>
+            <dd className="mt-1.5 text-sm leading-relaxed text-neutral-700 dark:text-neutral-300">
+              {section.text}
+            </dd>
+          </div>
+        ))}
+      </dl>
+
+      {projectCase.quote ? (
+        <blockquote className="border-l-2 border-neutral-300 pl-4 dark:border-neutral-600">
+          <p className="text-sm leading-relaxed text-neutral-600 italic dark:text-neutral-300">
+            “{tx(projectCase.quote.text, locale)}”
+          </p>
+          <footer className="mt-2 text-xs font-medium tracking-wide text-neutral-500 not-italic dark:text-neutral-400">
+            — {tx(projectCase.quote.attribution, locale)}
+          </footer>
+        </blockquote>
+      ) : null}
+    </div>
+  );
+}
 
 function Cases() {
   const { locale, t } = useLanguage();
@@ -176,15 +224,25 @@ function Cases() {
                 }`}
               >
                 <div className="min-h-0 overflow-hidden">
-                  <p
-                    className={`px-4 pb-4 text-sm leading-relaxed text-neutral-600 transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] dark:text-neutral-300 motion-reduce:transition-none ${
+                  <div
+                    className={`transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none ${
                       isOpen && revealed
                         ? "translate-y-0 opacity-100"
                         : "translate-y-2 opacity-0"
                     }`}
                   >
-                    {tx(project.case, locale)}
-                  </p>
+                    {project.case ? (
+                      <CaseBody
+                        projectCase={project.case}
+                        locale={locale}
+                        labels={{
+                          challenge: t.cases.challenge,
+                          solution: t.cases.solution,
+                          result: t.cases.result,
+                        }}
+                      />
+                    ) : null}
+                  </div>
                 </div>
               </div>
             </article>
