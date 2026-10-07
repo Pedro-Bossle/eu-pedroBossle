@@ -1,5 +1,8 @@
 import type { jsPDF } from "jspdf";
 
+/** Fixed layout width so mobile capture matches a desktop resume (~A4 content). */
+const PRINT_WIDTH_PX = 740;
+
 function openExperienceDetails(root: HTMLElement) {
   const items = root.querySelectorAll<HTMLDetailsElement>("details.resume-exp");
   const previous = new Map<HTMLDetailsElement, boolean>();
@@ -34,6 +37,32 @@ function hidePdfExtras(root: HTMLElement) {
   };
 }
 
+function applyPrintLayout(root: HTMLElement) {
+  const previous = {
+    width: root.style.width,
+    maxWidth: root.style.maxWidth,
+    minWidth: root.style.minWidth,
+    padding: root.style.padding,
+    boxSizing: root.style.boxSizing,
+  };
+
+  root.classList.add("resume-pdf-capture");
+  root.style.boxSizing = "border-box";
+  root.style.width = `${PRINT_WIDTH_PX}px`;
+  root.style.maxWidth = `${PRINT_WIDTH_PX}px`;
+  root.style.minWidth = `${PRINT_WIDTH_PX}px`;
+  root.style.padding = "28px 32px";
+
+  return () => {
+    root.classList.remove("resume-pdf-capture");
+    root.style.width = previous.width;
+    root.style.maxWidth = previous.maxWidth;
+    root.style.minWidth = previous.minWidth;
+    root.style.padding = previous.padding;
+    root.style.boxSizing = previous.boxSizing;
+  };
+}
+
 function prepareClone(cloned: HTMLElement) {
   cloned.style.backgroundColor = "#ffffff";
   cloned.style.color = "#171717";
@@ -41,6 +70,11 @@ function prepareClone(cloned: HTMLElement) {
   cloned.style.borderRadius = "0";
   cloned.style.border = "none";
   cloned.style.boxShadow = "none";
+  cloned.style.width = `${PRINT_WIDTH_PX}px`;
+  cloned.style.maxWidth = `${PRINT_WIDTH_PX}px`;
+  cloned.style.minWidth = `${PRINT_WIDTH_PX}px`;
+  cloned.style.padding = "28px 32px";
+  cloned.style.boxSizing = "border-box";
 
   cloned.querySelectorAll<HTMLElement>(".resume-prompt").forEach((el) => {
     el.style.display = "none";
@@ -142,11 +176,12 @@ function pageEndForBlocks(
   if (!split) return Math.floor(hardEnd);
 
   // Item starts on this page but doesn't fully fit → next page gets the whole item.
-  if (split.start > y + 8) {
+  // Only push if enough content already filled this page (~35%).
+  if (split.start > y + pageHeightPx * 0.35) {
     return Math.max(y + 1, Math.floor(split.start));
   }
 
-  // Single item taller than one page → split at hard end as last resort.
+  // Item itself is taller than remaining space → fill the page.
   return Math.floor(hardEnd);
 }
 
@@ -201,6 +236,19 @@ function addPageLinks(
   });
 }
 
+function waitFrames(count = 2) {
+  return new Promise<void>((resolve) => {
+    const step = (left: number) => {
+      if (left <= 0) {
+        resolve();
+        return;
+      }
+      requestAnimationFrame(() => step(left - 1));
+    };
+    step(count);
+  });
+}
+
 export async function downloadResumePdf(
   element: HTMLElement,
   filename: string,
@@ -212,19 +260,23 @@ export async function downloadResumePdf(
 
   const restoreDetails = openExperienceDetails(element);
   const restoreExtras = hidePdfExtras(element);
+  const restoreLayout = applyPrintLayout(element);
 
-  await new Promise((resolve) => requestAnimationFrame(() => resolve(null)));
-  await new Promise((resolve) => requestAnimationFrame(() => resolve(null)));
+  await waitFrames(3);
 
   try {
-    const layoutWidth = element.getBoundingClientRect().width;
+    const layoutWidth = element.getBoundingClientRect().width || PRINT_WIDTH_PX;
 
     const imgData = await domToPng(element, {
       scale: 2,
+      width: PRINT_WIDTH_PX,
       backgroundColor: "#ffffff",
       style: {
         backgroundColor: "#ffffff",
         color: "#171717",
+        width: `${PRINT_WIDTH_PX}px`,
+        maxWidth: `${PRINT_WIDTH_PX}px`,
+        minWidth: `${PRINT_WIDTH_PX}px`,
       },
       filter: (node) => {
         if (!(node instanceof HTMLElement)) return true;
@@ -285,11 +337,12 @@ export async function downloadResumePdf(
       y = Math.min(full.height, nextY);
       pageIndex++;
 
-      if (pageIndex > 40) break;
+      if (pageIndex > 20) break;
     }
 
     pdf.save(filename);
   } finally {
+    restoreLayout();
     restoreExtras();
     restoreDetails();
   }

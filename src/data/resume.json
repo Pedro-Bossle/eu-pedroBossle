@@ -10,7 +10,7 @@
   "email": "pedro.bossle.s@gmail.com",
   "summary": {
     "pt": "Desenvolvedor Web com experiência prática em HTML, CSS, JavaScript, TypeScript, SQL e React, atuando atualmente na VERSO Núcleo Criativo. Estudante de Análise e Desenvolvimento de Sistemas (UniFTEC). Nos últimos anos como Gestor de Credenciamentos na Emerdog Planos Pet, projetei e desenvolvi o EmerLAB, EmerMarketing e EmeRadar, plataforma interna que unificou operações de credenciamento, tabelas de valores, contratos, pagamentos, prospecção em massa, gerenciamento de redes sociais e processos de vendas. A ferramenta também auxilia as equipes de vendas a fornecer informações corretas aos clientes sem consultar diversas páginas e sistemas, centralizando informações e tornando o trabalho mais ágil e confiável, além de apoiar o crescimento da presença digital da empresa no Instagram e YouTube. Busco seguir expandindo habilidades técnicas em projetos reais de produto.",
-    "en": "Web developer with hands-on experience in HTML, CSS, JavaScript, TypeScript, SQL, and React, currently at VERSO Núcleo Criativo. Systems Analysis and Development student (UniFTEC). In recent years as Credentialing Manager at Emerdog Planos Pet, I designed and built EmerLAB, EmerMarketing, and EmeRadar — an internal platform that unified credentialing, pricing tables, contracts, payments, bulk prospecting, social media management, and sales processes. The tool also helps sales teams give customers accurate information without checking multiple pages and systems, centralizing data and making work faster and more reliable, while supporting the company's digital presence on Instagram and YouTube. I aim to keep expanding technical skills on real product projects."
+    "en": "Web developer with hands-on experience in HTML, CSS, JavaScript, TypeScript, SQL, and React, currently at VERSO Núcleo Criativo. Student of Systems Analysis and Development at UniFTEC. As Credentialing Manager at Emerdog Planos Pet, I designed and built EmerLAB, EmerMarketing, and EmeRadar — an internal platform that unified credentialing, pricing tables, contracts, payments, bulk prospecting, social media management, and sales workflows. It helps sales teams give accurate answers without jumping across tools, centralizes company data, and supports Emerdog's presence on Instagram and YouTube. I want to keep growing my technical skills on real product work."
   },
   "skills": [
     {
@@ -88,9 +88,9 @@
           "TypeScript, JavaScript, SQL, HTML, CSS e React"
         ],
         "en": [
-          "Systems for commerce management and web services.",
+          "Commerce management systems and web services.",
           "Institutional websites and landing pages.",
-          "TypeScript, JavaScript, SQL, HTML, CSS, and React"
+          "TypeScript, JavaScript, SQL, HTML, CSS, and React."
         ]
       }
     },
@@ -108,7 +108,7 @@
       },
       "summary": {
         "pt": "Atuei inicialmente como Auxiliar Administrativo na parte de credenciamentos, parcerias e negociações além das tarefas mais simples. Posteriormente assumi o posto de Gestor de Credenciamentos e Parcerias, liderando o time de credenciamento e desenvolvendo soluções tecnológicas para empresa como no caso do EmerLab e derivados.",
-        "en": "I started as an Administrative Assistant in credentialing, partnerships, and negotiations, plus day-to-day tasks. Later I became Credentialing and Partnerships Manager, leading the credentialing team and building technology solutions for the company such as EmerLab and related tools."
+        "en": "I started as an Administrative Assistant handling credentialing, partnerships, negotiations, and day-to-day tasks. I later became Credentialing and Partnerships Manager, leading the team and building internal tools such as EmerLAB and related products."
       },
       "points": {
         "pt": [
@@ -118,10 +118,10 @@
           "Resultado: Redução de tempo em processos administrativos por outros setores; expansão da rede de parceiros credenciados; aumento de engajamento nas redes sociais com produção de vídeos e imagens consistentes. Com o EmerLAB, padronizou a operação, acelerou entregas documentais, reduziu retrabalho e inconsistências entre planilhas e documentos, e trouxe rastreabilidade e controle de permissões ao processo."
         ],
         "en": [
-          "Situation: Company with manual admin processes and low digital presence, needing internal efficiency solutions.",
-          "Task: Automate departmental routines, credential veterinary partners, grow social reach, and later unify operations in a proprietary platform",
-          "Action: Built Excel and Office tools that removed repetitive manual steps; led negotiation and credentialing meetings with partner clinics; created and edited Instagram and YouTube content. Designed and developed EmerLAB, a full internal web platform unifying pricing tables, negotiations, credentialing, digital-signature contracts, payment records, plan and RC printing, georeferenced maps, and prospecting — replacing fragmented use of Excel, Jotform, Word, Canva, and Google Maps.",
-          "Result: Faster admin processes for other teams; expanded credentialed partner network; higher social engagement with consistent video and image production. With EmerLAB, standardized operations, sped up document delivery, reduced rework and spreadsheet inconsistencies, and added traceability and permission control."
+          "Situation: Manual admin processes and weak digital presence, with a clear need for internal efficiency.",
+          "Task: Automate team routines, credential veterinary partners, grow social reach, and later unify operations in one proprietary platform.",
+          "Action: Built Excel and Office tools that removed repetitive work; led negotiation and credentialing meetings with partner clinics; created Instagram and YouTube content. Designed and developed EmerLAB, an internal web platform for pricing tables, negotiations, credentialing, digital-signature contracts, payments, plan/RC printing, maps, and prospecting — replacing fragmented Excel, Jotform, Word, Canva, and Google Maps workflows.",
+          "Result: Faster admin work for other teams, a larger credentialed partner network, and stronger social engagement. EmerLAB standardized operations, sped up documents, cut rework between spreadsheets, and added permissions and traceability."
         ]
       }
     },
@@ -139,7 +139,7 @@
       },
       "summary": {
         "pt": "Atuei como garçom no restaurante Seikou, desenvolvendo habilidades de trabalho em equipe, agilidade e tomada de decisão sob pressão.",
-        "en": "Worked as a waiter at Seikou, building teamwork, speed, and decision-making under pressure."
+        "en": "Waiter at Seikou, developing teamwork, speed, and decision-making under pressure."
       },
       "points": {
         "pt": [
@@ -149,10 +149,10 @@
           "Resultado: Consolidação de habilidades interpessoais e de vendas em ambiente de alta pressão."
         ],
         "en": [
-          "Situation: High customer turnover requiring fast, personalized service.",
-          "Task: Deliver a positive guest experience and support the restaurant's sales goals.",
-          "Action: Communicated proactively, handled day-to-day requests, and developed a consultative sales approach",
-          "Result: Stronger interpersonal and sales skills in a high-pressure environment."
+          "Situation: High customer turnover with demand for fast, personalized service.",
+          "Task: Deliver a strong guest experience and support the restaurant's sales goals.",
+          "Action: Communicated proactively, handled day-to-day requests, and used a consultative sales approach.",
+          "Result: Stronger interpersonal and sales skills in a high-pressure setting."
         ]
       }
     },
@@ -170,7 +170,7 @@
       },
       "summary": {
         "pt": "Atuei como Jovem Aprendiz pelo CIEE na empresa Central de Rações, trabalhando como Estoquista e desenvolvendo habilidades de comunicação, organização e agilidade de ação.",
-        "en": "Worked as a CIEE Young Apprentice at Central de Rações as a stock clerk, developing communication, organization, and quick action skills."
+        "en": "CIEE Young Apprentice at Central de Rações as a stock clerk, building communication, organization, and execution skills."
       },
       "points": {
         "pt": [
@@ -180,10 +180,10 @@
           "Resultado: Melhora percebida na agilidade do atendimento e na localização de produtos pelos colaboradores."
         ],
         "en": [
-          "Situation: Store with poor stock organization, slowing customer service.",
+          "Situation: Poor stock organization was slowing customer service.",
           "Task: Reorganize inventory and support service and sales operations.",
-          "Action: Implemented a new physical stock layout, made products easier to find, and supported the sales team.",
-          "Result: Noticeably faster service and easier product location for staff."
+          "Action: Redesigned the physical stock layout, made products easier to find, and supported the sales team.",
+          "Result: Faster service and easier product location for staff."
         ]
       }
     }
@@ -201,7 +201,7 @@
       "name": "Casa de Axé Sango & Ossun",
       "case": {
         "pt": "Mensalidades, caixa, agenda e eventos saíram do caderno e passaram para uma plataforma usada no dia a dia da casa.",
-        "en": "Fees, cash, agenda, and events moved from a notebook into a platform used in the house's daily work."
+        "en": "Membership fees, cash, agenda, and events moved from a notebook into a day-to-day platform for the house."
       },
       "stack": ["TypeScript", "Supabase SQL", "HTML", "CSS"],
       "url": "https://www.casadease.com.br/"
@@ -210,7 +210,7 @@
       "name": "Templo Virtual",
       "case": {
         "pt": "Plataforma de código aberto para caixa, secretaria e eventos de capítulos, pensada para o celular.",
-        "en": "Open-source platform for chapter cash, secretariat, and events — built for mobile."
+        "en": "Open-source platform for chapter cash, secretariat, and events — designed for mobile."
       },
       "stack": ["React", "TypeScript", "Vite", "Supabase SQL"],
       "url": "https://templovirtual.app/"
@@ -220,7 +220,7 @@
     {
       "title": {
         "pt": "Tecnólogo em Análise e Desenvolvimento de Sistemas",
-        "en": "Technologist in Systems Analysis and Development"
+        "en": "Associate degree in Systems Analysis and Development"
       },
       "place": "UniFTEC — Caxias do Sul, RS",
       "period": {
@@ -229,11 +229,11 @@
       },
       "description": {
         "pt": "Projetos práticos: desenvolvimento de aplicações web responsivas com abordagem Mobile First; utilização de React, SQL e Excel em projetos acadêmicos; geração de PDFs, mapeamento por geolocalização, automação de processos e integração de funcionalidades voltadas à experiência do usuário, otimização de fluxo e funcionamento de redes",
-        "en": "Hands-on projects: responsive Mobile First web apps; React, SQL, and Excel in academic work; PDF generation, geolocation mapping, process automation, and UX-focused features for flow optimization and network operations"
+        "en": "Hands-on projects: responsive mobile-first web apps; React, SQL, and Excel in coursework; PDF generation, geolocation, process automation, and UX-focused features for workflows and network operations."
       },
       "graduation": {
         "pt": "Previsão de formação em 2027",
-        "en": "Expected graduation in 2027"
+        "en": "Expected graduation: 2027"
       }
     }
   ],

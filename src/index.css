@@ -71,6 +71,35 @@ body {
   color: #f9f9f9;
 }
 
+/* Force desktop-like type scale while capturing PDF on mobile viewports. */
+.resume-pdf-capture h1 {
+  font-size: 2rem !important;
+  line-height: 1.2 !important;
+}
+
+.resume-pdf-capture h2 {
+  font-size: 0.8rem !important;
+}
+
+.resume-pdf-capture h3,
+.resume-pdf-capture dt {
+  font-size: 1rem !important;
+}
+
+.resume-pdf-capture p,
+.resume-pdf-capture li,
+.resume-pdf-capture dd,
+.resume-pdf-capture summary,
+.resume-pdf-capture span {
+  font-size: 0.875rem !important;
+  line-height: 1.55 !important;
+}
+
+.resume-pdf-capture .resume-prompt,
+.resume-pdf-capture .resume-pdf-hide {
+  display: none !important;
+}
+
 @media print {
   @page {
     size: A4;

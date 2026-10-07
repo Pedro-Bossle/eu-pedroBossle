@@ -199,7 +199,7 @@ function ExperienceItem({
           <span className="opacity-60">{tx(item.period, locale)}</span>
           <span
             aria-hidden
-            className="flex h-8 w-8 items-center justify-center rounded-md border border-emerald-900/15 text-base leading-none text-emerald-800 sm:h-auto sm:w-auto sm:border-0 sm:text-sm dark:border-emerald-300/25 dark:text-emerald-300"
+            className="resume-pdf-hide flex h-8 w-8 items-center justify-center rounded-md border border-emerald-900/15 text-base leading-none text-emerald-800 sm:h-auto sm:w-auto sm:border-0 sm:text-sm dark:border-emerald-300/25 dark:text-emerald-300"
           >
             <span className="group-open:hidden">+</span>
             <span className="hidden group-open:inline">−</span>
@@ -360,7 +360,7 @@ function ResumePage() {
           className="px-3 py-5 sm:px-8 sm:py-8 print:px-0 print:py-0"
         >
           <header>
-            <Prompt>whoami</Prompt>
+            <Prompt>{t.resume.promptWhoami}</Prompt>
             <h1 className="mt-2 text-2xl font-semibold tracking-tight break-words sm:text-4xl">
               {resume.name}
             </h1>
@@ -383,7 +383,7 @@ function ResumePage() {
 
           {resume.summary && (
             <section className="mt-6 sm:mt-8">
-              <Prompt>cat resumo.txt</Prompt>
+              <Prompt>{t.resume.promptSummary}</Prompt>
               <h2 className="sr-only">{t.resume.summaryHeading}</h2>
               <p className="mt-3 max-w-4xl text-xs leading-relaxed opacity-85 sm:text-[15px]">
                 {tx(resume.summary, locale)}
@@ -393,7 +393,7 @@ function ResumePage() {
 
           {resume.skills.length > 0 && (
             <section className="mt-6 break-inside-avoid sm:mt-8">
-              <Prompt>ls competencias/</Prompt>
+              <Prompt>{t.resume.promptSkills}</Prompt>
               <h2 className="mt-3 text-[11px] font-medium uppercase tracking-[0.14em] opacity-60 sm:text-sm">
                 {t.resume.skillsHeading}
               </h2>
@@ -414,7 +414,7 @@ function ResumePage() {
 
           {resume.experience.length > 0 && (
             <section className="mt-6 sm:mt-8">
-              <Prompt>cat experiencia.log</Prompt>
+              <Prompt>{t.resume.promptExperience}</Prompt>
               <h2 className="mt-3 text-[11px] font-medium uppercase tracking-[0.14em] opacity-60 sm:text-sm">
                 {t.resume.experienceHeading}
               </h2>
@@ -433,7 +433,7 @@ function ResumePage() {
 
           {resume.featuredProjects.length > 0 && (
             <section className="mt-6 sm:mt-8">
-              <Prompt>cat projetos/destaque</Prompt>
+              <Prompt>{t.resume.promptProjects}</Prompt>
               <h2 className="mt-3 text-[11px] font-medium uppercase tracking-[0.14em] opacity-60 sm:text-sm">
                 {t.resume.featuredHeading}
               </h2>
@@ -451,7 +451,7 @@ function ResumePage() {
 
           {resume.education.length > 0 && (
             <section className="mt-6 break-inside-avoid sm:mt-8">
-              <Prompt>cat formacao.txt</Prompt>
+              <Prompt>{t.resume.promptEducation}</Prompt>
               <h2 className="mt-3 text-[11px] font-medium uppercase tracking-[0.14em] opacity-60 sm:text-sm">
                 {t.resume.educationHeading}
               </h2>
@@ -466,7 +466,7 @@ function ResumePage() {
 
           {resume.courses.length > 0 && (
             <section className="mt-6 break-inside-avoid pb-1 sm:mt-8 sm:pb-0">
-              <Prompt>cat cursos.txt</Prompt>
+              <Prompt>{t.resume.promptCourses}</Prompt>
               <h2 className="mt-3 text-[11px] font-medium uppercase tracking-[0.14em] opacity-60 sm:text-sm">
                 {t.resume.coursesHeading}
               </h2>

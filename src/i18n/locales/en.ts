@@ -67,6 +67,13 @@ const en: TranslationKeys = {
     featuredHeading: "Featured projects",
     educationHeading: "Education",
     coursesHeading: "Courses and certifications",
+    promptWhoami: "whoami",
+    promptSummary: "cat summary.txt",
+    promptSkills: "ls skills/",
+    promptExperience: "cat experience.log",
+    promptProjects: "cat projects/featured",
+    promptEducation: "cat education.txt",
+    promptCourses: "cat courses.txt",
   },
 };
 

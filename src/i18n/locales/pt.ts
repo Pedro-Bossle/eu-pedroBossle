@@ -61,6 +61,13 @@ export type TranslationKeys = {
     featuredHeading: string;
     educationHeading: string;
     coursesHeading: string;
+    promptWhoami: string;
+    promptSummary: string;
+    promptSkills: string;
+    promptExperience: string;
+    promptProjects: string;
+    promptEducation: string;
+    promptCourses: string;
   };
 };
 
@@ -131,6 +138,13 @@ const pt: TranslationKeys = {
     featuredHeading: "Projeto destaque",
     educationHeading: "Formação acadêmica",
     coursesHeading: "Cursos e certificações",
+    promptWhoami: "whoami",
+    promptSummary: "cat resumo.txt",
+    promptSkills: "ls competencias/",
+    promptExperience: "cat experiencia.log",
+    promptProjects: "cat projetos/destaque",
+    promptEducation: "cat formacao.txt",
+    promptCourses: "cat cursos.txt",
   },
 };
 
