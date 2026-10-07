@@ -70,3 +70,29 @@ body {
   --bg-color: #121212;
   color: #f9f9f9;
 }
+
+@media print {
+  @page {
+    size: A4;
+    margin: 12mm;
+  }
+
+  html,
+  body,
+  .dark {
+    background: #fff !important;
+    color: #171717 !important;
+  }
+
+  .resume-terminal,
+  .resume-terminal * {
+    color: #171717 !important;
+    background: transparent !important;
+    border-color: #d4d4d4 !important;
+    box-shadow: none !important;
+  }
+
+  .resume-prompt {
+    display: none !important;
+  }
+}

@@ -1,9 +1,11 @@
+import type { LocalizedString, LocalizedStringList } from "../i18n/localize";
+
 export type Project = {
   title: string;
-  description: string;
+  description: LocalizedString;
   stack: string[];
   visibility: "public" | "private";
-  category: string[];
+  category: LocalizedStringList;
   year: number;
   featured: boolean;
   openSource: boolean;
@@ -14,6 +16,7 @@ export type Project = {
   visual: {
     background: string;
     accent: string;
-    text: string;
+    text?: string;
   };
+  case?: LocalizedString;
 };

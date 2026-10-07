@@ -1,4 +1,9 @@
+import { Link } from "react-router";
+import { useLanguage } from "../i18n/LanguageContext";
+
 function Contact() {
+  const { t } = useLanguage();
+
   return (
     <section
       id="contato"
@@ -11,15 +16,49 @@ function Contact() {
       "
     >
       <p className="text-sm font-medium uppercase tracking-widest opacity-60">
-        Contato
+        {t.contact.eyebrow}
       </p>
       <h2 className="mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">
-        Vamos conversar
+        {t.contact.title}
       </h2>
-      <p className="mt-4 max-w-xl text-base leading-relaxed opacity-70">
-        Esta seção ainda está sendo implementada. Em breve você poderá falar
-        comigo por aqui.
-      </p>
+      <ul>
+        <li>
+          <a
+            href="https://www.linkedin.com/in/pedro-bossle-sandi-685625277/"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            LinkedIn
+          </a>
+        </li>
+      </ul>
+      <ul>
+        <li>
+          <a
+            href="https://www.instagram.com/pedro_bossle/"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Instagram
+          </a>
+        </li>
+      </ul>
+      <ul>
+        <li>
+          <a
+            href="mailto:pedro.bossle.s@gmail.com"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Email
+          </a>
+        </li>
+      </ul>
+      <ul>
+        <li>
+          <Link to="/curriculo-virtual">{t.contact.resumeLink}</Link>
+        </li>
+      </ul>
     </section>
   );
 }

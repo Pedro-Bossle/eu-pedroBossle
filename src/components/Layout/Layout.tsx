@@ -3,7 +3,7 @@ import { ReactLenis } from "lenis/react";
 import Nav from "../Nav";
 import Footer from "../Footer";
 import ScrollToTop from "../ScrollToTop";
-import SectionSnap from "../SectionSnap";
+import SectionFade from "../SectionFade";
 
 function Layout({ children }: { children: ReactNode }) {
   return (
@@ -13,7 +13,7 @@ function Layout({ children }: { children: ReactNode }) {
         <main>{children}</main>
         <Footer />
         <ScrollToTop />
-        <SectionSnap />
+        <SectionFade />
       </div>
     </ReactLenis>
   );

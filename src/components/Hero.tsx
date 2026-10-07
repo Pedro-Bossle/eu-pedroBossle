@@ -5,10 +5,12 @@ import HeroBalloon from "./HeroBalloon";
 import type { HeroIcon } from "./HeroBalloon";
 import BlocksIcon from "./icons/BlocksIcon";
 import PlaneIcon from "./icons/PlaneIcon";
+import { useLanguage } from "../i18n/LanguageContext";
 
 import github from "../assets/HeroBalloon/github.svg";
 
 const Hero = () => {
+  const { t } = useLanguage();
   /*
     Guarda qual balão está atualmente com hover.
 
@@ -111,7 +113,7 @@ const Hero = () => {
               opacity-60
             "
           >
-            Desenvolvedor
+            {t.hero.role}
           </p>
 
           {/* Nome */}
@@ -142,8 +144,7 @@ const Hero = () => {
               md:text-lg
             "
           >
-            Transformo processos complexos em sistemas simples,
-            rápidos e fáceis de usar.
+            {t.hero.tagline}
           </p>
 
           <p
@@ -155,8 +156,7 @@ const Hero = () => {
               opacity-70
             "
           >
-            Apaixonado por soluções tecnológicas, automatizar
-            processos e simplificar fluxos de trabalho.
+            {t.hero.passion}
           </p>
 
           {/* =================================================
@@ -195,7 +195,7 @@ const Hero = () => {
                 dark:hover:text-black
               "
             >
-              Ver projetos
+              {t.hero.seeProjects}
             </a>
 
             <a
@@ -222,7 +222,7 @@ const Hero = () => {
                 dark:border-white/20
               "
             >
-              Entre em contato
+              {t.hero.getInTouch}
             </a>
           </div>
         </div>
@@ -248,8 +248,8 @@ const Hero = () => {
 
           <HeroBalloon
             href="#projetos"
-            title="Projetos"
-            description="Veja o que estou construindo"
+            title={t.hero.balloonProjects}
+            description={t.hero.balloonProjectsDesc}
             icon={<BlocksIcon className="h-7 w-7" />}
             onHover={() => showIcon("blocks")}
             onLeave={hideIcon}
@@ -262,12 +262,13 @@ const Hero = () => {
 
           <HeroBalloon
             href="https://github.com/Pedro-Bossle"
-            title="GitHub"
-            description="Código e experimentos"
+            title={t.hero.balloonGithub}
+            description={t.hero.balloonGithubDesc}
             icon={
               <img
                 src={github}
                 alt=""
+                decoding="async"
                 className="
                   h-6
                   w-6
@@ -285,8 +286,8 @@ const Hero = () => {
 
           <HeroBalloon
             href="#contato"
-            title="Contato"
-            description="Vamos conversar"
+            title={t.hero.balloonContact}
+            description={t.hero.balloonContactDesc}
             icon={<PlaneIcon className="h-7 w-7" />}
             onHover={() => showIcon("contact")}
             onLeave={hideIcon}
@@ -325,6 +326,8 @@ const Hero = () => {
         <img
           src={github}
           alt=""
+          loading="lazy"
+          decoding="async"
           className="
             h-32
             w-32
@@ -435,7 +438,7 @@ const Hero = () => {
           hover:opacity-100
         "
       >
-        ↓ Scroll
+        {t.hero.scroll}
       </a>
     </section>
   );

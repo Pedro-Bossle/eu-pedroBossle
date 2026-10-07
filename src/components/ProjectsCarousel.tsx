@@ -8,12 +8,15 @@ import {
 import projectsData from "../data/projects.json";
 import type { Project } from "../types/project";
 import { projectLogos } from "../data/projectLogos";
+import { useLanguage } from "../i18n/LanguageContext";
+import { tx, txList } from "../i18n/localize";
 
 const projects = projectsData as Project[];
 const SWIPE_THRESHOLD = 48;
 const AUTO_PLAY_MS = 5500;
 
 const ProjectsCarousel = () => {
+  const { locale, t } = useLanguage();
   const [current, setCurrent] = useState(0);
   const [hoverPaused, setHoverPaused] = useState(false);
   const [hiddenPaused, setHiddenPaused] = useState(false);
@@ -73,7 +76,7 @@ const ProjectsCarousel = () => {
 
   return (
     <div
-      className="w-full"
+      className="w-full rounded-2xl"
       onMouseEnter={() => {
         if (window.matchMedia("(hover: hover)").matches) setHoverPaused(true);
       }}
@@ -89,7 +92,7 @@ const ProjectsCarousel = () => {
           className="flex gap-4 transition-transform duration-500 ease-out"
           style={{ transform: `translateX(calc(-${current} * (100% + 1rem)))` }}
         >
-          {projects.map((project) => {
+          {projects.map((project, index) => {
             const logo = project.image
               ? projectLogos[project.image as keyof typeof projectLogos]
               : undefined;
@@ -108,12 +111,10 @@ const ProjectsCarousel = () => {
                 {/* Visual / logo — topo no mobile, direita no desktop */}
                 <div
                   className="
-                    relative order-1 flex min-h-50 items-center justify-center
-    overflow-hidden
-    px-6 py-10
-    sm:min-h-55
-    md:order-2 md:min-h-full md:w-[48%] md:px-10 md:py-12
-  "
+                    relative order-1 h-50 overflow-hidden
+                    sm:h-55
+                    md:order-2 md:h-auto md:min-h-full md:w-[48%] md:self-stretch
+                  "
                   style={{ backgroundColor: project.visual.background }}
                 >
                   <div
@@ -167,11 +168,13 @@ const ProjectsCarousel = () => {
                   {logo && (
                     <img
                       src={logo}
-                      alt={`Logo do projeto ${project.title}`}
+                      alt={`${t.projects.logoAlt} ${project.title}`}
+                      loading={index === 0 ? "eager" : "lazy"}
+                      decoding="async"
+                      fetchPriority={index === 0 ? "high" : "low"}
                       className="
-                        relative z-10 h-28 w-28 object-contain
-                        sm:h-32 sm:w-32
-                        md:h-44 md:w-44
+                        absolute top-1/2 left-1/2 z-10 h-[75%] w-[75%]
+                        -translate-x-1/2 -translate-y-1/2 object-contain
                       "
                     />
                   )}
@@ -187,7 +190,7 @@ const ProjectsCarousel = () => {
                   "
                 >
                   <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-black/45 dark:text-white/45">
-                    {project.category.join(" • ")}{" "}
+                    {txList(project.category, locale).join(" • ")}{" "}
                     <span className="mx-2 text-black/25 dark:text-white/25">
                       ·
                     </span>
@@ -199,7 +202,7 @@ const ProjectsCarousel = () => {
                   </h2>
 
                   <p className="max-w-md text-sm leading-relaxed text-neutral-600 dark:text-neutral-400 md:text-[15px]">
-                    {project.description}
+                    {tx(project.description, locale)}
                   </p>
 
                   <div className="mt-1 flex flex-wrap gap-1.5">
@@ -231,7 +234,7 @@ const ProjectsCarousel = () => {
                         dark:text-neutral-100 dark:decoration-white/30
                       "
                     >
-                      Acesse o projeto
+                      {t.projects.access}
                       <span aria-hidden>→</span>
                     </a>
                   )}
@@ -247,7 +250,7 @@ const ProjectsCarousel = () => {
         <button
           type="button"
           onClick={previousProject}
-          aria-label="Projeto anterior"
+          aria-label={t.projects.previousAria}
           className="
             flex h-11 min-w-11 items-center justify-center rounded-full
             border border-black/15 bg-white px-3 text-sm text-neutral-800
@@ -263,7 +266,7 @@ const ProjectsCarousel = () => {
           <span className="sm:hidden" aria-hidden>
             ←
           </span>
-          <span className="hidden sm:inline">← Anterior</span>
+          <span className="hidden sm:inline">{t.projects.previous}</span>
         </button>
 
         <div className="flex flex-col items-center gap-2">
@@ -273,9 +276,9 @@ const ProjectsCarousel = () => {
                 key={project.title}
                 type="button"
                 onClick={() => goTo(index)}
-                aria-label={`Ir para ${project.title}`}
+                aria-label={`${t.projects.goTo} ${project.title}`}
                 aria-current={current === index ? "true" : undefined}
-                className="h-2 rounded-full transition-all duration-300 cursor-pointer"
+                className="h-2 cursor-pointer rounded-full transition-all duration-300"
                 style={{
                   width: current === index ? 22 : 8,
                   backgroundColor: projects[current].visual.accent,
@@ -292,7 +295,7 @@ const ProjectsCarousel = () => {
         <button
           type="button"
           onClick={nextProject}
-          aria-label="Próximo projeto"
+          aria-label={t.projects.nextAria}
           className="
             flex h-11 min-w-11 items-center justify-center rounded-full
             border border-black/15 bg-white px-3 text-sm text-neutral-800
@@ -308,7 +311,7 @@ const ProjectsCarousel = () => {
           <span className="sm:hidden" aria-hidden>
             →
           </span>
-          <span className="hidden sm:inline">Próximo →</span>
+          <span className="hidden sm:inline">{t.projects.next}</span>
         </button>
       </div>
     </div>

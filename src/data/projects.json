@@ -1,10 +1,16 @@
 [
   {
     "title": "Site Capítulo Farrapos",
-    "description": "Site institucional do Capítulo Farrapos Nº1111 da Ordem DeMolay, feito nos primeiros meses de curso da Alura",
+    "description": {
+      "pt": "Site institucional do Capítulo Farrapos Nº1111 da Ordem DeMolay, feito nos primeiros meses de curso da Alura",
+      "en": "Institutional website for Capítulo Farrapos Nº1111 of the DeMolay Order, built in the first months of the Alura course"
+    },
     "stack": ["HTML", "CSS", "Javascript"],
     "visibility": "public",
-    "category": ["Site institucional"],
+    "category": {
+      "pt": ["Site institucional"],
+      "en": ["Institutional website"]
+    },
     "year": 2025,
     "featured": true,
     "openSource": false,
@@ -17,10 +23,16 @@
   },
   {
     "title": "Casa de Axé Sango & Ossun",
-    "description": "Site institucional e sistema de gerenciamento interno de uma casa de religião localizada em Caxias do Sul",
-    "stack": ["Typescript", "Javascript", "CSS", "Supabase", "HTML"],
+    "description": {
+      "pt": "Site institucional e sistema de gerenciamento interno de uma casa de religião localizada em Caxias do Sul",
+      "en": "Institutional website and internal management system for a religious house in Caxias do Sul"
+    },
+    "stack": ["Typescript", "Javascript", "CSS", "Supabase SQL", "HTML"],
     "visibility": "public",
-    "category": ["Site Institucional", "SaaS"],
+    "category": {
+      "pt": ["Site Institucional", "SaaS"],
+      "en": ["Institutional website", "SaaS"]
+    },
     "year": 2026,
     "featured": true,
     "openSource": false,
@@ -29,14 +41,31 @@
     "visual": {
       "background": "#770000",
       "accent": "#ffdc16"
+    },
+    "case": {
+      "pt": "Antigamente, registrávamos as nossas mensalidades e informações dos membros e participantes da casa em um caderninho com mais de uma década. Hoje, conseguimos manter tudo à um toque de distância com controle de caixa, mensalidades, atendimento ao cliente e cobranças dos participantes. Além de toda organização de agenda e rotina que foi facilitada pela plataforma com os devidos módulos de Agenda e Eventos. - Dirigente do Terreiro.",
+      "en": "We used to record membership fees and member information in a notebook that was more than a decade old. Today, everything is a tap away — cash control, fees, customer service, and participant billing. Agenda and Events modules also made scheduling and daily routines much easier. — House leader."
     }
   },
   {
-    "title": "Emerdog Tudo em Um",
-    "description": "Sistema privado que unifica 9+ ferramentas para automatizar o fluxo de trabalho dos setores de Venda e Credenciamento da Emerdog.",
-    "stack": ["Javascript", "CSS", "Supabase", "Typescript", "REACT", "VITE"],
+    "title": "Emer LAB, Radar e Marketing",
+    "description": {
+      "pt": "Sistema privado que unifica 9+ ferramentas para automatizar o fluxo de trabalho dos setores de Venda, Credenciamento, Marketing e Prospecção de parceiros da Emerdog.",
+      "en": "Private system that unifies 9+ tools to automate workflows across Sales, Credentialing, Marketing, and partner prospecting at Emerdog."
+    },
+    "stack": [
+      "Javascript",
+      "CSS",
+      "Supabase SQL",
+      "Typescript",
+      "REACT",
+      "VITE"
+    ],
     "visibility": "private",
-    "category": ["SaaS"],
+    "category": {
+      "pt": ["SaaS"],
+      "en": ["SaaS"]
+    },
     "year": 2026,
     "featured": true,
     "openSource": false,
@@ -44,38 +73,123 @@
     "visual": {
       "background": "#a8bfff",
       "accent": "#e8eeff"
+    },
+    "case": {
+      "pt": "A Emerdog utilizava várias ferramentas diferentes para organizar a empresa, entre elas o Excel, Word, Canva, Meta entre outras várias. Hoje, a Emerdog utiliza uma unica ferramenta que abrange todos os setores da empresa unindo funcionalidades de controle de repasses, cadastros de parceiros, tabelas de valores e impressão de planos, prospecção de credenciados, agenda de marketing e agendamento de postagens, e várias outras que otimizaram o fluxo de trabalho de vários setores da empresa que se encontravam perdidos em meio à tabelas de informações.",
+      "en": "Emerdog used many different tools to run the company — Excel, Word, Canva, Meta, and more. Today it uses a single platform covering every department: payout control, partner registration, pricing tables and plan printing, credentialed partner prospecting, marketing calendar and post scheduling, and more — streamlining workflows that were previously lost across scattered spreadsheets."
     }
   },
   {
     "title": "Templo Virtual",
-    "description": "Sistema de código aberto multi-tenant e multi-realm para gerenciamento de Organizações Paramaçônicas e Lojas Maçônicas.",
-    "stack": ["Javascript", "CSS", "Supabase", "Typescript", "REACT", "VITE"],
+    "description": {
+      "pt": "Sistema de código aberto multi-tenant e multi-realm para gerenciamento de Organizações Paramaçônicas e Lojas Maçônicas.",
+      "en": "Open-source multi-tenant, multi-realm system for managing para-Masonic organizations and Masonic lodges."
+    },
+    "stack": [
+      "Javascript",
+      "CSS",
+      "Supabase SQL",
+      "Typescript",
+      "REACT",
+      "VITE"
+    ],
     "visibility": "public",
-    "category": ["SaaS"],
+    "category": {
+      "pt": ["SaaS"],
+      "en": ["SaaS"]
+    },
     "year": 2026,
     "featured": true,
     "openSource": true,
     "image": "templo-virtual",
     "link": "https://templovirtual.app/",
     "visual": {
-      "background": "#304787",
-      "accent": "#a0fbff"
+      "background": "#40556d",
+      "accent": "#cca655"
+    },
+    "case": {
+      "pt": "Por um longo período fizemos uma pesquisa de utilidades que mais impactavam os capítulos durante a gestão administrativa, e vimos que vários tinham dificuldade em controlar o caixa, secretaria e a gestão de eventos. Então fizemos uma plataforma na qual unifique todas as dores de um capítulo e auxilie na hora de sana-las com simples cliques e engenharia dedicada ao mobile.",
+      "en": "After researching what hurt chapters most in day-to-day admin, we found many struggled with cash control, secretariat work, and event management. So we built a platform that unifies those pain points and helps solve them with simple clicks and mobile-first engineering."
     }
   },
   {
     "title": "Flow Finanças",
-    "description": "Um sistema pra registro de despesas, visando a facilidade de registrar entradas e saidas na palma da mão, com ajudante de IA e relatórios mensais de análise bancária.",
-    "stack": ["Javascript", "CSS", "Supabase", "Typescript", "REACT", "VITE"],
-    "visibility": "public",
-    "category": ["SaaS"],
+    "description": {
+      "pt": "Um sistema feito sob medida para registro de despesas, visando a facilidade de registrar entradas e saidas na palma da mão, com ajudante de IA e relatórios mensais de análise bancária.",
+      "en": "A custom expense tracker built for easy in/out recording on the phone, with an AI assistant and monthly banking analysis reports."
+    },
+    "stack": [
+      "Javascript",
+      "CSS",
+      "Supabase SQL",
+      "Typescript",
+      "REACT",
+      "VITE"
+    ],
+    "visibility": "private",
+    "category": {
+      "pt": ["SaaS"],
+      "en": ["SaaS"]
+    },
     "year": 2026,
     "featured": true,
     "openSource": false,
     "image": "flow-logo",
-    "link": "https://flow-finance-olive.vercel.app/#",
     "visual": {
       "background": "#1C332E",
       "accent": "#7BE0A8"
+    },
+    "case": {
+      "pt": "Um sistema feito sob medida para uma pessoa que mantinha um caderninho com todas as suas despesas e receitas, visando a facilidade de registrar entradas e saidas na palma da mão, com ajudante de IA e relatórios mensais de análise bancária.",
+      "en": "Built for someone who kept every expense and income in a notebook — now they can log transactions on their phone, with an AI helper and monthly banking analysis reports."
+    }
+  },
+  {
+    "title": "Maxi Metal",
+    "description": {
+      "pt": "Landingpage para empresa metalúrgica feito em conjunto com a equipe da VERSO NÚCLEO CRIATIVO.",
+      "en": "Landing page for a metalworking company, built together with the VERSO NÚCLEO CRIATIVO team."
+    },
+    "stack": ["Javascript", "CSS", "REACT", "VITE"],
+    "visibility": "public",
+    "category": {
+      "pt": ["Site Institucional"],
+      "en": ["Institutional website"]
+    },
+    "year": 2026,
+    "featured": true,
+    "openSource": false,
+    "image": "maxi-logo",
+    "link": "https://www.maximmmetal.com.br/",
+    "visual": {
+      "background": "#011C52",
+      "accent": "#ffb200"
+    }
+  },
+  {
+    "title": "SQuaRE QUEST - Missão Nexus-9",
+    "description": {
+      "pt": "Quiz interativo feito para a disciplina de Qualidade e Auditoria sobre as 9 características de qualidade do produto da ISO/IEC 25010:2023. Auditoria gamificada do NEXUS-9, com banco de questões editável e documentação integrada. Contém um banco de dados temporário que foi utilizado para gravar os melhores jogadores durante o período de apresentações do projeto em aula.",
+      "en": "Interactive quiz for the Quality and Audit course on the 9 product quality characteristics of ISO/IEC 25010:2023. Gamified NEXUS-9 audit with an editable question bank and integrated docs. Includes a temporary database used to store top players during class presentations."
+    },
+    "stack": ["Javascript", "CSS", "Postgre SQL", "HTML"],
+    "visibility": "public",
+    "category": {
+      "pt": ["Jogo"],
+      "en": ["Game"]
+    },
+    "year": 2026,
+    "featured": true,
+    "openSource": true,
+    "image": "square-logo",
+    "link": "https://pedro-bossle.github.io/SQUARE/",
+    "visual": {
+      "background": "#09151E",
+      "accent": "#C9A0FF"
+    },
+    "case": {
+      "pt": "Um quiz interativo com estilo retro que foi feito para apresentação de um projeto da disciplina de Qualidade e Auditoria da turma online de 2026/02 conduzida pela professora Stefani Mano Valmini da faculdade UNIFtec com a missão de fixar o conteudo aprendido durante o semestre.",
+      "en": "A retro-styled interactive quiz presented for the Quality and Audit course (online 2026/02 class with professor Stefani Mano Valmini at UNIFtec), designed to reinforce what was learned during the semester."
     }
   }
 ]

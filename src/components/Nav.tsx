@@ -1,8 +1,13 @@
 import { useEffect, useState } from "react";
+import { Link, useLocation } from "react-router";
+import { useLanguage } from "../i18n/LanguageContext";
+import type { Locale } from "../i18n/localize";
 
 function Nav() {
+  const { pathname } = useLocation();
+  const { locale, setLocale, t } = useLanguage();
   const [isBouncing, setIsBouncing] = useState(false);
-  const [onHero, setOnHero] = useState(true);
+  const [onHero, setOnHero] = useState(pathname === "/");
   const handleAnimationEnd = () => {
     setIsBouncing(false);
   };
@@ -14,7 +19,12 @@ function Nav() {
 
   useEffect(() => {
     const hero = document.getElementById("inicio");
-    if (!hero) return;
+    if (!hero) {
+      setTimeout(() => {
+        setOnHero(false);
+      }, 100);
+      return;
+    }
 
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -25,7 +35,7 @@ function Nav() {
 
     observer.observe(hero);
     return () => observer.disconnect();
-  }, []);
+  }, [pathname]);
 
   useEffect(() => {
     const header = document.getElementById("site-header");
@@ -64,11 +74,27 @@ function Nav() {
     });
   };
 
+  const LangButton = ({ code, label, aria }: { code: Locale; label: string; aria: string }) => (
+    <button
+      type="button"
+      onClick={() => setLocale(code)}
+      aria-label={aria}
+      aria-pressed={locale === code}
+      className={`cursor-pointer text-xs font-medium tracking-wide transition-opacity sm:text-sm ${
+        locale === code
+          ? "opacity-100"
+          : "opacity-40 hover:opacity-70"
+      }`}
+    >
+      {label}
+    </button>
+  );
+
   return (
     <header
       id="site-header"
       className={`
-        sticky top-0 z-40
+        sticky top-0 z-40 print:hidden
         transition-all duration-300 ease-out
         ${
           onHero
@@ -77,12 +103,6 @@ function Nav() {
         }
       `}
     >
-      {/*
-        MOBILE-FIRST: escrevemos o estilo do celular PRIMEIRO (sem prefixo).
-        Depois sobrescrevemos só o que muda em telas maiores:
-          sm: ≥ 640px
-          md: ≥ 768px
-      */}
       <div
         className={`
           flex items-center justify-around px-1 text-center
@@ -90,8 +110,8 @@ function Nav() {
           ${onHero ? "text-sm sm:text-base md:text-lg" : "text-base sm:text-lg md:text-xl"}
         `}
       >
-        {/* Marca: menor no mobile, cresce em sm */}
-        <div
+        <Link
+          to="/"
           className={`flex items-center transition-all duration-300 ${
             onHero ? "gap-1.5 sm:gap-2" : "gap-2 sm:gap-2.5"
           }`}
@@ -120,72 +140,113 @@ function Nav() {
           >
             .dev Bossle
           </h1>
-        </div>
-        {/*
-          Nav:
-          - base (mobile): só o toggle do tema (links hidden)
-          - sm: mostra links principais
-          - md: mostra o restante + mais espaço entre itens
-        */}
+        </Link>
+
         <nav
           className={`flex items-center text-center font-light transition-all duration-300 ${
             onHero ? "gap-3 sm:gap-6 md:gap-10" : "gap-4 sm:gap-8 md:gap-12"
           }`}
         >
-          {/* hidden no mobile → aparece a partir de sm */}
-          <a
-            href="#inicio"
-            className="hidden text-gray-600 transition-all duration-200 ease-in-out hover:scale-95 hover:text-gray-950 active:scale-90 sm:inline dark:text-white dark:hover:text-gray-100"
-          >
-            Início
-          </a>
+          {pathname === "/" ? (
+            <a
+              href="#inicio"
+              className="hidden text-gray-600 transition-all duration-200 ease-in-out hover:scale-95 hover:text-gray-950 active:scale-90 sm:inline dark:text-white dark:hover:text-gray-100"
+            >
+              {t.nav.home}
+            </a>
+          ) : (
+            <Link
+              to="/#inicio"
+              className="hidden text-gray-600 transition-all duration-200 ease-in-out hover:scale-95 hover:text-gray-950 active:scale-90 sm:inline dark:text-white dark:hover:text-gray-100"
+            >
+              {t.nav.home}
+            </Link>
+          )}
 
-          {/* hidden até md */}
-          <a
-            href="#projetos"
-            className="hidden text-gray-600 transition-all duration-200 ease-in-out hover:scale-95 hover:text-gray-950 active:scale-90 md:inline dark:text-white dark:hover:text-gray-100"
-          >
-            Destaques
-          </a>
+          {pathname === "/" ? (
+            <a
+              href="#projetos"
+              className="hidden text-gray-600 transition-all duration-200 ease-in-out hover:scale-95 hover:text-gray-950 active:scale-90 md:inline dark:text-white dark:hover:text-gray-100"
+            >
+              {t.nav.highlights}
+            </a>
+          ) : (
+            <Link
+              to="/#projetos"
+              className="hidden text-gray-600 transition-all duration-200 ease-in-out hover:scale-95 hover:text-gray-950 active:scale-90 md:inline dark:text-white dark:hover:text-gray-100"
+            >
+              {t.nav.highlights}
+            </Link>
+          )}
+
+          {pathname === "/" ? (
+            <a
+              href="#cases"
+              className="hidden text-gray-600 transition-all duration-200 ease-in-out hover:scale-95 hover:text-gray-950 active:scale-90 sm:inline dark:text-white dark:hover:text-gray-100"
+            >
+              {t.nav.cases}
+            </a>
+          ) : (
+            <Link
+              to="/#cases"
+              className="hidden text-gray-600 transition-all duration-200 ease-in-out hover:scale-95 hover:text-gray-950 active:scale-90 sm:inline dark:text-white dark:hover:text-gray-100"
+            >
+              {t.nav.cases}
+            </Link>
+          )}
+
           <a
             href="#"
             className="hidden text-gray-600 transition-all duration-200 ease-in-out hover:scale-95 hover:text-gray-950 active:scale-90 md:inline dark:text-white dark:hover:text-gray-100"
           >
-            O que faço
+            {t.nav.stack}
           </a>
 
-          {/* aparece a partir de sm */}
-          <a
-            href="#projetos"
-            className="hidden text-gray-600 transition-all duration-200 ease-in-out hover:scale-95 hover:text-gray-950 active:scale-90 sm:inline dark:text-white dark:hover:text-gray-100"
+          <Link
+            to="/curriculo-virtual"
+            aria-current={
+              pathname === "/curriculo-virtual" ? "page" : undefined
+            }
+            className={`hidden transition-all duration-200 ease-in-out hover:scale-95 active:scale-90 sm:inline ${
+              pathname === "/curriculo-virtual"
+                ? "font-medium text-gray-950 dark:text-white"
+                : "text-gray-600 hover:text-gray-950 dark:text-white dark:hover:text-gray-100"
+            }`}
           >
-            Cases
-          </a>
+            {t.nav.resume}
+          </Link>
 
-          {/* hidden até md */}
-          <a
-            href="#"
-            className="hidden text-gray-600 transition-all duration-200 ease-in-out hover:scale-95 hover:text-gray-950 active:scale-90 md:inline dark:text-white dark:hover:text-gray-100"
-          >
-            Stack
-          </a>
+          {pathname === "/" ? (
+            <a
+              href="#contato"
+              className="hidden text-gray-600 transition-all duration-200 ease-in-out hover:scale-95 hover:text-gray-950 active:scale-90 sm:inline dark:text-white dark:hover:text-gray-100"
+            >
+              {t.nav.contact}
+            </a>
+          ) : (
+            <Link
+              to="/#contato"
+              className="hidden text-gray-600 transition-all duration-200 ease-in-out hover:scale-95 hover:text-gray-950 active:scale-90 sm:inline dark:text-white dark:hover:text-gray-100"
+            >
+              {t.nav.contact}
+            </Link>
+          )}
 
-          {/* aparece a partir de sm */}
-          <a
-            href="#contato"
-            className="hidden text-gray-600 transition-all duration-200 ease-in-out hover:scale-95 hover:text-gray-950 active:scale-90 sm:inline dark:text-white dark:hover:text-gray-100"
-          >
-            Contato
-          </a>
+          <div className="flex items-center gap-1.5" role="group" aria-label="Language">
+            <LangButton code="pt" label={t.nav.langPt} aria={t.nav.switchToPt} />
+            <span className="text-xs opacity-30" aria-hidden>
+              /
+            </span>
+            <LangButton code="en" label={t.nav.langEn} aria={t.nav.switchToEn} />
+          </div>
 
-          {/* Sempre visível: base w-5, sobe para w-6 no sm */}
           <button type="button" id="modeToggle" onClick={toggleDarkMode}>
             <img
               src={`${import.meta.env.BASE_URL}${dark ? "sun.png" : "moon.png"}`}
               className={`cursor-pointer transition-all duration-300 ${
                 onHero ? "w-5 sm:w-6" : "w-6 sm:w-7"
               }`}
-              alt={dark ? "Modo claro" : "Modo escuro"}
+              alt={dark ? t.nav.lightMode : t.nav.darkMode}
             />
           </button>
         </nav>

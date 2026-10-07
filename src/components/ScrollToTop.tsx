@@ -15,7 +15,7 @@ const ScrollToTop = () => {
       aria-label="Voltar ao topo"
       onClick={() => lenis?.scrollTo(0, { duration: 1.2 })}
       className={`
-        fixed right-4 bottom-5 z-50
+        fixed right-4 bottom-5 z-50 print:hidden
         flex h-11 w-11 items-center justify-center
         rounded-full border border-black/15 bg-white
         text-lg text-neutral-800 shadow-sm
