@@ -1,6 +1,7 @@
 import {
   useEffect,
   useMemo,
+  useRef,
   useState,
   type MouseEvent,
   type ReactNode,
@@ -12,7 +13,12 @@ import type {
   OrcamentoProfile,
   OrcamentoProposal,
 } from "../../types/orcamentos";
+import {
+  downloadProposalPdf,
+  proposalPdfFilename,
+} from "./downloadProposalPdf";
 import { money, uid } from "./money";
+import ProposalPdfDocument from "./ProposalPdfDocument";
 
 type Tab = "dashboard" | "clients" | "proposals" | "profile" | "settings";
 
@@ -145,6 +151,9 @@ function Panel({
   const [dark, setDark] = useState(
     () => document.documentElement.classList.contains("dark"),
   );
+  const [pdfSource, setPdfSource] = useState<OrcamentoProposal | null>(null);
+  const [pdfBusy, setPdfBusy] = useState(false);
+  const pdfRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     document.title = "Orçamentos · .dev Bossle";
@@ -214,6 +223,28 @@ function Panel({
     setEditing(null);
     setClientForm(null);
     setTab(next);
+  };
+
+  const exportPdf = (proposal: OrcamentoProposal) => {
+    if (pdfBusy) return;
+    setPdfBusy(true);
+    setPdfSource(proposal);
+    window.setTimeout(async () => {
+      try {
+        const el = pdfRef.current;
+        if (!el) throw new Error("Documento PDF não montou");
+        await downloadProposalPdf(
+          el,
+          proposalPdfFilename(proposal.company),
+        );
+        showToast("PDF gerado");
+      } catch (e) {
+        showToast(e instanceof Error ? e.message : "Falha ao gerar PDF");
+      } finally {
+        setPdfSource(null);
+        setPdfBusy(false);
+      }
+    }, 80);
   };
 
   const toggleDark = (event: MouseEvent<HTMLButtonElement>) => {
@@ -365,7 +396,7 @@ function Panel({
           {new Date(p.created).toLocaleDateString("pt-BR")}
         </p>
       </div>
-      <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2">
         <p className="text-base font-semibold tabular-nums tracking-tight">
           {money(p.total)}
         </p>
@@ -375,6 +406,14 @@ function Panel({
           onClick={() => setEditing({ ...p })}
         >
           Abrir
+        </button>
+        <button
+          type="button"
+          className={btn}
+          disabled={pdfBusy}
+          onClick={() => exportPdf(p)}
+        >
+          {pdfBusy && pdfSource?.id === p.id ? "PDF…" : "PDF"}
         </button>
         {!compact ? (
           <button
@@ -471,13 +510,21 @@ function Panel({
                       : "Novo orçamento"}
                   </h1>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
                   <button
                     type="button"
                     className={btn}
                     onClick={() => setEditing(null)}
                   >
                     Cancelar
+                  </button>
+                  <button
+                    type="button"
+                    className={btn}
+                    disabled={pdfBusy}
+                    onClick={() => exportPdf(editing)}
+                  >
+                    {pdfBusy ? "Gerando PDF…" : "Baixar PDF"}
                   </button>
                   <button
                     type="button"
@@ -1227,6 +1274,21 @@ function Panel({
       {toast ? (
         <div className="fixed bottom-[calc(4.5rem+env(safe-area-inset-bottom))] left-1/2 z-50 -translate-x-1/2 bg-neutral-900 px-5 py-2.5 text-sm font-medium text-white dark:bg-[#f9f9f9] dark:text-neutral-900 md:bottom-6">
           {toast}
+        </div>
+      ) : null}
+
+      {pdfSource ? (
+        <div
+          aria-hidden
+          className="pointer-events-none fixed top-0 left-[-10000px] bg-white"
+        >
+          <div ref={pdfRef}>
+            <ProposalPdfDocument
+              proposal={pdfSource}
+              client={clients.find((c) => c.id === pdfSource.clientId)}
+              profile={profile}
+            />
+          </div>
         </div>
       ) : null}
     </div>
