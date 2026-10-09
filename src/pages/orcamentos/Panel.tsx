@@ -1,4 +1,11 @@
-import { useMemo, useState } from "react";
+import {
+  useEffect,
+  useMemo,
+  useState,
+  type MouseEvent,
+  type ReactNode,
+} from "react";
+import { Link } from "react-router";
 import { orcamentosApi } from "../../lib/orcamentos/api";
 import type {
   OrcamentoClient,
@@ -22,6 +29,8 @@ type Props = {
   }) => void;
 };
 
+const STATUSES = ["Em elaboração", "Enviado", "Aprovado", "Recusado"] as const;
+
 const blankProposal = (clientId = ""): OrcamentoProposal => ({
   id: uid(),
   clientId,
@@ -43,13 +52,80 @@ const blankProposal = (clientId = ""): OrcamentoProposal => ({
 });
 
 const inputClass =
-  "w-full rounded-xl border border-[#1f2d27] bg-[#0c1210] px-3 py-2.5 text-sm outline-none focus:border-[#00d492]";
+  "w-full border border-neutral-200 bg-[#f9f9f9] px-3 py-2.5 text-sm outline-none transition focus:border-emerald-600 dark:border-neutral-700 dark:bg-[#121212] dark:focus:border-emerald-400";
 const cardClass =
-  "rounded-2xl border border-[#1f2d27] bg-[#111a16] p-5";
+  "border border-neutral-200 bg-white p-5 dark:border-neutral-800 dark:bg-[#151515]";
 const btn =
-  "inline-flex items-center justify-center rounded-xl border border-[#1f2d27] bg-[#16221c] px-3 py-2 text-sm font-semibold transition hover:border-[#00d492]";
+  "inline-flex items-center justify-center gap-2 border border-neutral-200 bg-white px-3.5 py-2.5 text-sm font-medium transition hover:border-neutral-400 dark:border-neutral-700 dark:bg-[#151515] dark:hover:border-neutral-500";
 const btnPrimary =
-  "inline-flex items-center justify-center rounded-xl bg-[#00d492] px-3 py-2 text-sm font-bold text-[#04120c] transition hover:opacity-90";
+  "inline-flex items-center justify-center gap-2 bg-neutral-900 px-3.5 py-2.5 text-sm font-semibold text-white transition hover:opacity-90 disabled:opacity-50 dark:bg-[#f9f9f9] dark:text-neutral-900";
+
+function statusClass(status: string) {
+  const s = status.toLowerCase();
+  if (s.includes("aprov"))
+    return "bg-emerald-500/10 text-emerald-800 dark:text-emerald-300";
+  if (s.includes("envi"))
+    return "bg-amber-500/10 text-amber-800 dark:text-amber-300";
+  if (s.includes("recus") || s.includes("cancel"))
+    return "bg-red-500/10 text-red-700 dark:text-red-300";
+  return "bg-neutral-100 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-300";
+}
+
+function TrafficLights({ compact }: { compact?: boolean }) {
+  const size = compact ? "size-2.5 sm:size-3" : "size-3 sm:size-3.5";
+  return (
+    <span className="inline-flex items-center gap-1.5" aria-hidden>
+      <span className={`rounded-full bg-red-500 ${size}`} />
+      <span className={`rounded-full bg-yellow-500 ${size}`} />
+      <span className={`rounded-full bg-green-500 ${size}`} />
+    </span>
+  );
+}
+
+function Icon({ d, paths }: { d?: string; paths?: string[] }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      className="size-[18px] shrink-0"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      {d ? <path d={d} /> : null}
+      {paths?.map((p) => (
+        <path key={p} d={p} />
+      ))}
+    </svg>
+  );
+}
+
+const navIcons: Record<Tab, string[]> = {
+  dashboard: ["M3 12l9-9 9 9", "M5 10v10h14V10"],
+  clients: [
+    "M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2",
+    "M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8",
+    "M23 21v-2a4 4 0 0 0-3-3.87",
+    "M16 3.13a4 4 0 0 1 0 7.75",
+  ],
+  proposals: [
+    "M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z",
+    "M14 2v6h6",
+    "M8 13h8",
+    "M8 17h5",
+  ],
+  profile: [
+    "M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2",
+    "M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8",
+  ],
+  settings: [
+    "M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4",
+    "M7 10l5 5 5-5",
+    "M12 15V3",
+  ],
+};
 
 function Panel({
   username,
@@ -65,9 +141,56 @@ function Panel({
   const [editing, setEditing] = useState<OrcamentoProposal | null>(null);
   const [clientForm, setClientForm] = useState<OrcamentoClient | null>(null);
   const [profileForm, setProfileForm] = useState(profile);
+  const [statusFilter, setStatusFilter] = useState<string>("todos");
+  const [dark, setDark] = useState(
+    () => document.documentElement.classList.contains("dark"),
+  );
 
-  const totalValue = useMemo(
-    () => proposals.reduce((sum, p) => sum + Number(p.total || 0), 0),
+  useEffect(() => {
+    document.title = "Orçamentos · .dev Bossle";
+  }, []);
+
+  useEffect(() => {
+    document.documentElement.classList.toggle("dark", dark);
+  }, [dark]);
+
+  const stats = useMemo(() => {
+    const by = (match: string) =>
+      proposals.filter((p) =>
+        p.status.toLowerCase().includes(match.toLowerCase()),
+      );
+    const approved = by("aprov");
+    const sent = by("envi");
+    const draft = by("elabor");
+    const refused = by("recus");
+    const totalValue = proposals.reduce((s, p) => s + Number(p.total || 0), 0);
+    const approvedValue = approved.reduce(
+      (s, p) => s + Number(p.total || 0),
+      0,
+    );
+    return {
+      totalValue,
+      approvedValue,
+      approved: approved.length,
+      sent: sent.length,
+      draft: draft.length,
+      refused: refused.length,
+    };
+  }, [proposals]);
+
+  const filteredProposals = useMemo(() => {
+    if (statusFilter === "todos") return proposals;
+    return proposals.filter((p) => p.status === statusFilter);
+  }, [proposals, statusFilter]);
+
+  const recent = useMemo(
+    () =>
+      [...proposals]
+        .sort(
+          (a, b) =>
+            new Date(b.created).getTime() - new Date(a.created).getTime(),
+        )
+        .slice(0, 6),
     [proposals],
   );
 
@@ -85,6 +208,30 @@ function Panel({
     const data = await orcamentosApi.data();
     onRefresh(data);
     setProfileForm(data.profile);
+  };
+
+  const go = (next: Tab) => {
+    setEditing(null);
+    setClientForm(null);
+    setTab(next);
+  };
+
+  const toggleDark = (event: MouseEvent<HTMLButtonElement>) => {
+    const rect = event.currentTarget.getBoundingClientRect();
+    document.documentElement.style.setProperty(
+      "--theme-x",
+      `${rect.left + rect.width / 2}px`,
+    );
+    document.documentElement.style.setProperty(
+      "--theme-y",
+      `${rect.top + rect.height / 2}px`,
+    );
+    const next = !dark;
+    if (!document.startViewTransition) {
+      setDark(next);
+      return;
+    }
+    document.startViewTransition(() => setDark(next));
   };
 
   const saveClient = async () => {
@@ -113,10 +260,7 @@ function Panel({
     }
     setBusy(true);
     try {
-      const sum = editing.items.reduce(
-        (a, i) => a + Number(i.value || 0),
-        0,
-      );
+      const sum = editing.items.reduce((a, i) => a + Number(i.value || 0), 0);
       const payload = {
         ...editing,
         total: editing.manualTotal ? editing.total : sum,
@@ -162,62 +306,170 @@ function Panel({
     }
   };
 
-  const nav: { id: Tab; label: string }[] = [
-    { id: "dashboard", label: "Visão geral" },
-    { id: "clients", label: "Clientes" },
-    { id: "proposals", label: "Orçamentos" },
-    { id: "profile", label: "Meus dados" },
-    { id: "settings", label: "Backup / seed" },
+  const nav: { id: Tab; label: string; short: string }[] = [
+    { id: "dashboard", label: "Visão geral", short: "Início" },
+    { id: "clients", label: "Clientes", short: "Clientes" },
+    { id: "proposals", label: "Orçamentos", short: "Orçam." },
+    { id: "profile", label: "Meus dados", short: "Dados" },
+    { id: "settings", label: "Backup / seed", short: "Backup" },
   ];
 
-  return (
-    <div className="min-h-dvh bg-[#0c1210] text-[#f4f6f3]">
-      <div className="mx-auto grid max-w-6xl gap-6 px-4 py-6 md:grid-cols-[220px_1fr] md:px-6 md:py-8">
-        <aside className="h-fit rounded-2xl border border-[#1f2d27] bg-[#0e1613] p-4 md:sticky md:top-6">
-          <p className="font-mono text-xs text-[#00d492]">{`> devbossle_`}</p>
-          <p className="mt-1 text-sm font-bold">Orçamentos</p>
-          <p className="mt-1 text-xs text-[#93a39b]">{username}</p>
-          <nav className="mt-5 flex flex-col gap-1">
-            {nav.map((item) => (
-              <button
-                key={item.id}
-                type="button"
-                onClick={() => {
-                  setEditing(null);
-                  setTab(item.id);
-                }}
-                className={`rounded-xl px-3 py-2.5 text-left text-sm font-semibold transition ${
-                  tab === item.id && !editing
-                    ? "bg-[#16221c] text-[#00d492]"
-                    : "text-[#93a39b] hover:bg-[#16221c] hover:text-[#f4f6f3]"
-                }`}
-              >
-                {item.label}
-              </button>
-            ))}
-          </nav>
+  const today = new Date().toLocaleDateString("pt-BR", {
+    weekday: "long",
+    day: "numeric",
+    month: "short",
+  });
+
+  const Field = ({
+    label,
+    children,
+    full,
+  }: {
+    label: string;
+    children: ReactNode;
+    full?: boolean;
+  }) => (
+    <label
+      className={`block ${full ? "sm:col-span-2" : ""}`}
+    >
+      <span className="text-xs font-medium uppercase tracking-[0.14em] opacity-50">
+        {label}
+      </span>
+      <div className="mt-2">{children}</div>
+    </label>
+  );
+
+  const ProposalRow = ({
+    p,
+    compact,
+  }: {
+    p: OrcamentoProposal;
+    compact?: boolean;
+  }) => (
+    <article className="flex flex-wrap items-center justify-between gap-3 border border-neutral-200 bg-white p-4 transition hover:border-neutral-400 dark:border-neutral-800 dark:bg-[#151515] dark:hover:border-neutral-600">
+      <div className="min-w-0 flex-1">
+        <div className="flex flex-wrap items-center gap-2">
+          <h3 className="truncate font-medium tracking-tight">
+            {p.company || "Projeto sem nome"}
+          </h3>
+          <span
+            className={`rounded-full px-2.5 py-0.5 text-[11px] font-medium ${statusClass(p.status)}`}
+          >
+            {p.status}
+          </span>
+        </div>
+        <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
+          {clientName(p.clientId)}
+          {compact ? null : ` · v${p.version}`}
+          {" · "}
+          {new Date(p.created).toLocaleDateString("pt-BR")}
+        </p>
+      </div>
+      <div className="flex items-center gap-2">
+        <p className="text-base font-semibold tabular-nums tracking-tight">
+          {money(p.total)}
+        </p>
+        <button
+          type="button"
+          className={btn}
+          onClick={() => setEditing({ ...p })}
+        >
+          Abrir
+        </button>
+        {!compact ? (
           <button
             type="button"
-            onClick={onLogout}
-            className={`${btn} mt-6 w-full`}
+            className={`${btn} text-red-600 dark:text-red-400`}
+            onClick={async () => {
+              if (!window.confirm("Excluir orçamento?")) return;
+              await orcamentosApi.deleteProposal(p.id);
+              await reload();
+              showToast("Orçamento excluído");
+            }}
           >
+            Excluir
+          </button>
+        ) : null}
+      </div>
+    </article>
+  );
+
+  return (
+    <div className="min-h-dvh bg-[#f9f9f9] text-neutral-900 dark:bg-[#121212] dark:text-[#f9f9f9]">
+      <header className="sticky top-0 z-30 border-b border-neutral-200 bg-[#F3F4F6] dark:border-neutral-800 dark:bg-[#151515]">
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3 sm:px-6 sm:py-4">
+          <Link to="/" className="flex items-center gap-2 sm:gap-2.5">
+            <TrafficLights />
+            <span className="ml-1 font-bold sm:ml-2">.dev Bossle</span>
+            <span className="hidden text-sm font-light text-neutral-500 sm:inline dark:text-neutral-400">
+              / orçamentos
+            </span>
+          </Link>
+          <div className="flex items-center gap-3">
+            <span className="hidden max-w-[160px] truncate text-xs text-neutral-500 sm:inline dark:text-neutral-400">
+              {username}
+            </span>
+            <button type="button" onClick={toggleDark} aria-label="Alternar tema">
+              <img
+                src={`${import.meta.env.BASE_URL}${dark ? "sun.png" : "moon.png"}`}
+                className="w-5 cursor-pointer sm:w-6"
+                alt=""
+              />
+            </button>
+            <button
+              type="button"
+              className={`${btnPrimary} hidden sm:inline-flex`}
+              onClick={() => setEditing(blankProposal())}
+            >
+              + Novo
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <div className="mx-auto grid max-w-6xl md:grid-cols-[220px_1fr] lg:grid-cols-[240px_1fr]">
+        <aside className="hidden border-r border-neutral-200 py-6 pr-4 md:sticky md:top-[65px] md:flex md:h-[calc(100dvh-65px)] md:flex-col md:pl-6 dark:border-neutral-800">
+          <p className="text-xs font-medium uppercase tracking-[0.14em] opacity-50">
+            Menu
+          </p>
+          <nav className="mt-3 flex flex-1 flex-col gap-0.5">
+            {nav.map((item) => {
+              const active = tab === item.id && !editing;
+              return (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => go(item.id)}
+                  className={`flex items-center gap-2.5 px-3 py-2.5 text-left text-sm transition ${
+                    active
+                      ? "font-medium text-neutral-900 dark:text-white"
+                      : "font-light text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white"
+                  }`}
+                >
+                  <Icon paths={navIcons[item.id]} />
+                  {item.label}
+                </button>
+              );
+            })}
+          </nav>
+          <button type="button" onClick={onLogout} className={`${btn} mt-4 w-full`}>
             Sair
           </button>
         </aside>
 
-        <main className="min-w-0">
+        <main className="min-w-0 px-4 py-6 pb-24 sm:px-6 md:py-8 md:pb-10 lg:px-8">
           {editing ? (
             <section className="space-y-4">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
-                  <h1 className="text-2xl font-extrabold tracking-tight">
-                    {editing.id && proposals.some((p) => p.id === editing.id)
+                  <p className="text-sm font-medium uppercase tracking-widest opacity-60">
+                    Proposta
+                  </p>
+                  <h1 className="mt-1 text-2xl font-semibold tracking-tight sm:text-3xl">
+                    {proposals.some((p) => p.id === editing.id)
                       ? "Editar orçamento"
                       : "Novo orçamento"}
                   </h1>
-                  <p className="mt-1 text-sm text-[#93a39b]">
-                    Preencha e salve no Neon.
-                  </p>
                 </div>
                 <div className="flex gap-2">
                   <button
@@ -239,10 +491,9 @@ function Panel({
               </div>
 
               <div className={`${cardClass} grid gap-4 sm:grid-cols-2`}>
-                <label className="text-xs font-bold uppercase tracking-wider text-[#93a39b] sm:col-span-2">
-                  Cliente
+                <Field label="Cliente" full>
                   <select
-                    className={`${inputClass} mt-2`}
+                    className={inputClass}
                     value={editing.clientId}
                     onChange={(e) =>
                       setEditing({ ...editing, clientId: e.target.value })
@@ -256,32 +507,29 @@ function Panel({
                       </option>
                     ))}
                   </select>
-                </label>
-                <label className="text-xs font-bold uppercase tracking-wider text-[#93a39b] sm:col-span-2">
-                  Nome do projeto
+                </Field>
+                <Field label="Nome do projeto" full>
                   <input
-                    className={`${inputClass} mt-2`}
+                    className={inputClass}
                     value={editing.company}
                     onChange={(e) =>
                       setEditing({ ...editing, company: e.target.value })
                     }
                   />
-                </label>
-                <label className="text-xs font-bold uppercase tracking-wider text-[#93a39b]">
-                  Versão
+                </Field>
+                <Field label="Versão">
                   <input
-                    className={`${inputClass} mt-2`}
+                    className={inputClass}
                     value={editing.version}
                     onChange={(e) =>
                       setEditing({ ...editing, version: e.target.value })
                     }
                   />
-                </label>
-                <label className="text-xs font-bold uppercase tracking-wider text-[#93a39b]">
-                  Validade (dias)
+                </Field>
+                <Field label="Validade (dias)">
                   <input
                     type="number"
-                    className={`${inputClass} mt-2`}
+                    className={inputClass}
                     value={editing.validity}
                     onChange={(e) =>
                       setEditing({
@@ -290,42 +538,39 @@ function Panel({
                       })
                     }
                   />
-                </label>
-                <label className="text-xs font-bold uppercase tracking-wider text-[#93a39b] sm:col-span-2">
-                  Ideia
+                </Field>
+                <Field label="Ideia" full>
                   <textarea
-                    className={`${inputClass} mt-2 min-h-24`}
+                    className={`${inputClass} min-h-24`}
                     value={editing.idea}
                     onChange={(e) =>
                       setEditing({ ...editing, idea: e.target.value })
                     }
                   />
-                </label>
-                <label className="text-xs font-bold uppercase tracking-wider text-[#93a39b] sm:col-span-2">
-                  Escopo (uma linha por item)
+                </Field>
+                <Field label="Escopo (uma linha por item)" full>
                   <textarea
-                    className={`${inputClass} mt-2 min-h-28`}
+                    className={`${inputClass} min-h-28`}
                     value={editing.scope}
                     onChange={(e) =>
                       setEditing({ ...editing, scope: e.target.value })
                     }
                   />
-                </label>
-                <label className="text-xs font-bold uppercase tracking-wider text-[#93a39b] sm:col-span-2">
-                  Etapas e prazos
+                </Field>
+                <Field label="Etapas e prazos" full>
                   <textarea
-                    className={`${inputClass} mt-2 min-h-24`}
+                    className={`${inputClass} min-h-24`}
                     value={editing.timeline}
                     onChange={(e) =>
                       setEditing({ ...editing, timeline: e.target.value })
                     }
                   />
-                </label>
+                </Field>
               </div>
 
               <div className={cardClass}>
                 <div className="mb-3 flex items-center justify-between gap-2">
-                  <h2 className="font-bold">Itens</h2>
+                  <h2 className="font-semibold tracking-tight">Itens</h2>
                   <button
                     type="button"
                     className={btn}
@@ -346,7 +591,7 @@ function Panel({
                   {editing.items.map((item, index) => (
                     <div
                       key={index}
-                      className="grid gap-2 rounded-xl border border-[#1f2d27] bg-[#16221c] p-3 sm:grid-cols-[1fr_1fr_120px]"
+                      className="grid gap-2 border border-neutral-200 bg-[#f9f9f9] p-3 dark:border-neutral-700 dark:bg-[#121212] sm:grid-cols-[1fr_1fr_120px]"
                     >
                       <input
                         className={inputClass}
@@ -394,12 +639,12 @@ function Panel({
                     </div>
                   ))}
                 </div>
-                <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-[#1f2d27] pt-4 font-extrabold">
+                <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-neutral-200 pt-4 font-semibold dark:border-neutral-800">
                   <span>Total</span>
                   <input
                     type="number"
-                    className={`${inputClass} max-w-[200px] text-right font-extrabold`}
-                    value={editing.total}
+                    className={`${inputClass} max-w-[200px] text-right text-lg font-semibold`}
+                    value={editing.total || ""}
                     onChange={(e) =>
                       setEditing({
                         ...editing,
@@ -409,136 +654,209 @@ function Panel({
                     }
                   />
                 </div>
+                <label className="mt-3 flex items-center gap-2 text-sm text-neutral-500 dark:text-neutral-400">
+                  <input
+                    type="checkbox"
+                    checked={editing.manualTotal}
+                    onChange={(e) =>
+                      setEditing({
+                        ...editing,
+                        manualTotal: e.target.checked,
+                        total: e.target.checked
+                          ? editing.total
+                          : editing.items.reduce(
+                              (a, i) => a + Number(i.value || 0),
+                              0,
+                            ),
+                      })
+                    }
+                    className="size-4 accent-emerald-600"
+                  />
+                  Total manual (não recalcular pelos itens)
+                </label>
               </div>
 
-              <div className={`${cardClass} grid gap-4`}>
-                <label className="text-xs font-bold uppercase tracking-wider text-[#93a39b]">
-                  Pagamento
+              <div className={`${cardClass} grid gap-4 sm:grid-cols-2`}>
+                <Field label="Pagamento" full>
                   <textarea
-                    className={`${inputClass} mt-2 min-h-20`}
+                    className={`${inputClass} min-h-20`}
                     value={editing.payment}
                     onChange={(e) =>
                       setEditing({ ...editing, payment: e.target.value })
                     }
                   />
-                </label>
-                <label className="text-xs font-bold uppercase tracking-wider text-[#93a39b]">
-                  O que preciso do cliente
+                </Field>
+                <Field label="O que preciso do cliente">
                   <textarea
-                    className={`${inputClass} mt-2 min-h-20`}
+                    className={`${inputClass} min-h-20`}
                     value={editing.needs}
                     onChange={(e) =>
                       setEditing({ ...editing, needs: e.target.value })
                     }
                   />
-                </label>
-                <label className="text-xs font-bold uppercase tracking-wider text-[#93a39b]">
-                  Observações
+                </Field>
+                <Field label="Observações">
                   <textarea
-                    className={`${inputClass} mt-2 min-h-20`}
+                    className={`${inputClass} min-h-20`}
                     value={editing.notes}
                     onChange={(e) =>
                       setEditing({ ...editing, notes: e.target.value })
                     }
                   />
-                </label>
-                <label className="text-xs font-bold uppercase tracking-wider text-[#93a39b]">
-                  Status
+                </Field>
+                <Field label="Status">
                   <select
-                    className={`${inputClass} mt-2`}
+                    className={inputClass}
                     value={editing.status}
                     onChange={(e) =>
                       setEditing({ ...editing, status: e.target.value })
                     }
                   >
-                    {[
-                      "Em elaboração",
-                      "Enviado",
-                      "Aprovado",
-                      "Recusado",
-                    ].map((s) => (
+                    {STATUSES.map((s) => (
                       <option key={s} value={s}>
                         {s}
                       </option>
                     ))}
                   </select>
-                </label>
+                </Field>
               </div>
             </section>
           ) : null}
 
           {!editing && tab === "dashboard" ? (
-            <section>
-              <div className="mb-6 flex flex-wrap items-start justify-between gap-3">
+            <section className="space-y-6">
+              <div className="flex flex-wrap items-end justify-between gap-4">
                 <div>
-                  <h1 className="text-2xl font-extrabold tracking-tight">
+                  <p className="text-sm font-medium capitalize opacity-60">
+                    {today}
+                  </p>
+                  <h1 className="mt-1 text-2xl font-semibold tracking-tight sm:text-3xl">
                     Painel de orçamentos
                   </h1>
-                  <p className="mt-1 text-sm text-[#93a39b]">
-                    Dados no Neon · acesso autenticado
+                  <p className="mt-2 text-sm text-neutral-500 dark:text-neutral-400">
+                    Pipeline de propostas · Neon · sessão autenticada
                   </p>
                 </div>
                 <button
                   type="button"
-                  className={btnPrimary}
+                  className={`${btnPrimary} sm:hidden`}
                   onClick={() => setEditing(blankProposal())}
                 >
                   + Novo orçamento
                 </button>
               </div>
-              <div className="grid gap-3 sm:grid-cols-3">
-                <div className={cardClass}>
-                  <h3 className="text-sm font-bold">Clientes</h3>
-                  <p className="mt-2 text-3xl font-extrabold">
-                    {clients.length}
-                  </p>
-                </div>
-                <div className={cardClass}>
-                  <h3 className="text-sm font-bold">Orçamentos</h3>
-                  <p className="mt-2 text-3xl font-extrabold">
-                    {proposals.length}
-                  </p>
-                </div>
-                <div className={cardClass}>
-                  <h3 className="text-sm font-bold">Valor orçado</h3>
-                  <p className="mt-2 text-3xl font-extrabold">
-                    {money(totalValue)}
-                  </p>
-                </div>
-              </div>
-              <div className={`${cardClass} mt-4`}>
-                <h3 className="mb-3 font-bold">Últimos orçamentos</h3>
-                <div className="space-y-2">
-                  {proposals.slice(0, 5).map((p) => (
-                    <div
-                      key={p.id}
-                      className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-[#1f2d27] bg-[#16221c] p-3"
-                    >
-                      <div className="min-w-0">
-                        <p className="font-semibold">{p.company || "Projeto"}</p>
-                        <p className="text-xs text-[#93a39b]">
-                          {clientName(p.clientId)} ·{" "}
-                          {new Date(p.created).toLocaleDateString("pt-BR")}
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <b>{money(p.total)}</b>
-                        <button
-                          type="button"
-                          className={btn}
-                          onClick={() => setEditing({ ...p })}
-                        >
-                          Abrir
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                  {!proposals.length ? (
-                    <p className="text-sm text-[#93a39b]">
-                      Nenhum orçamento ainda. Importe o seed ou crie o primeiro.
+
+              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                {[
+                  {
+                    label: "Clientes",
+                    value: String(clients.length),
+                    hint: "cadastrados",
+                  },
+                  {
+                    label: "Orçamentos",
+                    value: String(proposals.length),
+                    hint: `${stats.draft} em elaboração`,
+                  },
+                  {
+                    label: "Valor orçado",
+                    value: money(stats.totalValue),
+                    hint: "soma de todas as propostas",
+                  },
+                  {
+                    label: "Aprovado",
+                    value: money(stats.approvedValue),
+                    hint: `${stats.approved} proposta${stats.approved === 1 ? "" : "s"}`,
+                    accent: true,
+                  },
+                ].map((stat) => (
+                  <div key={stat.label} className={cardClass}>
+                    <p className="text-xs font-medium uppercase tracking-[0.14em] opacity-50">
+                      {stat.label}
                     </p>
+                    <p
+                      className={`mt-2 text-2xl font-semibold tracking-tight tabular-nums ${
+                        stat.accent
+                          ? "text-emerald-700 dark:text-emerald-400"
+                          : ""
+                      }`}
+                    >
+                      {stat.value}
+                    </p>
+                    <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
+                      {stat.hint}
+                    </p>
+                  </div>
+                ))}
+              </div>
+
+              <div className="flex flex-wrap gap-2">
+                {[
+                  { label: "Em elaboração", n: stats.draft },
+                  { label: "Enviado", n: stats.sent },
+                  { label: "Aprovado", n: stats.approved },
+                  { label: "Recusado", n: stats.refused },
+                ].map((chip) => (
+                  <button
+                    key={chip.label}
+                    type="button"
+                    onClick={() => {
+                      setStatusFilter(chip.label);
+                      go("proposals");
+                    }}
+                    className={`rounded-full px-3 py-1.5 text-xs font-medium transition ${statusClass(chip.label)}`}
+                  >
+                    {chip.label} · {chip.n}
+                  </button>
+                ))}
+              </div>
+
+              <div className={cardClass}>
+                <div className="mb-4 flex items-center justify-between gap-2">
+                  <h2 className="text-base font-semibold tracking-tight">
+                    Últimos orçamentos
+                  </h2>
+                  {proposals.length > 0 ? (
+                    <button
+                      type="button"
+                      className="text-sm font-medium text-emerald-800 underline decoration-emerald-800/30 underline-offset-4 dark:text-emerald-300 dark:decoration-emerald-300/30"
+                      onClick={() => go("proposals")}
+                    >
+                      Ver todos
+                    </button>
                   ) : null}
                 </div>
+
+                {recent.length ? (
+                  <div className="space-y-2">
+                    {recent.map((p) => (
+                      <ProposalRow key={p.id} p={p} compact />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="border border-dashed border-neutral-300 px-4 py-10 text-center dark:border-neutral-700">
+                    <p className="font-medium">Nenhum orçamento ainda</p>
+                    <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
+                      Crie o primeiro ou importe o seed em Backup.
+                    </p>
+                    <div className="mt-4 flex flex-wrap justify-center gap-2">
+                      <button
+                        type="button"
+                        className={btnPrimary}
+                        onClick={() => setEditing(blankProposal())}
+                      >
+                        Criar orçamento
+                      </button>
+                      <button
+                        type="button"
+                        className={btn}
+                        onClick={() => go("settings")}
+                      >
+                        Importar seed
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             </section>
           ) : null}
@@ -547,9 +865,15 @@ function Panel({
             <section>
               <div className="mb-6 flex flex-wrap items-start justify-between gap-3">
                 <div>
-                  <h1 className="text-2xl font-extrabold">Clientes</h1>
-                  <p className="mt-1 text-sm text-[#93a39b]">
-                    Cadastro reutilizável nos orçamentos
+                  <p className="text-sm font-medium uppercase tracking-widest opacity-60">
+                    Cadastro
+                  </p>
+                  <h1 className="mt-1 text-2xl font-semibold tracking-tight sm:text-3xl">
+                    Clientes
+                  </h1>
+                  <p className="mt-2 text-sm text-neutral-500 dark:text-neutral-400">
+                    {clients.length} cadastrado
+                    {clients.length === 1 ? "" : "s"}
                   </p>
                 </div>
                 <button
@@ -582,13 +906,9 @@ function Panel({
                       ["link", "Site / Instagram"],
                     ] as const
                   ).map(([key, label]) => (
-                    <label
-                      key={key}
-                      className="text-xs font-bold uppercase tracking-wider text-[#93a39b]"
-                    >
-                      {label}
+                    <Field key={key} label={label}>
                       <input
-                        className={`${inputClass} mt-2`}
+                        className={inputClass}
                         value={clientForm[key]}
                         onChange={(e) =>
                           setClientForm({
@@ -597,12 +917,11 @@ function Panel({
                           })
                         }
                       />
-                    </label>
+                    </Field>
                   ))}
-                  <label className="text-xs font-bold uppercase tracking-wider text-[#93a39b] sm:col-span-2">
-                    Observações
+                  <Field label="Observações" full>
                     <textarea
-                      className={`${inputClass} mt-2 min-h-20`}
+                      className={`${inputClass} min-h-20`}
                       value={clientForm.notes}
                       onChange={(e) =>
                         setClientForm({
@@ -611,7 +930,7 @@ function Panel({
                         })
                       }
                     />
-                  </label>
+                  </Field>
                   <div className="flex gap-2 sm:col-span-2">
                     <button
                       type="button"
@@ -636,22 +955,24 @@ function Panel({
                 {clients.map((c) => (
                   <div
                     key={c.id}
-                    className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-[#1f2d27] bg-[#111a16] p-4"
+                    className="flex flex-wrap items-center justify-between gap-3 border border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-[#151515]"
                   >
-                    <div>
-                      <p className="font-semibold">
-                        {c.name}{" "}
+                    <div className="min-w-0">
+                      <p className="font-medium">
+                        {c.name}
                         {c.company ? (
-                          <span className="text-xs text-[#93a39b]">
+                          <span className="text-xs font-normal text-neutral-500 dark:text-neutral-400">
+                            {" "}
                             · {c.company}
                           </span>
                         ) : null}
                       </p>
-                      <p className="text-xs text-[#93a39b]">
-                        {[c.phone, c.email].filter(Boolean).join(" · ")}
+                      <p className="mt-0.5 text-xs text-neutral-500 dark:text-neutral-400">
+                        {[c.phone, c.email].filter(Boolean).join(" · ") ||
+                          "Sem contato"}
                       </p>
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex flex-wrap gap-2">
                       <button
                         type="button"
                         className={btnPrimary}
@@ -668,7 +989,7 @@ function Panel({
                       </button>
                       <button
                         type="button"
-                        className={`${btn} text-[#ff7b7b]`}
+                        className={`${btn} text-red-600 dark:text-red-400`}
                         onClick={async () => {
                           if (!window.confirm("Excluir cliente?")) return;
                           await orcamentosApi.deleteClient(c.id);
@@ -681,18 +1002,25 @@ function Panel({
                     </div>
                   </div>
                 ))}
+                {!clients.length ? (
+                  <div className="border border-dashed border-neutral-300 px-4 py-10 text-center text-sm text-neutral-500 dark:border-neutral-700 dark:text-neutral-400">
+                    Nenhum cliente. Cadastre o primeiro para emitir propostas.
+                  </div>
+                ) : null}
               </div>
             </section>
           ) : null}
 
           {!editing && tab === "proposals" ? (
             <section>
-              <div className="mb-6 flex flex-wrap items-start justify-between gap-3">
+              <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
                 <div>
-                  <h1 className="text-2xl font-extrabold">Orçamentos</h1>
-                  <p className="mt-1 text-sm text-[#93a39b]">
-                    Histórico de propostas
+                  <p className="text-sm font-medium uppercase tracking-widest opacity-60">
+                    Histórico
                   </p>
+                  <h1 className="mt-1 text-2xl font-semibold tracking-tight sm:text-3xl">
+                    Orçamentos
+                  </h1>
                 </div>
                 <button
                   type="button"
@@ -702,47 +1030,44 @@ function Panel({
                   + Novo
                 </button>
               </div>
-              <div className="space-y-2">
-                {proposals.map((p) => (
-                  <div
-                    key={p.id}
-                    className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-[#1f2d27] bg-[#111a16] p-4"
+
+              <div className="mb-4 flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => setStatusFilter("todos")}
+                  className={`rounded-full px-3 py-1.5 text-xs font-medium transition ${
+                    statusFilter === "todos"
+                      ? "bg-neutral-900 text-white dark:bg-[#f9f9f9] dark:text-neutral-900"
+                      : "border border-neutral-200 text-neutral-500 dark:border-neutral-700 dark:text-neutral-400"
+                  }`}
+                >
+                  Todos · {proposals.length}
+                </button>
+                {STATUSES.map((s) => (
+                  <button
+                    key={s}
+                    type="button"
+                    onClick={() => setStatusFilter(s)}
+                    className={`rounded-full px-3 py-1.5 text-xs font-medium transition ${
+                      statusFilter === s
+                        ? statusClass(s)
+                        : "border border-neutral-200 text-neutral-500 dark:border-neutral-700 dark:text-neutral-400"
+                    }`}
                   >
-                    <div>
-                      <p className="font-semibold">
-                        {p.company || "Projeto"}{" "}
-                        <span className="rounded-full bg-[#16221c] px-2 py-0.5 text-[10px] font-bold text-[#93a39b]">
-                          {p.status}
-                        </span>
-                      </p>
-                      <p className="text-xs text-[#93a39b]">
-                        {clientName(p.clientId)} · v{p.version}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <b>{money(p.total)}</b>
-                      <button
-                        type="button"
-                        className={btn}
-                        onClick={() => setEditing({ ...p })}
-                      >
-                        Editar
-                      </button>
-                      <button
-                        type="button"
-                        className={`${btn} text-[#ff7b7b]`}
-                        onClick={async () => {
-                          if (!window.confirm("Excluir orçamento?")) return;
-                          await orcamentosApi.deleteProposal(p.id);
-                          await reload();
-                          showToast("Orçamento excluído");
-                        }}
-                      >
-                        Excluir
-                      </button>
-                    </div>
-                  </div>
+                    {s}
+                  </button>
                 ))}
+              </div>
+
+              <div className="space-y-2">
+                {filteredProposals.map((p) => (
+                  <ProposalRow key={p.id} p={p} />
+                ))}
+                {!filteredProposals.length ? (
+                  <div className="border border-dashed border-neutral-300 px-4 py-10 text-center text-sm text-neutral-500 dark:border-neutral-700 dark:text-neutral-400">
+                    Nenhum orçamento neste filtro.
+                  </div>
+                ) : null}
               </div>
             </section>
           ) : null}
@@ -751,9 +1076,14 @@ function Panel({
             <section>
               <div className="mb-6 flex flex-wrap items-start justify-between gap-3">
                 <div>
-                  <h1 className="text-2xl font-extrabold">Meus dados</h1>
-                  <p className="mt-1 text-sm text-[#93a39b]">
-                    Rodapé das propostas
+                  <p className="text-sm font-medium uppercase tracking-widest opacity-60">
+                    Perfil
+                  </p>
+                  <h1 className="mt-1 text-2xl font-semibold tracking-tight sm:text-3xl">
+                    Meus dados
+                  </h1>
+                  <p className="mt-2 text-sm text-neutral-500 dark:text-neutral-400">
+                    Aparecem no rodapé das propostas
                   </p>
                 </div>
                 <button
@@ -788,13 +1118,9 @@ function Panel({
                     ["portfolio", "Portfólio"],
                   ] as const
                 ).map(([key, label]) => (
-                  <label
-                    key={key}
-                    className="text-xs font-bold uppercase tracking-wider text-[#93a39b]"
-                  >
-                    {label}
+                  <Field key={key} label={label}>
                     <input
-                      className={`${inputClass} mt-2`}
+                      className={inputClass}
                       value={profileForm[key]}
                       onChange={(e) =>
                         setProfileForm({
@@ -803,34 +1129,37 @@ function Panel({
                         })
                       }
                     />
-                  </label>
+                  </Field>
                 ))}
-                <label className="text-xs font-bold uppercase tracking-wider text-[#93a39b] sm:col-span-2">
-                  Bio
+                <Field label="Bio" full>
                   <textarea
-                    className={`${inputClass} mt-2 min-h-24`}
+                    className={`${inputClass} min-h-24`}
                     value={profileForm.bio}
                     onChange={(e) =>
                       setProfileForm({ ...profileForm, bio: e.target.value })
                     }
                   />
-                </label>
+                </Field>
               </div>
             </section>
           ) : null}
 
           {!editing && tab === "settings" ? (
             <section>
-              <h1 className="text-2xl font-extrabold">Backup / seed</h1>
-              <p className="mt-1 text-sm text-[#93a39b]">
-                Importe os orçamentos do JSON anexado (`orcamentos/backup…`)
-                para o Neon.
+              <p className="text-sm font-medium uppercase tracking-widest opacity-60">
+                Dados
+              </p>
+              <h1 className="mt-1 text-2xl font-semibold tracking-tight sm:text-3xl">
+                Backup / seed
+              </h1>
+              <p className="mt-2 text-sm text-neutral-500 dark:text-neutral-400">
+                Importe o JSON inicial para o Neon.
               </p>
               <div className="mt-6 grid gap-4 sm:grid-cols-2">
                 <div className={cardClass}>
-                  <h3 className="font-bold">Mesclar seed</h3>
-                  <p className="mt-2 text-sm text-[#93a39b]">
-                    Insere/atualiza os 3 clientes e orçamentos iniciais sem
+                  <h3 className="font-semibold">Mesclar seed</h3>
+                  <p className="mt-2 text-sm text-neutral-500 dark:text-neutral-400">
+                    Insere/atualiza os clientes e orçamentos iniciais sem
                     apagar o restante.
                   </p>
                   <button
@@ -843,13 +1172,13 @@ function Panel({
                   </button>
                 </div>
                 <div className={cardClass}>
-                  <h3 className="font-bold">Substituir tudo</h3>
-                  <p className="mt-2 text-sm text-[#93a39b]">
+                  <h3 className="font-semibold">Substituir tudo</h3>
+                  <p className="mt-2 text-sm text-neutral-500 dark:text-neutral-400">
                     Apaga clientes e propostas atuais e carrega só o seed.
                   </p>
                   <button
                     type="button"
-                    className={`${btn} mt-4 text-[#ff7b7b]`}
+                    className={`${btn} mt-4 text-red-600 dark:text-red-400`}
                     disabled={busy}
                     onClick={() => importSeed("replace")}
                   >
@@ -862,8 +1191,41 @@ function Panel({
         </main>
       </div>
 
+      {!editing ? (
+        <nav className="fixed inset-x-0 bottom-0 z-30 flex border-t border-neutral-200 bg-[#F3F4F6]/95 pb-[max(0.35rem,env(safe-area-inset-bottom))] pt-1 backdrop-blur dark:border-neutral-800 dark:bg-[#151515]/95 md:hidden">
+          {nav
+            .filter((n) => n.id !== "settings")
+            .map((item) => {
+              const active = tab === item.id;
+              return (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => go(item.id)}
+                  className={`flex flex-1 flex-col items-center gap-0.5 px-1 py-2 text-[10px] font-medium ${
+                    active
+                      ? "text-neutral-900 dark:text-white"
+                      : "text-neutral-400"
+                  }`}
+                >
+                  <Icon paths={navIcons[item.id]} />
+                  {item.short}
+                </button>
+              );
+            })}
+          <button
+            type="button"
+            onClick={onLogout}
+            className="flex flex-1 flex-col items-center gap-0.5 px-1 py-2 text-[10px] font-medium text-neutral-400"
+          >
+            <Icon d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" />
+            Sair
+          </button>
+        </nav>
+      ) : null}
+
       {toast ? (
-        <div className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 rounded-full bg-[#00d492] px-5 py-2.5 text-sm font-bold text-[#04120c]">
+        <div className="fixed bottom-[calc(4.5rem+env(safe-area-inset-bottom))] left-1/2 z-50 -translate-x-1/2 bg-neutral-900 px-5 py-2.5 text-sm font-medium text-white dark:bg-[#f9f9f9] dark:text-neutral-900 md:bottom-6">
           {toast}
         </div>
       ) : null}

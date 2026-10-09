@@ -49,7 +49,7 @@ function OrcamentosApp() {
 
   if (checking) {
     return (
-      <div className="flex min-h-dvh items-center justify-center bg-[#0c1210] text-[#93a39b]">
+      <div className="flex min-h-dvh items-center justify-center bg-[#f9f9f9] text-neutral-500 dark:bg-[#121212] dark:text-neutral-400">
         Carregando…
       </div>
     );
@@ -81,7 +81,7 @@ function OrcamentosApp() {
   return (
     <>
       {loadError ? (
-        <div className="bg-[#f0b42924] px-4 py-2 text-center text-sm text-[#f0b429]">
+        <div className="border-b border-amber-500/30 bg-amber-500/10 px-4 py-2 text-center text-sm text-amber-800 dark:text-amber-300">
           {loadError}
         </div>
       ) : null}
