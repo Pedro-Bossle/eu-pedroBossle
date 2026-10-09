@@ -5,7 +5,25 @@ import Home from "./pages/Home";
 import ResumePage from "./pages/Resume";
 import OrcamentosApp from "./pages/orcamentos/OrcamentosApp";
 
+function isOrcamentosHost() {
+  const host = window.location.hostname.toLowerCase();
+  return (
+    host === "orcamentos.devbossle.com.br" ||
+    host.startsWith("orcamentos.")
+  );
+}
+
 function App() {
+  if (isOrcamentosHost()) {
+    return (
+      <BrowserRouter>
+        <Routes>
+          <Route path="*" element={<OrcamentosApp />} />
+        </Routes>
+      </BrowserRouter>
+    );
+  }
+
   return (
     <BrowserRouter>
       <Routes>

@@ -1,16 +1,6 @@
 {
   "rewrites": [
     {
-      "source": "/",
-      "has": [
-        {
-          "type": "host",
-          "value": "orcamentos.devbossle.com.br"
-        }
-      ],
-      "destination": "/orcamentos"
-    },
-    {
       "source": "/((?!api/).*)",
       "destination": "/index.html"
     }
