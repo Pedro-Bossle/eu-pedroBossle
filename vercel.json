@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/api/orcamentos/:path*",
-      "destination": "/api/orcamentos"
+      "destination": "/api/orcamentos?path=:path*"
     },
     {
       "source": "/((?!api/|@|src/|node_modules/|assets/)(?!.*\\.).*)",

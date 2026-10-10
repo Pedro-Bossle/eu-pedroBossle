@@ -1,11 +1,15 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import seed from "../../src/data/orcamentos-seed.json" with { type: "json" };
 import type { OrcamentoSeed } from "../../src/types/orcamentos.js";
 import { requireSession, json } from "../_lib/auth.js";
 import { withAuth } from "../_lib/db.js";
 import { mapClient, mapProfile, mapProposal } from "../_lib/mappers.js";
 
-const data = seed as OrcamentoSeed;
+function loadSeed(): OrcamentoSeed {
+  const file = join(process.cwd(), "src/data/orcamentos-seed.json");
+  return JSON.parse(readFileSync(file, "utf8")) as OrcamentoSeed;
+}
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST") {
@@ -16,6 +20,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const mode = String(req.body?.mode ?? "merge"); // merge | replace
 
   try {
+    const data = loadSeed();
     const result = await withAuth(async (client) => {
       let clientsUpserted = 0;
       let proposalsUpserted = 0;

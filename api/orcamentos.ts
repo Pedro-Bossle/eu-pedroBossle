@@ -1,74 +1,91 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { json } from "./_lib/auth.js";
 
-import bootstrap from "./_handlers/bootstrap.js";
-import data from "./_handlers/data.js";
-import profile from "./_handlers/profile.js";
-import seed from "./_handlers/seed.js";
-import forgotPassword from "./_handlers/auth/forgot-password.js";
-import login from "./_handlers/auth/login.js";
-import logout from "./_handlers/auth/logout.js";
-import me from "./_handlers/auth/me.js";
-import resetPassword from "./_handlers/auth/reset-password.js";
-import clients from "./_handlers/clients/index.js";
-import presets from "./_handlers/presets/index.js";
-import proposals from "./_handlers/proposals/index.js";
-import proposalComments from "./_handlers/proposals/comments.js";
-import proposalSend from "./_handlers/proposals/send.js";
-import proposalShare from "./_handlers/proposals/share.js";
-import publicComments from "./_handlers/public/comments.js";
-import publicDecision from "./_handlers/public/decision.js";
-import publicProposal from "./_handlers/public/proposal.js";
-import publicUnlock from "./_handlers/public/unlock.js";
-
 type RouteHandler = (
   req: VercelRequest,
   res: VercelResponse,
 ) => unknown | Promise<unknown>;
 
+type RouteModule = { default: RouteHandler };
+
 /**
- * Um único Serverless Function (Hobby ≤ 12).
- * Catch-all [...path] NÃO funciona fora do Next.js — use rewrite em vercel.json
- * de /api/orcamentos/:path* → /api/orcamentos e despache pelo req.url.
+ * Lazy-load: evita que import JSON / handlers pesados derrubem login/me no cold start.
+ * Catch-all [...path] não funciona fora do Next — rewrite em vercel.json aponta para cá.
  */
-const routes: Record<string, RouteHandler> = {
-  bootstrap,
-  data,
-  profile,
-  seed,
-  "auth/forgot-password": forgotPassword,
-  "auth/login": login,
-  "auth/logout": logout,
-  "auth/me": me,
-  "auth/reset-password": resetPassword,
-  clients,
-  presets,
-  proposals,
-  "proposals/comments": proposalComments,
-  "proposals/send": proposalSend,
-  "proposals/share": proposalShare,
-  "public/comments": publicComments,
-  "public/decision": publicDecision,
-  "public/proposal": publicProposal,
-  "public/unlock": publicUnlock,
+const loaders: Record<string, () => Promise<RouteModule>> = {
+  bootstrap: () => import("./_handlers/bootstrap.js"),
+  data: () => import("./_handlers/data.js"),
+  profile: () => import("./_handlers/profile.js"),
+  seed: () => import("./_handlers/seed.js"),
+  "auth/forgot-password": () => import("./_handlers/auth/forgot-password.js"),
+  "auth/login": () => import("./_handlers/auth/login.js"),
+  "auth/logout": () => import("./_handlers/auth/logout.js"),
+  "auth/me": () => import("./_handlers/auth/me.js"),
+  "auth/reset-password": () => import("./_handlers/auth/reset-password.js"),
+  clients: () => import("./_handlers/clients/index.js"),
+  presets: () => import("./_handlers/presets/index.js"),
+  proposals: () => import("./_handlers/proposals/index.js"),
+  "proposals/comments": () => import("./_handlers/proposals/comments.js"),
+  "proposals/send": () => import("./_handlers/proposals/send.js"),
+  "proposals/share": () => import("./_handlers/proposals/share.js"),
+  "public/comments": () => import("./_handlers/public/comments.js"),
+  "public/decision": () => import("./_handlers/public/decision.js"),
+  "public/proposal": () => import("./_handlers/public/proposal.js"),
+  "public/unlock": () => import("./_handlers/public/unlock.js"),
 };
 
 function routeKey(req: VercelRequest): string {
-  const url = req.url ?? "";
-  const pathOnly = (url.split("?")[0] ?? "").replace(/\/+$/, "");
-  const prefix = "/api/orcamentos/";
-  const idx = pathOnly.indexOf(prefix);
-  if (idx >= 0) {
-    return pathOnly.slice(idx + prefix.length);
+  // Preferido: rewrite vercel.json → /api/orcamentos?path=:path*
+  const q = req.query.path;
+  if (Array.isArray(q)) {
+    const joined = q.filter(Boolean).join("/");
+    if (joined) return joined.replace(/^\/+|\/+$/g, "");
+  } else if (typeof q === "string" && q.length > 0) {
+    return q.replace(/^\/+|\/+$/g, "");
   }
+
+  const candidates = [
+    req.url,
+    typeof req.headers["x-forwarded-uri"] === "string"
+      ? req.headers["x-forwarded-uri"]
+      : "",
+    typeof req.headers["x-invoke-path"] === "string"
+      ? req.headers["x-invoke-path"]
+      : "",
+  ];
+
+  for (const raw of candidates) {
+    if (!raw) continue;
+    const pathOnly = String(raw).split("?")[0] ?? "";
+    const normalized = pathOnly.replace(/\/+$/, "");
+    const marker = "/api/orcamentos/";
+    const idx = normalized.indexOf(marker);
+    if (idx >= 0) {
+      return normalized.slice(idx + marker.length);
+    }
+  }
+
   return "";
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  const key = routeKey(req);
-  const route = routes[key];
-  if (!route) {
-    return json(res, 404, { error: "Not found" });
+  try {
+    const key = routeKey(req);
+    const loader = loaders[key];
+    if (!loader) {
+      return json(res, 404, { error: "Not found", path: key || null });
+    }
+    const mod = await loader();
+    const route = mod.default;
+    if (typeof route !== "function") {
+      console.error("Handler inválido para", key, mod);
+      return json(res, 500, { error: "Handler inválido" });
+    }
+    return await route(req, res);
+  } catch (error) {
+    console.error("api/orcamentos router:", error);
+    if (!res.headersSent) {
+      return json(res, 500, { error: "Erro interno" });
+    }
   }
-  return route(req, res);
 }
