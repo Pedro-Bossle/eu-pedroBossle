@@ -6,6 +6,7 @@ import {
   buildPasswordResetEmailHtml,
   passwordResetUrl,
 } from "../../_lib/passwordResetEmailHtml.js";
+import { clientIp, rateLimit } from "../../_lib/rateLimit.js";
 import { getResend, getResendFrom } from "../../_lib/resend.js";
 
 const EXPIRES_MINUTES = 60;
@@ -19,7 +20,7 @@ function isEmail(value: string) {
 }
 
 /**
- * Sempre responde 200 genérico (anti-enumeration).
+ * Sempre responde 200 genérico (anti-enumeration), exceto rate limit.
  * Envia o link para o e-mail cadastrado em Meus dados (profile).
  */
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -27,8 +28,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return json(res, 405, { error: "Method not allowed" });
   }
 
-  // Aceita body vazio / inválido sem falhar
   readBody(req);
+
+  const ip = clientIp(req);
+  const limited = rateLimit(`forgot:${ip}`, 3, 60 * 60 * 1000);
+  if (!limited.ok) {
+    return json(res, 429, {
+      error: `Muitas solicitações. Tente novamente em ${limited.retryAfterSec}s`,
+    });
+  }
 
   const generic = () =>
     json(res, 200, {
@@ -53,6 +61,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     const token = randomBytes(32).toString("base64url");
+    const host = String(req.headers.host ?? "");
+    const resetUrl = passwordResetUrl(token, host);
+    if (!resetUrl) {
+      console.error(
+        "ORCAMENTOS_PUBLIC_URL ausente ou Host fora da allowlist; e-mail de reset não enviado",
+      );
+      return generic();
+    }
+
     const tokenHash = hashToken(token);
     const expiresAt = new Date(Date.now() + EXPIRES_MINUTES * 60 * 1000);
 
@@ -63,8 +80,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       );
     });
 
-    const host = String(req.headers.host ?? "");
-    const resetUrl = passwordResetUrl(token, host);
     const html = buildPasswordResetEmailHtml({
       name: target.name || target.username,
       resetUrl,
@@ -80,7 +95,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     if (error) {
       console.error(error);
-      // Ainda genérico para o cliente
       return generic();
     }
 

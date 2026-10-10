@@ -7,6 +7,7 @@ CREATE TABLE IF NOT EXISTS app_users (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   username text NOT NULL UNIQUE,
   password_hash text NOT NULL,
+  session_version integer NOT NULL DEFAULT 0,
   created_at timestamptz NOT NULL DEFAULT now()
 );
 
@@ -71,7 +72,9 @@ CREATE INDEX IF NOT EXISTS proposals_created_at_idx ON proposals (created_at DES
 CREATE INDEX IF NOT EXISTS clients_name_idx ON clients (name);
 
 -- Login: bypass RLS via SECURITY DEFINER (nunca expõe a tabela inteira ao cliente).
-CREATE OR REPLACE FUNCTION public.get_user_auth(p_username text)
+-- session_version / retorno completo: ver 006 (DROP+CREATE para mudar OUT params).
+DROP FUNCTION IF EXISTS public.get_user_auth(text);
+CREATE FUNCTION public.get_user_auth(p_username text)
 RETURNS TABLE (id uuid, username text, password_hash text)
 LANGUAGE sql
 SECURITY DEFINER

@@ -7,10 +7,19 @@ import {
   setSessionCookie,
   signSession,
 } from "../../_lib/auth.js";
+import { clientIp, rateLimit } from "../../_lib/rateLimit.js";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST") {
     return json(res, 405, { error: "Method not allowed" });
+  }
+
+  const ip = clientIp(req);
+  const limited = rateLimit(`login:${ip}`, 5, 15 * 60 * 1000);
+  if (!limited.ok) {
+    return json(res, 429, {
+      error: `Muitas tentativas. Tente novamente em ${limited.retryAfterSec}s`,
+    });
   }
 
   const body = readBody<{ username?: string; password?: string }>(req);
@@ -27,11 +36,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     const user = await withDb(async (client) => {
       const { rows } = await client.query(
-        "SELECT id, username, password_hash FROM get_user_auth($1)",
+        "SELECT id, username, password_hash, session_version FROM get_user_auth($1)",
         [username],
       );
       return rows[0] as
-        | { id: string; username: string; password_hash: string }
+        | {
+            id: string;
+            username: string;
+            password_hash: string;
+            session_version: number;
+          }
         | undefined;
     });
 
@@ -47,6 +61,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const token = await signSession({
       sub: user.id,
       username: user.username,
+      sv: Number(user.session_version ?? 0),
     });
     setSessionCookie(res, token);
     return json(res, 200, { user: { username: user.username } });

@@ -1,8 +1,9 @@
 import { createHash } from "crypto";
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import bcrypt from "bcryptjs";
-import { json, readBody } from "../../_lib/auth.js";
+import { clearSessionCookie, json, readBody } from "../../_lib/auth.js";
 import { withDb } from "../../_lib/db.js";
+import { clientIp, rateLimit } from "../../_lib/rateLimit.js";
 
 function hashToken(token: string) {
   return createHash("sha256").update(token).digest("hex");
@@ -11,6 +12,14 @@ function hashToken(token: string) {
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST") {
     return json(res, 405, { error: "Method not allowed" });
+  }
+
+  const ip = clientIp(req);
+  const limited = rateLimit(`reset:${ip}`, 10, 60 * 60 * 1000);
+  if (!limited.ok) {
+    return json(res, 429, {
+      error: `Muitas tentativas. Tente novamente em ${limited.retryAfterSec}s`,
+    });
   }
 
   const body = readBody<{ token?: string; password?: string }>(req);
@@ -38,6 +47,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     });
 
     if (result === "ok") {
+      // Invalida cookie local; session_version no DB invalida outros JWTs.
+      clearSessionCookie(res);
       return json(res, 200, { ok: true });
     }
     if (result === "expired") {

@@ -83,7 +83,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       if (!proposal) return json(res, 404, { error: "Proposta não encontrada" });
 
       const host = String(req.headers.host ?? "");
-      const url = publicProposalUrl(String(proposal.shareToken), host);
+      const token = String(proposal.shareToken ?? "");
+      // Fallback relativo só para o painel (mesmo origin); e-mails usam URL absoluta confiável.
+      const url =
+        publicProposalUrl(token, host) ?? `/orcamentos/p/${token}`;
 
       return json(res, 200, {
         proposal,

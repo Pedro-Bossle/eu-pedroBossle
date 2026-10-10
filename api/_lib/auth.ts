@@ -1,6 +1,7 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { parseCookie, stringifySetCookie } from "cookie";
 import { SignJWT, jwtVerify } from "jose";
+import { withDb } from "./db.js";
 
 const COOKIE = "orcamentos_session";
 const PROPOSAL_COOKIE = "orcamentos_proposal_session";
@@ -10,6 +11,8 @@ const PROPOSAL_MAX_AGE = 60 * 60 * 24 * 7; // 7 dias
 export type SessionUser = {
   sub: string;
   username: string;
+  /** Versão da sessão; muda ao redefinir senha e invalida JWTs antigos. */
+  sv: number;
 };
 
 export type ProposalSession = {
@@ -28,7 +31,7 @@ function secretKey() {
 }
 
 export async function signSession(user: SessionUser) {
-  return new SignJWT({ username: user.username })
+  return new SignJWT({ username: user.username, sv: user.sv })
     .setProtectedHeader({ alg: "HS256" })
     .setSubject(user.sub)
     .setIssuedAt()
@@ -46,7 +49,25 @@ export async function readSession(
   try {
     const { payload } = await jwtVerify(token, secretKey());
     if (!payload.sub || typeof payload.username !== "string") return null;
-    return { sub: payload.sub, username: payload.username };
+    if (typeof payload.sv !== "number" || !Number.isInteger(payload.sv)) {
+      return null;
+    }
+
+    const current = await withDb(async (db) => {
+      const { rows } = await db.query(
+        "SELECT get_session_version($1::uuid) AS sv",
+        [payload.sub],
+      );
+      return Number(rows[0]?.sv ?? -1);
+    });
+
+    if (current !== payload.sv) return null;
+
+    return {
+      sub: payload.sub,
+      username: payload.username,
+      sv: payload.sv,
+    };
   } catch {
     return null;
   }

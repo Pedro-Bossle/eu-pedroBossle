@@ -1,3 +1,5 @@
+import { appPathPrefix, resolvePublicBaseUrl } from "./publicUrl.js";
+
 const SITE = "https://dev-bossle.vercel.app";
 const LOGO = `${SITE}/email/logo-devbossle.png`;
 const FONT = "Montserrat, Arial, Helvetica, sans-serif";
@@ -115,25 +117,12 @@ export function buildPasswordResetEmailHtml(input: {
 </html>`;
 }
 
-export function passwordResetUrl(token: string, reqHost?: string) {
-  const envBase = process.env.ORCAMENTOS_PUBLIC_URL?.replace(/\/$/, "");
+export function passwordResetUrl(
+  token: string,
+  reqHost?: string,
+): string | null {
+  const base = resolvePublicBaseUrl(reqHost);
+  if (!base) return null;
   const q = `token=${encodeURIComponent(token)}`;
-  if (envBase) return `${envBase}/redefinir-senha?${q}`;
-
-  if (reqHost) {
-    const host = reqHost.split(":")[0]?.toLowerCase() ?? "";
-    if (
-      host === "orcamentos.devbossle.com.br" ||
-      host.startsWith("orcamentos.")
-    ) {
-      return `https://${reqHost.replace(/\/$/, "")}/redefinir-senha?${q}`;
-    }
-    const proto =
-      process.env.VERCEL === "1" || process.env.NODE_ENV === "production"
-        ? "https"
-        : "http";
-    return `${proto}://${reqHost}/orcamentos/redefinir-senha?${q}`;
-  }
-
-  return `/orcamentos/redefinir-senha?${q}`;
+  return `${base}${appPathPrefix(base)}/redefinir-senha?${q}`;
 }

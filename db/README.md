@@ -15,6 +15,7 @@ Além do Neon, configure (Production + Preview):
 | `ORCAMENTOS_USERNAME` | Login do admin |
 | `ORCAMENTOS_PASSWORD` | Senha do admin (≥ 8) |
 | `ORCAMENTOS_BOOTSTRAP_SECRET` | Header `x-bootstrap-secret` no bootstrap |
+| `ORCAMENTOS_PUBLIC_URL` | Base absoluta do painel (ex. `https://orcamentos.devbossle.com.br`) — obrigatória em Production para e-mails de reset/share |
 | `RESEND_API_KEY` | API key do Resend (Marketplace ou dashboard Resend) |
 | `RESEND_FROM` | Remetente, ex. `Pedro Bossle <orcamentos@devbossle.com.br>` |
 
@@ -38,8 +39,11 @@ npm run db:migrate
 
 - `002` — link público da proposta (token + senha), comentários e decisão do cliente.
 - `005` — tokens de redefinição de senha do admin.
+- `006` — `session_version` para invalidar JWTs após reset de senha.
 
 Policies: todas as tabelas com `FORCE ROW LEVEL SECURITY`. A API autentica e faz `set_config('app.authenticated','true', true)` em transação. Login e bootstrap usam funções `SECURITY DEFINER`.
+
+A API HTTP é um único Serverless Function (`api/orcamentos/[...path].ts`) que despacha para `api/_handlers/*`, para caber no limite do plano Hobby (≤ 12 functions).
 
 ## 4. Bootstrap do usuário
 
