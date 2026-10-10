@@ -1,6 +1,10 @@
 {
   "rewrites": [
     {
+      "source": "/api/orcamentos/:path*",
+      "destination": "/api/orcamentos"
+    },
+    {
       "source": "/((?!api/|@|src/|node_modules/|assets/)(?!.*\\.).*)",
       "destination": "/index.html"
     }
