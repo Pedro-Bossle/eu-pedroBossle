@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { parseCookie, stringifySetCookie } from "cookie";
 import { SignJWT, jwtVerify } from "jose";
+import { buildSetCookie, parseCookieHeader } from "./cookies.js";
 import { withDb } from "./db.js";
 
 const COOKIE = "orcamentos_session";
@@ -48,9 +48,7 @@ function cookieSecure(req?: VercelRequest) {
 export async function readSession(
   req: VercelRequest,
 ): Promise<SessionUser | null> {
-  const raw = req.headers.cookie;
-  if (!raw) return null;
-  const token = parseCookie(raw)[COOKIE];
+  const token = parseCookieHeader(req.headers.cookie)[COOKIE];
   if (!token) return null;
   try {
     const { payload } = await jwtVerify(token, secretKey());
@@ -68,7 +66,6 @@ export async function readSession(
         return Number(rows[0]?.sv ?? -1);
       });
     } catch {
-      // Sem migration 006 ainda: aceita o sv do JWT
       current = sv;
     }
 
@@ -91,7 +88,7 @@ export function setSessionCookie(
 ) {
   res.setHeader(
     "Set-Cookie",
-    stringifySetCookie({
+    buildSetCookie({
       name: COOKIE,
       value: token,
       httpOnly: true,
@@ -106,7 +103,7 @@ export function setSessionCookie(
 export function clearSessionCookie(res: VercelResponse, req?: VercelRequest) {
   res.setHeader(
     "Set-Cookie",
-    stringifySetCookie({
+    buildSetCookie({
       name: COOKIE,
       value: "",
       httpOnly: true,
@@ -168,9 +165,7 @@ export async function signProposalSession(session: ProposalSession) {
 export async function readProposalSession(
   req: VercelRequest,
 ): Promise<ProposalSession | null> {
-  const raw = req.headers.cookie;
-  if (!raw) return null;
-  const jwt = parseCookie(raw)[PROPOSAL_COOKIE];
+  const jwt = parseCookieHeader(req.headers.cookie)[PROPOSAL_COOKIE];
   if (!jwt) return null;
   try {
     const { payload } = await jwtVerify(jwt, secretKey());
@@ -188,7 +183,7 @@ export function setProposalSessionCookie(
 ) {
   res.setHeader(
     "Set-Cookie",
-    stringifySetCookie({
+    buildSetCookie({
       name: PROPOSAL_COOKIE,
       value: token,
       httpOnly: true,

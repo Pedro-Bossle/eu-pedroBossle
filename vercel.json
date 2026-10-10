@@ -1,6 +1,26 @@
 {
   "rewrites": [
     {
+      "source": "/api/orcamentos/auth/me",
+      "destination": "/api/orcamentos-auth-me"
+    },
+    {
+      "source": "/api/orcamentos/auth/login",
+      "destination": "/api/orcamentos-auth-login"
+    },
+    {
+      "source": "/api/orcamentos/auth/logout",
+      "destination": "/api/orcamentos-auth-logout"
+    },
+    {
+      "source": "/api/orcamentos/auth/forgot-password",
+      "destination": "/api/orcamentos-auth-forgot-password"
+    },
+    {
+      "source": "/api/orcamentos/auth/reset-password",
+      "destination": "/api/orcamentos-auth-reset-password"
+    },
+    {
       "source": "/api/orcamentos/:path*",
       "destination": "/api/orcamentos?path=:path*"
     },

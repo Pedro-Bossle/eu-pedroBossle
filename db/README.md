@@ -43,7 +43,10 @@ npm run db:migrate
 
 Policies: todas as tabelas com `FORCE ROW LEVEL SECURITY`. A API autentica e faz `set_config('app.authenticated','true', true)` em transação. Login e bootstrap usam funções `SECURITY DEFINER`.
 
-A API HTTP é um único Serverless Function (`api/orcamentos.ts`) + rewrite `/api/orcamentos/:path*` → `/api/orcamentos` (catch-all `[...path]` não funciona fora do Next.js). Handlers em `api/_handlers/*`.
+A API HTTP usa poucas Serverless Functions (Hobby ≤ 12):
+- auth leve: `api/orcamentos-auth-*.ts` (login/me/logout/forgot/reset)
+- demais rotas: `api/orcamentos.ts` + rewrite `/api/orcamentos/:path*` → `/api/orcamentos?path=`
+Handlers em `api/_handlers/*`. Catch-all `[...path]` não funciona fora do Next.js.
 
 ## 4. Bootstrap do usuário
 
