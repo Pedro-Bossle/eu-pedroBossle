@@ -39,6 +39,12 @@ export async function signSession(user: SessionUser) {
     .sign(secretKey());
 }
 
+function cookieSecure(req?: VercelRequest) {
+  const proto = String(req?.headers["x-forwarded-proto"] ?? "");
+  if (proto.split(",")[0]?.trim() === "https") return true;
+  return process.env.NODE_ENV === "production" || process.env.VERCEL === "1";
+}
+
 export async function readSession(
   req: VercelRequest,
 ): Promise<SessionUser | null> {
@@ -49,39 +55,47 @@ export async function readSession(
   try {
     const { payload } = await jwtVerify(token, secretKey());
     if (!payload.sub || typeof payload.username !== "string") return null;
-    if (typeof payload.sv !== "number" || !Number.isInteger(payload.sv)) {
-      return null;
+    const sv = Number(payload.sv);
+    if (!Number.isFinite(sv) || !Number.isInteger(sv)) return null;
+
+    let current = sv;
+    try {
+      current = await withDb(async (db) => {
+        const { rows } = await db.query(
+          "SELECT get_session_version($1::uuid) AS sv",
+          [payload.sub],
+        );
+        return Number(rows[0]?.sv ?? -1);
+      });
+    } catch {
+      // Sem migration 006 ainda: aceita o sv do JWT
+      current = sv;
     }
 
-    const current = await withDb(async (db) => {
-      const { rows } = await db.query(
-        "SELECT get_session_version($1::uuid) AS sv",
-        [payload.sub],
-      );
-      return Number(rows[0]?.sv ?? -1);
-    });
-
-    if (current !== payload.sv) return null;
+    if (current !== sv) return null;
 
     return {
       sub: payload.sub,
       username: payload.username,
-      sv: payload.sv,
+      sv,
     };
   } catch {
     return null;
   }
 }
 
-export function setSessionCookie(res: VercelResponse, token: string) {
-  const secure = process.env.NODE_ENV === "production";
+export function setSessionCookie(
+  req: VercelRequest,
+  res: VercelResponse,
+  token: string,
+) {
   res.setHeader(
     "Set-Cookie",
     stringifySetCookie({
       name: COOKIE,
       value: token,
       httpOnly: true,
-      secure,
+      secure: cookieSecure(req),
       sameSite: "lax",
       path: "/",
       maxAge: MAX_AGE,
@@ -89,14 +103,14 @@ export function setSessionCookie(res: VercelResponse, token: string) {
   );
 }
 
-export function clearSessionCookie(res: VercelResponse) {
+export function clearSessionCookie(res: VercelResponse, req?: VercelRequest) {
   res.setHeader(
     "Set-Cookie",
     stringifySetCookie({
       name: COOKIE,
       value: "",
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure: cookieSecure(req),
       sameSite: "lax",
       path: "/",
       maxAge: 0,
@@ -167,15 +181,18 @@ export async function readProposalSession(
   }
 }
 
-export function setProposalSessionCookie(res: VercelResponse, token: string) {
-  const secure = process.env.NODE_ENV === "production";
+export function setProposalSessionCookie(
+  req: VercelRequest,
+  res: VercelResponse,
+  token: string,
+) {
   res.setHeader(
     "Set-Cookie",
     stringifySetCookie({
       name: PROPOSAL_COOKIE,
       value: token,
       httpOnly: true,
-      secure,
+      secure: cookieSecure(req),
       sameSite: "lax",
       path: "/",
       maxAge: PROPOSAL_MAX_AGE,

@@ -48,7 +48,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     if (result === "ok") {
       // Invalida cookie local; session_version no DB invalida outros JWTs.
-      clearSessionCookie(res);
+      clearSessionCookie(res, req);
       return json(res, 200, { ok: true });
     }
     if (result === "expired") {

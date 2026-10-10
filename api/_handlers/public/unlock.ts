@@ -60,7 +60,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       proposalId: row.proposal_id,
       token,
     });
-    setProposalSessionCookie(res, jwt);
+    setProposalSessionCookie(req, res, jwt);
     return json(res, 200, { ok: true });
   } catch (error) {
     console.error(error);
