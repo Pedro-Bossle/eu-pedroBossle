@@ -9,6 +9,7 @@ import type {
   ResumeCredential,
   ResumeExperience,
 } from "../types/resume";
+import { maskPhoneBr } from "../lib/phoneMask";
 import { downloadResumePdf } from "../utils/downloadResumePdf";
 
 const resume = resumeData as Resume;
@@ -300,7 +301,9 @@ function ResumePage() {
 
   const headerBits = [
     resume.city ? { key: "city", node: resume.city } : null,
-    resume.phone ? { key: "phone", node: resume.phone } : null,
+    resume.phone
+      ? { key: "phone", node: maskPhoneBr(resume.phone) }
+      : null,
     resume.linkedin
       ? {
           key: "linkedin",

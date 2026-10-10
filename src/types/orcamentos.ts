@@ -21,6 +21,19 @@ export type OrcamentoClient = {
   email: string;
   link: string;
   notes: string;
+  /** Razão social (opcional, para contrato). */
+  legalName?: string;
+  /** CPF ou CNPJ (opcional). */
+  document?: string;
+  /** Endereço completo (opcional). */
+  address?: string;
+};
+
+export type OrcamentoComment = {
+  id: string;
+  author: "client" | "admin";
+  body: string;
+  created: string;
 };
 
 export type OrcamentoProposal = {
@@ -41,6 +54,18 @@ export type OrcamentoProposal = {
   items: OrcamentoItem[];
   links: OrcamentoLink[];
   created: string;
+  shareEnabled?: boolean;
+  shareToken?: string | null;
+  shareCreatedAt?: string | null;
+  clientDecidedAt?: string | null;
+  clientDecisionNote?: string;
+};
+
+export type PublicProposalPayload = {
+  proposal: Omit<OrcamentoProposal, "clientId" | "shareEnabled" | "shareToken" | "shareCreatedAt">;
+  client: { name: string; company: string } | null;
+  profile: Omit<OrcamentoProfile, "bio">;
+  comments: OrcamentoComment[];
 };
 
 export type OrcamentoProfile = {
@@ -51,6 +76,21 @@ export type OrcamentoProfile = {
   linkedin: string;
   portfolio: string;
   bio: string;
+  /** CPF do prestador (opcional, contrato). */
+  document?: string;
+  /** Endereço do prestador (opcional, contrato). */
+  address?: string;
+};
+
+/** Seções com preset de texto. Investimento vem das etapas automaticamente. */
+export type PresetSection = "timeline" | "payment" | "needs" | "notes";
+
+export type OrcamentoPreset = {
+  id: string;
+  section: PresetSection;
+  name: string;
+  body: string;
+  created: string;
 };
 
 export type OrcamentoSeed = {

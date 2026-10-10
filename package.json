@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:app": "powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/dev-with-env.ps1",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
@@ -22,6 +23,7 @@
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "react-router": "^8.4.0",
+    "resend": "^6.32.1",
     "tailwindcss": "^4.3.3"
   },
   "devDependencies": {

@@ -3,6 +3,8 @@ import { randomUUID } from "crypto";
 import { requireSession, json } from "../../_lib/auth.js";
 import { withAuth } from "../../_lib/db.js";
 import { mapClient } from "../../_lib/mappers.js";
+import { maskCpfCnpj } from "../../../src/lib/documentMask.js";
+import { maskPhoneBr } from "../../../src/lib/phoneMask.js";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (!(await requireSession(req, res))) return;
@@ -26,8 +28,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       const clientRow = await withAuth(async (db) => {
         await db.query(
-          `INSERT INTO clients (id, name, company, phone, email, link, notes)
-           VALUES ($1,$2,$3,$4,$5,$6,$7)
+          `INSERT INTO clients (
+             id, name, company, phone, email, link, notes,
+             legal_name, document, address
+           )
+           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
            ON CONFLICT (id) DO UPDATE SET
              name = EXCLUDED.name,
              company = EXCLUDED.company,
@@ -35,15 +40,21 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
              email = EXCLUDED.email,
              link = EXCLUDED.link,
              notes = EXCLUDED.notes,
+             legal_name = EXCLUDED.legal_name,
+             document = EXCLUDED.document,
+             address = EXCLUDED.address,
              updated_at = now()`,
           [
             id,
             name,
             String(body.company ?? ""),
-            String(body.phone ?? ""),
+            body.phone ? maskPhoneBr(String(body.phone)) : "",
             String(body.email ?? ""),
             String(body.link ?? ""),
             String(body.notes ?? ""),
+            String(body.legalName ?? ""),
+            body.document ? maskCpfCnpj(String(body.document)) : "",
+            String(body.address ?? ""),
           ],
         );
         const { rows } = await db.query("SELECT * FROM clients WHERE id = $1", [

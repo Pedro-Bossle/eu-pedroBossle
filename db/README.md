@@ -15,15 +15,29 @@ Além do Neon, configure (Production + Preview):
 | `ORCAMENTOS_USERNAME` | Login do admin |
 | `ORCAMENTOS_PASSWORD` | Senha do admin (≥ 8) |
 | `ORCAMENTOS_BOOTSTRAP_SECRET` | Header `x-bootstrap-secret` no bootstrap |
+| `RESEND_API_KEY` | API key do Resend (Marketplace ou dashboard Resend) |
+| `RESEND_FROM` | Remetente, ex. `Pedro Bossle <orcamentos@devbossle.com.br>` |
+
+### E-mail (Resend)
+
+1. Aceite os termos do Marketplace e instale:  
+   `vercel integration add resend/resend-email --no-claim`
+2. Defina `RESEND_FROM` (Production + Preview + Development).
+3. Verifique o domínio em [resend.com/domains](https://resend.com/domains). Sem domínio verificado, use `onboarding@resend.dev` só para testes na conta Resend.
+4. Local: `npm run dev:app` (carrega `.env` / `.env.local`) e use o botão **Enviar** no painel.
+5. Redefinição de senha: login → **Esqueci a senha** (ou **Meus dados** → Segurança). O link vai para o e-mail de `profile` (Meus dados).
 
 ## 3. Schema + RLS
 
-No SQL Editor do Neon, rode o arquivo `001_orcamentos_schema.sql`, **ou**:
+No SQL Editor do Neon, rode os arquivos `001`…`005` (nesta ordem), **ou**:
 
 ```bash
 # com DATABASE_URL no ambiente
 npm run db:migrate
 ```
+
+- `002` — link público da proposta (token + senha), comentários e decisão do cliente.
+- `005` — tokens de redefinição de senha do admin.
 
 Policies: todas as tabelas com `FORCE ROW LEVEL SECURITY`. A API autentica e faz `set_config('app.authenticated','true', true)` em transação. Login e bootstrap usam funções `SECURITY DEFINER`.
 

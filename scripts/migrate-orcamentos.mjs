@@ -53,15 +53,24 @@ function splitSql(raw) {
   return statements;
 }
 
-const sqlFile = resolve("db/001_orcamentos_schema.sql");
-const statements = splitSql(readFileSync(sqlFile, "utf8"));
+const sqlFiles = [
+  resolve("db/001_orcamentos_schema.sql"),
+  resolve("db/002_proposal_share.sql"),
+  resolve("db/003_text_presets.sql"),
+  resolve("db/004_client_contract_fields.sql"),
+  resolve("db/005_password_reset.sql"),
+];
 const pool = new Pool({ connectionString: url });
 const client = await pool.connect();
 
 try {
-  for (const statement of statements) {
-    await client.query(statement);
-    console.log("OK:", statement.slice(0, 72).replace(/\s+/g, " "), "…");
+  for (const sqlFile of sqlFiles) {
+    console.log("Arquivo:", sqlFile);
+    const statements = splitSql(readFileSync(sqlFile, "utf8"));
+    for (const statement of statements) {
+      await client.query(statement);
+      console.log("OK:", statement.slice(0, 72).replace(/\s+/g, " "), "…");
+    }
   }
   console.log("Migration concluída.");
 } catch (error) {

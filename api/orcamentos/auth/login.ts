@@ -1,15 +1,25 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import bcrypt from "bcryptjs";
 import { withDb } from "../../_lib/db.js";
-import { json, setSessionCookie, signSession } from "../../_lib/auth.js";
+import {
+  json,
+  readBody,
+  setSessionCookie,
+  signSession,
+} from "../../_lib/auth.js";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST") {
     return json(res, 405, { error: "Method not allowed" });
   }
 
-  const username = String(req.body?.username ?? "").trim();
-  const password = String(req.body?.password ?? "");
+  const body = readBody<{ username?: string; password?: string }>(req);
+  if (!body) {
+    return json(res, 400, { error: "JSON inválido" });
+  }
+
+  const username = String(body.username ?? "").trim();
+  const password = String(body.password ?? "");
   if (!username || !password) {
     return json(res, 400, { error: "Informe usuário e senha" });
   }

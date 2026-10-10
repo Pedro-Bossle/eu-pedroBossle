@@ -1,7 +1,10 @@
 import type {
   OrcamentoClient,
+  OrcamentoComment,
+  OrcamentoPreset,
   OrcamentoProfile,
   OrcamentoProposal,
+  PublicProposalPayload,
 } from "../../types/orcamentos";
 
 async function request<T>(
@@ -38,12 +41,36 @@ export const orcamentosApi = {
       method: "POST",
       body: "{}",
     }),
+  forgotPassword: () =>
+    request<{ ok: boolean; message: string }>(
+      "/api/orcamentos/auth/forgot-password",
+      {
+        method: "POST",
+        body: "{}",
+      },
+    ),
+  resetPassword: (token: string, password: string) =>
+    request<{ ok: boolean }>("/api/orcamentos/auth/reset-password", {
+      method: "POST",
+      body: JSON.stringify({ token, password }),
+    }),
   data: () =>
     request<{
       clients: OrcamentoClient[];
       proposals: OrcamentoProposal[];
       profile: OrcamentoProfile;
+      presets: OrcamentoPreset[];
     }>("/api/orcamentos/data"),
+  savePreset: (preset: OrcamentoPreset) =>
+    request<{ preset: OrcamentoPreset }>("/api/orcamentos/presets", {
+      method: "POST",
+      body: JSON.stringify(preset),
+    }),
+  deletePreset: (id: string) =>
+    request<{ ok: boolean }>(
+      `/api/orcamentos/presets?id=${encodeURIComponent(id)}`,
+      { method: "DELETE" },
+    ),
   saveClient: (client: OrcamentoClient) =>
     request<{ client: OrcamentoClient }>("/api/orcamentos/clients", {
       method: "POST",
@@ -81,4 +108,75 @@ export const orcamentosApi = {
       method: "POST",
       body: JSON.stringify({ mode }),
     }),
+  generateShare: (proposalId: string) =>
+    request<{
+      proposal: OrcamentoProposal;
+      password: string;
+      token: string;
+      url: string;
+    }>("/api/orcamentos/proposals/share", {
+      method: "POST",
+      body: JSON.stringify({ proposalId, action: "enable" }),
+    }),
+  disableShare: (proposalId: string) =>
+    request<{ proposal: OrcamentoProposal; disabled: boolean }>(
+      "/api/orcamentos/proposals/share",
+      {
+        method: "POST",
+        body: JSON.stringify({ proposalId, action: "disable" }),
+      },
+    ),
+  listComments: (proposalId: string) =>
+    request<{ comments: OrcamentoComment[] }>(
+      `/api/orcamentos/proposals/comments?proposalId=${encodeURIComponent(proposalId)}`,
+    ),
+  addAdminComment: (proposalId: string, body: string) =>
+    request<{ comment: OrcamentoComment }>(
+      "/api/orcamentos/proposals/comments",
+      {
+        method: "POST",
+        body: JSON.stringify({ proposalId, body }),
+      },
+    ),
+  publicUnlock: (token: string, password: string) =>
+    request<{ ok: boolean }>("/api/orcamentos/public/unlock", {
+      method: "POST",
+      body: JSON.stringify({ token, password }),
+    }),
+  publicProposal: (token: string) =>
+    request<PublicProposalPayload>(
+      `/api/orcamentos/public/proposal?token=${encodeURIComponent(token)}`,
+    ),
+  publicComment: (token: string, body: string) =>
+    request<{ comment: OrcamentoComment }>("/api/orcamentos/public/comments", {
+      method: "POST",
+      body: JSON.stringify({ token, body }),
+    }),
+  publicDecision: (
+    token: string,
+    action: "approve" | "reject",
+    note?: string,
+  ) =>
+    request<{
+      status: string;
+      clientDecidedAt: string;
+      clientDecisionNote: string;
+    }>("/api/orcamentos/public/decision", {
+      method: "POST",
+      body: JSON.stringify({ token, action, note: note ?? "" }),
+    }),
+  sendProposal: (payload: {
+    id: string;
+    pdfBase64: string;
+    to?: string;
+    shareUrl?: string;
+    sharePassword?: string;
+  }) =>
+    request<{ ok: boolean; id: string | null; to: string }>(
+      "/api/orcamentos/proposals/send",
+      {
+        method: "POST",
+        body: JSON.stringify(payload),
+      },
+    ),
 };

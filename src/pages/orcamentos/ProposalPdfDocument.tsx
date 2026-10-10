@@ -1,3 +1,5 @@
+import type { ReactNode } from "react";
+import { maskPhoneBr } from "../../lib/phoneMask";
 import type {
   OrcamentoClient,
   OrcamentoProfile,
@@ -25,6 +27,44 @@ type Props = {
   profile: OrcamentoProfile;
 };
 
+function Section({
+  number,
+  title,
+  children,
+}: {
+  number: number;
+  title: string;
+  children: ReactNode;
+}) {
+  return (
+    <section data-pdf-block className="pdf-block mt-[18px]">
+      <h2
+        data-pdf-atom
+        className="mb-1.5 border-b border-[#dfe5e0] pb-1 text-[13.5px] font-extrabold text-[#007a55]"
+      >
+        {number}. {title}
+      </h2>
+      {children}
+    </section>
+  );
+}
+
+function BulletList({ items }: { items: string[] }) {
+  return (
+    <ul className="my-1 list-disc pl-5 text-[11.5px] leading-relaxed">
+      {items.map((item) => (
+        <li
+          key={item}
+          data-pdf-atom
+          className="my-0.5 break-words [overflow-wrap:anywhere]"
+        >
+          {item}
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 function ProposalPdfDocument({ proposal, client, profile }: Props) {
   const created = proposal.created
     ? new Date(proposal.created)
@@ -45,13 +85,9 @@ function ProposalPdfDocument({ proposal, client, profile }: Props) {
   );
 
   let section = 0;
-  const H = (title: string) => {
+  const next = () => {
     section += 1;
-    return (
-      <h2 className="mt-[18px] mb-1.5 border-b border-[#dfe5e0] pb-1 text-[13.5px] font-extrabold text-[#007a55]">
-        {section}. {title}
-      </h2>
-    );
+    return section;
   };
 
   return (
@@ -59,30 +95,37 @@ function ProposalPdfDocument({ proposal, client, profile }: Props) {
       className="proposal-pdf bg-white text-[#121212]"
       style={{
         fontFamily: "Montserrat, Arial, Helvetica, sans-serif",
-        width: 740,
+        width: 680,
+        maxWidth: 680,
         boxSizing: "border-box",
-        padding: "8px 4px",
+        padding: "16px 28px",
+        overflow: "hidden",
+        wordBreak: "break-word",
+        overflowWrap: "anywhere",
       }}
     >
-      <header className="mb-3.5 flex items-center justify-between gap-4 border-b-[3px] border-[#007a55] pb-3.5">
-        <div className="flex items-center gap-3">
+      <header
+        data-pdf-block
+        className="pdf-block mb-3.5 flex items-start justify-between gap-4 border-b-[3px] border-[#007a55] pb-3.5"
+      >
+        <div className="flex min-w-0 flex-1 items-center gap-3">
           <img
             src={`${import.meta.env.BASE_URL}email/icon-devbossle.png`}
             alt=""
             width={46}
             height={46}
-            className="size-[46px] rounded-[11px] object-cover"
+            className="size-[46px] shrink-0 rounded-[11px] object-cover"
           />
-          <div>
+          <div className="min-w-0">
             <div className="text-xl font-extrabold tracking-[1.5px]">
               PROPOSTA DE PROJETO
             </div>
-            <div className="mt-0.5 text-[12.5px] font-semibold text-[#444]">
+            <div className="mt-0.5 break-words text-[12.5px] font-semibold text-[#444]">
               {proposal.company || "Projeto de desenvolvimento"}
             </div>
           </div>
         </div>
-        <div className="text-right text-[10.5px] leading-relaxed text-[#5b6962]">
+        <div className="max-w-[200px] shrink-0 text-right text-[10.5px] leading-relaxed break-words text-[#5b6962]">
           Preparado por {profile.name || ""}
           <br />
           {created.toLocaleDateString("pt-BR")} · Versão{" "}
@@ -93,109 +136,136 @@ function ProposalPdfDocument({ proposal, client, profile }: Props) {
       </header>
 
       {client?.name ? (
-        <div className="mb-1.5 rounded-r-lg border-l-4 border-[#007a55] bg-[#f4f6f3] px-3 py-2 text-[11.5px]">
+        <div
+          data-pdf-block
+          data-pdf-atom
+          className="pdf-block mb-1.5 rounded-r-lg border-l-4 border-[#007a55] bg-[#f4f6f3] px-3 py-2 text-[11.5px] break-words"
+        >
           <b>Para:</b> {client.name}
           {client.company ? ` · ${client.company}` : ""}
         </div>
       ) : null}
 
-      {H("A ideia em resumo")}
-      <p className="mb-1.5 text-[11.5px] leading-relaxed">
-        {proposal.idea || "Projeto de desenvolvimento web sob medida."}
-      </p>
-
-      {H("Escopo do projeto")}
-      {scope.length ? (
-        <ul className="my-1 list-disc pl-5 text-[11.5px] leading-relaxed">
-          {scope.map((item) => (
-            <li key={item} className="my-0.5">
-              {item}
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <p className="mb-1.5 text-[11.5px] leading-relaxed">
-          Escopo definido conforme alinhamento com o cliente.
+      <Section number={next()} title="A ideia em resumo">
+        <p
+          data-pdf-atom
+          className="mb-1.5 text-[11.5px] leading-relaxed break-words [overflow-wrap:anywhere]"
+        >
+          {proposal.idea || "Projeto de desenvolvimento web sob medida."}
         </p>
-      )}
+      </Section>
 
-      {H("Etapas e prazos")}
-      {timeline.length ? (
-        <ul className="my-1 list-disc pl-5 text-[11.5px] leading-relaxed">
-          {timeline.map((item) => (
-            <li key={item} className="my-0.5">
-              {item}
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <p className="mb-1.5 text-[11.5px] leading-relaxed">
-          Prazo a definir após aprovação e recebimento dos materiais.
-        </p>
-      )}
+      <Section number={next()} title="Escopo do projeto">
+        {scope.length ? (
+          <BulletList items={scope} />
+        ) : (
+          <p
+            data-pdf-atom
+            className="mb-1.5 text-[11.5px] leading-relaxed break-words"
+          >
+            Escopo definido conforme alinhamento com o cliente.
+          </p>
+        )}
+      </Section>
 
-      {H("Investimento")}
-      <table className="w-full border-collapse text-[11px]">
-        <thead>
-          <tr className="bg-[#121212] text-left text-white">
-            <th className="px-2 py-1.5 font-semibold">Etapa / item</th>
-            <th className="px-2 py-1.5 font-semibold">Descrição</th>
-            <th className="px-2 py-1.5 text-right font-semibold">Valor</th>
-          </tr>
-        </thead>
-        <tbody>
-          {items.length ? (
-            items.map((item, i) => (
-              <tr key={`${item.name}-${i}`} className="border-b border-[#dfe5e0]">
-                <td className="px-2 py-1.5 align-top">{item.name}</td>
-                <td className="px-2 py-1.5 align-top">{item.desc}</td>
-                <td className="px-2 py-1.5 text-right font-bold align-top">
-                  {money(item.value)}
-                </td>
+      <Section number={next()} title="Etapas e prazos">
+        {timeline.length ? (
+          <BulletList items={timeline} />
+        ) : (
+          <p
+            data-pdf-atom
+            className="mb-1.5 text-[11.5px] leading-relaxed break-words"
+          >
+            Prazo a definir após aprovação e recebimento dos materiais.
+          </p>
+        )}
+      </Section>
+
+      <Section number={next()} title="Investimento">
+        <div data-pdf-atom className="w-full max-w-full overflow-hidden">
+          <table className="w-full table-fixed border-collapse text-[11px]">
+            <thead>
+              <tr className="bg-[#121212] text-left text-white">
+                <th className="w-[28%] px-2 py-1.5 font-semibold">
+                  Etapa / item
+                </th>
+                <th className="w-[50%] px-2 py-1.5 font-semibold">
+                  Descrição
+                </th>
+                <th className="w-[22%] px-2 py-1.5 text-right font-semibold">
+                  Valor
+                </th>
               </tr>
-            ))
-          ) : (
-            <tr className="border-b border-[#dfe5e0]">
-              <td className="px-2 py-1.5">Desenvolvimento</td>
-              <td className="px-2 py-1.5">Projeto conforme escopo descrito</td>
-              <td className="px-2 py-1.5 text-right font-bold">
-                {money(proposal.total)}
-              </td>
-            </tr>
-          )}
-        </tbody>
-      </table>
-      <div className="mt-2 text-right text-sm font-extrabold">
-        TOTAL {money(proposal.total)}
-      </div>
+            </thead>
+            <tbody>
+              {items.length ? (
+                items.map((item, i) => (
+                  <tr
+                    key={`${item.name}-${i}`}
+                    className="border-b border-[#dfe5e0]"
+                  >
+                    <td className="px-2 py-1.5 align-top break-words">
+                      {item.name}
+                    </td>
+                    <td className="px-2 py-1.5 align-top break-words">
+                      {item.desc}
+                    </td>
+                    <td className="px-2 py-1.5 text-right font-bold align-top break-words">
+                      {money(item.value)}
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr className="border-b border-[#dfe5e0]">
+                  <td className="px-2 py-1.5 break-words">Desenvolvimento</td>
+                  <td className="px-2 py-1.5 break-words">
+                    Projeto conforme escopo descrito
+                  </td>
+                  <td className="px-2 py-1.5 text-right font-bold">
+                    {money(proposal.total)}
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+          <div className="mt-2 text-right text-sm font-extrabold">
+            TOTAL {money(proposal.total)}
+          </div>
+        </div>
+      </Section>
 
-      {H("Forma de pagamento")}
-      <p className="mb-1.5 text-[11.5px] leading-relaxed">
-        {proposal.payment || "A combinar."}
-      </p>
-
-      {H("O que preciso do cliente")}
-      {needs.length ? (
-        <ul className="my-1 list-disc pl-5 text-[11.5px] leading-relaxed">
-          {needs.map((item) => (
-            <li key={item} className="my-0.5">
-              {item}
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <p className="mb-1.5 text-[11.5px] leading-relaxed">
-          Materiais, textos, imagens, identidade visual e acessos necessários ao
-          projeto.
+      <Section number={next()} title="Forma de pagamento">
+        <p
+          data-pdf-atom
+          className="mb-1.5 text-[11.5px] leading-relaxed break-words [overflow-wrap:anywhere]"
+        >
+          {proposal.payment || "A combinar."}
         </p>
-      )}
+      </Section>
+
+      <Section number={next()} title="O que preciso do cliente">
+        {needs.length ? (
+          <BulletList items={needs} />
+        ) : (
+          <p
+            data-pdf-atom
+            className="mb-1.5 text-[11.5px] leading-relaxed break-words"
+          >
+            Materiais, textos, imagens, identidade visual e acessos necessários
+            ao projeto.
+          </p>
+        )}
+      </Section>
 
       {publicLinks.length ? (
-        <>
-          {H("Páginas teste e apresentações")}
+        <Section number={next()} title="Páginas teste e apresentações">
           <ul className="my-1 list-disc pl-5 text-[11.5px] leading-relaxed">
             {publicLinks.map((link) => (
-              <li key={`${link.label}-${link.url}`} className="my-1">
+              <li
+                key={`${link.label}-${link.url}`}
+                data-pdf-atom
+                className="my-1 break-words [overflow-wrap:anywhere]"
+              >
                 <span className="text-[10px] font-bold uppercase tracking-wide text-[#5b6962]">
                   {LINK_TYPE[link.type] || "Link"}
                 </span>
@@ -204,34 +274,33 @@ function ProposalPdfDocument({ proposal, client, profile }: Props) {
                 <br />
                 <a
                   href={link.url || undefined}
-                  className="break-all text-[#007a55]"
+                  className="cursor-pointer break-all text-[#007a55]"
                 >
                   {link.url}
                 </a>
               </li>
             ))}
           </ul>
-        </>
+        </Section>
       ) : null}
 
-      {H("Observações")}
-      <ul className="my-1 list-disc pl-5 text-[11.5px] leading-relaxed">
-        {notes.map((item) => (
-          <li key={item} className="my-0.5">
-            {item}
-          </li>
-        ))}
-      </ul>
+      <Section number={next()} title="Observações">
+        <BulletList items={notes} />
+      </Section>
 
-      <footer className="mt-[22px] flex justify-between gap-2.5 border-t border-[#ccd3ce] pt-2 text-[10px] text-[#5b6962]">
-        <div>
+      <footer
+        data-pdf-block
+        data-pdf-atom
+        className="pdf-block mt-[22px] flex justify-between gap-2.5 border-t border-[#ccd3ce] pt-2 text-[10px] text-[#5b6962]"
+      >
+        <div className="min-w-0 flex-1 break-words">
           <b className="text-[#121212]">{profile.name || ""}</b>
           <br />
           {profile.title || ""}
-          {profile.phone ? ` · ${profile.phone}` : ""}
+          {profile.phone ? ` · ${maskPhoneBr(profile.phone)}` : ""}
           {profile.email ? ` · ${profile.email}` : ""}
         </div>
-        <div className="text-right">
+        <div className="min-w-0 max-w-[45%] text-right break-words">
           {profile.linkedin || ""}
           <br />
           {profile.portfolio || ""}

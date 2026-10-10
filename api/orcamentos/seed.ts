@@ -27,8 +27,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       for (const c of data.clients) {
         await client.query(
-          `INSERT INTO clients (id, name, company, phone, email, link, notes, updated_at)
-           VALUES ($1,$2,$3,$4,$5,$6,$7, now())
+          `INSERT INTO clients (
+             id, name, company, phone, email, link, notes,
+             legal_name, document, address, updated_at
+           )
+           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10, now())
            ON CONFLICT (id) DO UPDATE SET
              name = EXCLUDED.name,
              company = EXCLUDED.company,
@@ -36,8 +39,22 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
              email = EXCLUDED.email,
              link = EXCLUDED.link,
              notes = EXCLUDED.notes,
+             legal_name = EXCLUDED.legal_name,
+             document = EXCLUDED.document,
+             address = EXCLUDED.address,
              updated_at = now()`,
-          [c.id, c.name, c.company, c.phone, c.email, c.link, c.notes],
+          [
+            c.id,
+            c.name,
+            c.company,
+            c.phone,
+            c.email,
+            c.link,
+            c.notes,
+            c.legalName ?? "",
+            c.document ?? "",
+            c.address ?? "",
+          ],
         );
         clientsUpserted += 1;
       }
@@ -96,7 +113,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         await client.query(
           `UPDATE profile SET
              name = $1, title = $2, phone = $3, email = $4,
-             linkedin = $5, portfolio = $6, bio = $7, updated_at = now()
+             linkedin = $5, portfolio = $6, bio = $7,
+             document = $8, address = $9, updated_at = now()
            WHERE id = 1`,
           [
             data.profile.name,
@@ -106,6 +124,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             data.profile.linkedin,
             data.profile.portfolio,
             data.profile.bio,
+            data.profile.document ?? "",
+            data.profile.address ?? "",
           ],
         );
       }

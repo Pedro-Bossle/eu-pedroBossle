@@ -1,18 +1,41 @@
 import { useEffect, useState } from "react";
+import { useLocation } from "react-router";
 import { orcamentosApi } from "../../lib/orcamentos/api";
 import type {
   OrcamentoClient,
+  OrcamentoPreset,
   OrcamentoProfile,
   OrcamentoProposal,
 } from "../../types/orcamentos";
+import ClientProposal from "./ClientProposal";
 import Login from "./Login";
 import Panel from "./Panel";
+import ResetPassword from "./ResetPassword";
+
+function publicTokenFromPath(pathname: string): string | null {
+  const match = pathname.match(/\/p\/([^/]+)\/?$/);
+  return match?.[1] ? decodeURIComponent(match[1]) : null;
+}
+
+function resetTokenFromLocation(pathname: string, search: string): string | null {
+  if (!/\/redefinir-senha\/?$/.test(pathname)) return null;
+  const token = new URLSearchParams(search).get("token");
+  return token?.trim() || null;
+}
 
 function OrcamentosApp() {
+  const location = useLocation();
+  const publicToken = publicTokenFromPath(location.pathname);
+  const resetToken = resetTokenFromLocation(
+    location.pathname,
+    location.search,
+  );
+
   const [checking, setChecking] = useState(true);
   const [username, setUsername] = useState<string | null>(null);
   const [clients, setClients] = useState<OrcamentoClient[]>([]);
   const [proposals, setProposals] = useState<OrcamentoProposal[]>([]);
+  const [presets, setPresets] = useState<OrcamentoPreset[]>([]);
   const [profile, setProfile] = useState<OrcamentoProfile>({
     name: "",
     title: "",
@@ -25,6 +48,7 @@ function OrcamentosApp() {
   const [loadError, setLoadError] = useState("");
 
   useEffect(() => {
+    if (publicToken) return;
     let cancelled = false;
     (async () => {
       try {
@@ -36,6 +60,7 @@ function OrcamentosApp() {
         setClients(data.clients);
         setProposals(data.proposals);
         setProfile(data.profile);
+        setPresets(data.presets ?? []);
       } catch {
         if (!cancelled) setUsername(null);
       } finally {
@@ -45,7 +70,48 @@ function OrcamentosApp() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [publicToken]);
+
+  if (publicToken) {
+    return <ClientProposal token={publicToken} />;
+  }
+
+  if (resetToken) {
+    return (
+      <ResetPassword
+        token={resetToken}
+        onDone={() => {
+          const host = window.location.hostname.toLowerCase();
+          if (
+            host === "orcamentos.devbossle.com.br" ||
+            host.startsWith("orcamentos.")
+          ) {
+            window.location.href = "/";
+          } else {
+            window.location.href = "/orcamentos";
+          }
+        }}
+      />
+    );
+  }
+
+  if (/\/redefinir-senha\/?$/.test(location.pathname)) {
+    return (
+      <div className="flex min-h-dvh flex-col items-center justify-center bg-[#f9f9f9] px-4 text-center text-neutral-700 dark:bg-[#121212] dark:text-neutral-300">
+        <p className="text-sm">Link inválido ou incompleto.</p>
+        <a
+          href={
+            window.location.hostname.toLowerCase().startsWith("orcamentos.")
+              ? "/"
+              : "/orcamentos"
+          }
+          className="mt-4 text-sm font-medium text-emerald-800 underline dark:text-emerald-300"
+        >
+          Voltar ao login
+        </a>
+      </div>
+    );
+  }
 
   if (checking) {
     return (
@@ -66,6 +132,7 @@ function OrcamentosApp() {
             setClients(data.clients);
             setProposals(data.proposals);
             setProfile(data.profile);
+            setPresets(data.presets ?? []);
           } catch (e) {
             setLoadError(
               e instanceof Error
@@ -89,6 +156,7 @@ function OrcamentosApp() {
         username={username}
         clients={clients}
         proposals={proposals}
+        presets={presets}
         profile={profile}
         onLogout={async () => {
           await orcamentosApi.logout();
@@ -98,6 +166,7 @@ function OrcamentosApp() {
           setClients(data.clients);
           setProposals(data.proposals);
           setProfile(data.profile);
+          setPresets(data.presets ?? []);
         }}
       />
     </>

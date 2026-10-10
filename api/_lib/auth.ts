@@ -3,11 +3,18 @@ import { parseCookie, stringifySetCookie } from "cookie";
 import { SignJWT, jwtVerify } from "jose";
 
 const COOKIE = "orcamentos_session";
+const PROPOSAL_COOKIE = "orcamentos_proposal_session";
 const MAX_AGE = 60 * 60 * 24 * 14; // 14 dias
+const PROPOSAL_MAX_AGE = 60 * 60 * 24 * 7; // 7 dias
 
 export type SessionUser = {
   sub: string;
   username: string;
+};
+
+export type ProposalSession = {
+  proposalId: string;
+  token: string;
 };
 
 function secretKey() {
@@ -84,6 +91,24 @@ export function json(
   res.status(status).json(body);
 }
 
+/** Lê req.body sem derrubar o vercel dev quando o JSON é inválido. */
+export function readBody<T extends Record<string, unknown> = Record<string, unknown>>(
+  req: VercelRequest,
+): T | null {
+  try {
+    const body = req.body;
+    if (body == null) return {} as T;
+    if (typeof body === "string") {
+      const trimmed = body.trim();
+      if (!trimmed) return {} as T;
+      return JSON.parse(trimmed) as T;
+    }
+    return body as T;
+  } catch {
+    return null;
+  }
+}
+
 export async function requireSession(
   req: VercelRequest,
   res: VercelResponse,
@@ -91,6 +116,60 @@ export async function requireSession(
   const session = await readSession(req);
   if (!session) {
     json(res, 401, { error: "Não autenticado" });
+    return null;
+  }
+  return session;
+}
+
+export async function signProposalSession(session: ProposalSession) {
+  return new SignJWT({ token: session.token })
+    .setProtectedHeader({ alg: "HS256" })
+    .setSubject(session.proposalId)
+    .setIssuedAt()
+    .setExpirationTime(`${PROPOSAL_MAX_AGE}s`)
+    .sign(secretKey());
+}
+
+export async function readProposalSession(
+  req: VercelRequest,
+): Promise<ProposalSession | null> {
+  const raw = req.headers.cookie;
+  if (!raw) return null;
+  const jwt = parseCookie(raw)[PROPOSAL_COOKIE];
+  if (!jwt) return null;
+  try {
+    const { payload } = await jwtVerify(jwt, secretKey());
+    if (!payload.sub || typeof payload.token !== "string") return null;
+    return { proposalId: payload.sub, token: payload.token };
+  } catch {
+    return null;
+  }
+}
+
+export function setProposalSessionCookie(res: VercelResponse, token: string) {
+  const secure = process.env.NODE_ENV === "production";
+  res.setHeader(
+    "Set-Cookie",
+    stringifySetCookie({
+      name: PROPOSAL_COOKIE,
+      value: token,
+      httpOnly: true,
+      secure,
+      sameSite: "lax",
+      path: "/",
+      maxAge: PROPOSAL_MAX_AGE,
+    }),
+  );
+}
+
+export async function requireProposalSession(
+  req: VercelRequest,
+  res: VercelResponse,
+  shareToken: string,
+): Promise<ProposalSession | null> {
+  const session = await readProposalSession(req);
+  if (!session || session.token !== shareToken) {
+    json(res, 401, { error: "Desbloqueie a proposta com a senha" });
     return null;
   }
   return session;
