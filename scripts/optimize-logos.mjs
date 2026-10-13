@@ -9,7 +9,9 @@ import sharp from "sharp";
  */
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const logosDir = path.join(root, "src", "assets", "logos");
-const MAX = 640;
+/** Display ~150–220px; 384px @ q72 cuts ~300KB vs 640@q88 without visible loss on mobile. */
+const MAX = 384;
+const WEBP_QUALITY = 72;
 
 const map = {
   farrapos_logo: "farrapos",
@@ -39,7 +41,7 @@ for (const file of files) {
     .toFile(pngTmp);
 
   await sharp(pngTmp)
-    .webp({ quality: 88, alphaQuality: 100, effort: 6 })
+    .webp({ quality: WEBP_QUALITY, alphaQuality: 90, effort: 6 })
     .toFile(out);
 
   await unlink(pngTmp);

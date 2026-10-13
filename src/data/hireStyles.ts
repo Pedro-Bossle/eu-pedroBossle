@@ -68,7 +68,7 @@ export const HIRE_STYLES: HireStyle[] = [
       radius: "8px",
       controlRadius: "6px",
       borderWidth: "1px",
-      font: '"Montserrat", sans-serif',
+      font: '"Montserrat Variable", "Montserrat", sans-serif',
       shadow: "none",
       chip: "#171717",
       pattern:
@@ -127,7 +127,7 @@ export const HIRE_STYLES: HireStyle[] = [
       radius: "4px",
       controlRadius: "2px",
       borderWidth: "3px",
-      font: '"Space Grotesk", "Montserrat", sans-serif',
+      font: '"Space Grotesk", "Montserrat Variable", "Montserrat", sans-serif',
       fontUrl:
         "https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&display=swap",
       shadow: "5px 5px 0 #171717",
@@ -161,7 +161,7 @@ export const HIRE_STYLES: HireStyle[] = [
       radius: "28px",
       controlRadius: "18px",
       borderWidth: "1px",
-      font: '"Nunito", "Montserrat", sans-serif',
+      font: '"Nunito", "Montserrat Variable", "Montserrat", sans-serif',
       fontUrl:
         "https://fonts.googleapis.com/css2?family=Nunito:wght@500;700;800&display=swap",
       shadow:
@@ -195,7 +195,7 @@ export const HIRE_STYLES: HireStyle[] = [
       radius: "20px",
       controlRadius: "12px",
       borderWidth: "1px",
-      font: '"Montserrat", sans-serif',
+      font: '"Montserrat Variable", "Montserrat", sans-serif',
       shadow: "0 16px 48px rgba(0,0,0,0.35)",
       chip: "#38bdf8",
       pattern:
@@ -227,7 +227,7 @@ export const HIRE_STYLES: HireStyle[] = [
       radius: "22px",
       controlRadius: "14px",
       borderWidth: "1px",
-      font: '"Montserrat", sans-serif',
+      font: '"Montserrat Variable", "Montserrat", sans-serif',
       shadow: "8px 8px 18px #c8cad3, -6px -6px 16px #ffffff",
       chip: "#5b5fc7",
       pattern:
@@ -258,7 +258,7 @@ export const HIRE_STYLES: HireStyle[] = [
       radius: "4px",
       controlRadius: "2px",
       borderWidth: "1px",
-      font: '"Orbitron", "Montserrat", sans-serif',
+      font: '"Orbitron", "Montserrat Variable", "Montserrat", sans-serif',
       fontUrl:
         "https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&display=swap",
       shadow: "0 0 0 1px rgba(232,121,249,0.25), 0 0 28px rgba(232,121,249,0.2)",
@@ -291,7 +291,7 @@ export const HIRE_STYLES: HireStyle[] = [
       radius: "6px",
       controlRadius: "4px",
       borderWidth: "1px",
-      font: '"IBM Plex Mono", "Montserrat", monospace',
+      font: '"IBM Plex Mono", "Montserrat Variable", "Montserrat", monospace',
       fontUrl:
         "https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&display=swap",
       shadow: "0 0 24px rgba(34,211,238,0.15)",
@@ -324,7 +324,7 @@ export const HIRE_STYLES: HireStyle[] = [
       radius: "14px",
       controlRadius: "10px",
       borderWidth: "1px",
-      font: '"Montserrat", sans-serif',
+      font: '"Montserrat Variable", "Montserrat", sans-serif',
       shadow: "0 0 32px rgba(244,114,182,0.22)",
       chip: "#f472b6",
       pattern:
@@ -356,7 +356,7 @@ export const HIRE_STYLES: HireStyle[] = [
       /** Bolha nos inputs curtos; textarea usa raio menor no componente */
       controlRadius: "22px",
       borderWidth: "2px",
-      font: '"Comfortaa", "Montserrat", sans-serif',
+      font: '"Comfortaa", "Montserrat Variable", "Montserrat", sans-serif',
       fontUrl:
         "https://fonts.googleapis.com/css2?family=Comfortaa:wght@500;700&display=swap",
       shadow: "0 10px 28px rgba(219,39,119,0.14)",
@@ -389,7 +389,7 @@ export const HIRE_STYLES: HireStyle[] = [
       radius: "0px",
       controlRadius: "0px",
       borderWidth: "2px",
-      font: '"IBM Plex Mono", "Montserrat", monospace',
+      font: '"IBM Plex Mono", "Montserrat Variable", "Montserrat", monospace',
       fontUrl:
         "https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&display=swap",
       shadow: "4px 4px 0 #4ade80",
@@ -422,7 +422,7 @@ export const HIRE_STYLES: HireStyle[] = [
       radius: "12px",
       controlRadius: "8px",
       borderWidth: "2px",
-      font: '"Caveat", "Montserrat", cursive',
+      font: '"Caveat", "Montserrat Variable", "Montserrat", cursive',
       fontUrl:
         "https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&display=swap",
       shadow: "3px 5px 0 rgba(41,37,36,0.1)",
@@ -488,7 +488,7 @@ export const HIRE_STYLES: HireStyle[] = [
       radius: "22px",
       controlRadius: "14px",
       borderWidth: "1px",
-      font: '"Montserrat", sans-serif',
+      font: '"Montserrat Variable", "Montserrat", sans-serif',
       shadow: "0 6px 24px rgba(0,0,0,0.06)",
       chip: "#0071e3",
       pattern: svgBg(
@@ -549,7 +549,7 @@ export const HIRE_STYLES: HireStyle[] = [
       radius: "14px",
       controlRadius: "10px",
       borderWidth: "3px",
-      font: '"Montserrat", sans-serif',
+      font: '"Montserrat Variable", "Montserrat", sans-serif',
       shadow: "6px 6px 0 #0f766e",
       chip: "#db2777",
       pattern:
@@ -614,7 +614,7 @@ export const HIRE_STYLES: HireStyle[] = [
       radius: "2px",
       controlRadius: "2px",
       borderWidth: "1px",
-      font: '"Architects Daughter", "Montserrat", cursive',
+      font: '"Architects Daughter", "Montserrat Variable", "Montserrat", cursive',
       fontUrl:
         "https://fonts.googleapis.com/css2?family=Architects+Daughter&display=swap",
       shadow: "2px 2px 0 rgba(41,37,36,0.12)",
@@ -647,7 +647,7 @@ export const HIRE_STYLES: HireStyle[] = [
       radius: "28px",
       controlRadius: "20px",
       borderWidth: "1px",
-      font: '"Quicksand", "Montserrat", sans-serif',
+      font: '"Quicksand", "Montserrat Variable", "Montserrat", sans-serif',
       fontUrl:
         "https://fonts.googleapis.com/css2?family=Quicksand:wght@500;600;700&display=swap",
       shadow: "0 16px 40px rgba(139,92,246,0.12)",
@@ -680,7 +680,7 @@ export const HIRE_STYLES: HireStyle[] = [
       radius: "16px",
       controlRadius: "12px",
       borderWidth: "2px",
-      font: '"Josefin Sans", "Montserrat", sans-serif',
+      font: '"Josefin Sans", "Montserrat Variable", "Montserrat", sans-serif',
       fontUrl:
         "https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@500;600;700&display=swap",
       shadow: "0 8px 0 rgba(154,52,18,0.1)",
@@ -783,6 +783,11 @@ export function ensureHireFont(style: HireStyle) {
   const link = document.createElement("link");
   link.rel = "stylesheet";
   link.href = style.tokens.fontUrl;
+  // Evita render-blocking ao trocar estilo no formulário
+  link.media = "print";
+  link.onload = () => {
+    link.media = "all";
+  };
   document.head.appendChild(link);
   loadedFonts.add(style.tokens.fontUrl);
 }

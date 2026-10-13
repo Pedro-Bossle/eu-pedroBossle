@@ -14,7 +14,8 @@ import {
 import { useLanguage } from "../i18n/LanguageContext";
 
 /** Tipografia fixa da UI de seleção — não herda o estilo ativo. */
-const UI_FONT = '"Montserrat", system-ui, sans-serif';
+const UI_FONT =
+  '"Montserrat Variable", "Montserrat", system-ui, sans-serif';
 
 function isEmail(value: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
@@ -197,12 +198,12 @@ function HireMe() {
       {/* Brilhos de acento */}
       <div
         aria-hidden
-        className="pointer-events-none absolute -left-24 top-1/3 size-72 rounded-full blur-3xl transition-colors duration-500"
+        className="pointer-events-none absolute -left-24 top-1/3 hidden size-72 rounded-full blur-3xl transition-colors duration-500 md:block"
         style={{ background: "color-mix(in srgb, var(--hire-accent) 16%, transparent)" }}
       />
       <div
         aria-hidden
-        className="pointer-events-none absolute -right-16 bottom-8 size-80 rounded-full blur-3xl transition-colors duration-500"
+        className="pointer-events-none absolute -right-16 bottom-8 hidden size-80 rounded-full blur-3xl transition-colors duration-500 md:block"
         style={{ background: "color-mix(in srgb, var(--hire-accent) 12%, transparent)" }}
       />
 

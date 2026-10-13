@@ -1,9 +1,10 @@
-import type { ReactNode } from "react";
+import { lazy, Suspense, type ReactNode } from "react";
 import { ReactLenis } from "lenis/react";
 import Nav from "../Nav";
 import Footer from "../Footer";
 import ScrollToTop from "../ScrollToTop";
-import SectionFade from "../SectionFade";
+
+const SectionFade = lazy(() => import("../SectionFade"));
 
 function Layout({ children }: { children: ReactNode }) {
   return (
@@ -13,7 +14,9 @@ function Layout({ children }: { children: ReactNode }) {
         <main>{children}</main>
         <Footer />
         <ScrollToTop />
-        <SectionFade />
+        <Suspense fallback={null}>
+          <SectionFade />
+        </Suspense>
       </div>
     </ReactLenis>
   );

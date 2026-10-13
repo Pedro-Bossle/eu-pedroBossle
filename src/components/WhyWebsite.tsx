@@ -12,6 +12,8 @@ function WhyWebsite() {
   const stepCount = steps.length;
 
   useEffect(() => {
+    let raf = 0;
+
     const update = () => {
       const items = itemRefs.current;
       if (!items.length) return;
@@ -23,7 +25,8 @@ function WhyWebsite() {
       for (let i = 0; i < items.length; i++) {
         const el = items[i];
         if (!el) continue;
-        const mid = el.getBoundingClientRect().top + el.offsetHeight / 2;
+        const rect = el.getBoundingClientRect();
+        const mid = rect.top + rect.height / 2;
         const dist = Math.abs(mid - focus);
         if (dist < bestDist) {
           bestDist = dist;
@@ -34,12 +37,21 @@ function WhyWebsite() {
       setActive((prev) => (prev === best ? prev : best));
     };
 
-    update();
-    const unsubscribe = lenis?.on("scroll", update);
-    window.addEventListener("resize", update);
+    const schedule = () => {
+      if (raf) return;
+      raf = window.requestAnimationFrame(() => {
+        raf = 0;
+        update();
+      });
+    };
+
+    schedule();
+    const unsubscribe = lenis?.on("scroll", schedule);
+    window.addEventListener("resize", schedule);
     return () => {
       unsubscribe?.();
-      window.removeEventListener("resize", update);
+      window.removeEventListener("resize", schedule);
+      if (raf) window.cancelAnimationFrame(raf);
     };
   }, [lenis, stepCount]);
 

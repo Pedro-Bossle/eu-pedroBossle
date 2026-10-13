@@ -212,10 +212,11 @@ function Cases() {
                   <img
                     src={logo}
                     alt=""
-                    width={64}
-                    height={64}
+                    width={128}
+                    height={128}
                     loading="lazy"
                     decoding="async"
+                    fetchPriority="low"
                     className="h-14 w-14 shrink-0 object-contain sm:h-16 sm:w-16"
                   />
                 )}

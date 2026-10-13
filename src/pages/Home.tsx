@@ -12,7 +12,7 @@ function Home() {
   return (
     <>
       <Hero />
-      <DeferredMount>
+      <DeferredMount rootMargin="120px 0px">
         <Suspense fallback={null}>
           <Projects />
           <Cases />

@@ -36,7 +36,13 @@ const trackSlides: { project: Project; key: string }[] =
         },
       ];
 
-function ProjectSlide({ project }: { project: Project }) {
+function ProjectSlide({
+  project,
+  loadImage,
+}: {
+  project: Project;
+  loadImage: boolean;
+}) {
   const { locale, t } = useLanguage();
   const logo = project.image
     ? projectLogos[project.image as keyof typeof projectLogos]
@@ -74,9 +80,9 @@ function ProjectSlide({ project }: { project: Project }) {
           aria-hidden
           className="
             absolute left-1/2 top-1/2 h-36 w-36 -translate-x-1/2 -translate-y-1/2
-            rounded-full opacity-35 blur-3xl
-            sm:h-44 sm:w-44
-            md:h-56 md:w-56
+            rounded-full opacity-35 blur-xl
+            sm:h-44 sm:w-44 sm:blur-2xl
+            md:h-56 md:w-56 md:blur-3xl
           "
           style={{ backgroundColor: project.visual.accent }}
         />
@@ -106,12 +112,12 @@ function ProjectSlide({ project }: { project: Project }) {
           }}
         />
 
-        {logo && (
+        {logo && loadImage ? (
           <img
             src={logo}
             alt={`${t.projects.logoAlt} ${project.title}`}
-            width={512}
-            height={512}
+            width={320}
+            height={320}
             loading="lazy"
             decoding="async"
             fetchPriority="low"
@@ -120,7 +126,7 @@ function ProjectSlide({ project }: { project: Project }) {
               -translate-x-1/2 -translate-y-1/2 object-contain
             "
           />
-        )}
+        ) : null}
       </div>
 
       <div
@@ -191,6 +197,8 @@ const ProjectsCarousel = () => {
   const [animate, setAnimate] = useState(true);
   const [hoverPaused, setHoverPaused] = useState(false);
   const [hiddenPaused, setHiddenPaused] = useState(false);
+  const [inView, setInView] = useState(false);
+  const rootRef = useRef<HTMLDivElement>(null);
   const jumping = useRef(false);
   const touchStartX = useRef<number | null>(null);
   const touchDeltaX = useRef(0);
@@ -251,7 +259,21 @@ const ProjectsCarousel = () => {
   }, []);
 
   useEffect(() => {
-    if (hoverPaused || hiddenPaused || n < 2) return;
+    const el = rootRef.current;
+    if (!el || typeof IntersectionObserver === "undefined") {
+      setInView(true);
+      return;
+    }
+    const io = new IntersectionObserver(
+      ([entry]) => setInView(Boolean(entry?.isIntersecting)),
+      { rootMargin: "80px 0px", threshold: 0.15 },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+
+  useEffect(() => {
+    if (!inView || hoverPaused || hiddenPaused || n < 2) return;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
     const id = window.setInterval(() => {
@@ -261,7 +283,7 @@ const ProjectsCarousel = () => {
     }, AUTO_PLAY_MS);
 
     return () => window.clearInterval(id);
-  }, [pos, hoverPaused, hiddenPaused, n]);
+  }, [pos, hoverPaused, hiddenPaused, n, inView]);
 
   const onTouchStart = (e: TouchEvent) => {
     touchStartX.current = e.touches[0].clientX;
@@ -288,6 +310,7 @@ const ProjectsCarousel = () => {
 
   return (
     <div
+      ref={rootRef}
       className="w-full rounded-2xl"
       onMouseEnter={() => {
         if (window.matchMedia("(hover: hover)").matches) setHoverPaused(true);
@@ -303,16 +326,19 @@ const ProjectsCarousel = () => {
         <div
           className="flex gap-4 ease-out"
           style={{
-            transform: `translateX(calc(-${pos} * (100% + 1rem)))`,
+            transform: `translate3d(calc(-${pos} * (100% + 1rem)), 0, 0)`,
             transition: animate
               ? `transform ${TRANSITION_MS}ms ease-out`
               : "none",
           }}
           onTransitionEnd={onTransitionEnd}
         >
-          {trackSlides.map(({ project, key }) => (
-            <ProjectSlide key={key} project={project} />
-          ))}
+          {trackSlides.map(({ project, key }, index) => {
+            const near = Math.abs(index - pos) <= 1;
+            return (
+              <ProjectSlide key={key} project={project} loadImage={near} />
+            );
+          })}
         </div>
       </div>
 
@@ -348,7 +374,7 @@ const ProjectsCarousel = () => {
                 onClick={() => goTo(index)}
                 aria-label={`${t.projects.goTo} ${project.title}`}
                 aria-current={logical === index ? "true" : undefined}
-                className="h-2 cursor-pointer rounded-full transition-all duration-300"
+                className="h-2 cursor-pointer rounded-full transition-[width,opacity] duration-300"
                 style={{
                   width: logical === index ? 22 : 8,
                   backgroundColor: projects[logical].visual.accent,

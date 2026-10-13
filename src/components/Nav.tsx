@@ -257,13 +257,13 @@ function Nav() {
               onHero ? "h-2.5 w-2.5 sm:h-3 sm:w-3" : "h-3.5 w-3.5 sm:h-4 sm:w-4"
             } ${isBouncing ? "animate-[bounce-dot_0.6s_ease-in-out_0.2s]" : ""}`}
           />
-          <h1
-            className={`ml-2 truncate font-bold transition-all duration-300 sm:ml-3 ${
+          <span
+            className={`ml-2 truncate font-bold transition-[font-size] duration-300 sm:ml-3 ${
               onHero ? "text-lg" : "text-xl sm:text-2xl"
             }`}
           >
             .dev Bossle
-          </h1>
+          </span>
         </Link>
 
         <div className="flex shrink-0 items-center gap-2 sm:gap-3 lg:gap-5">
@@ -286,7 +286,8 @@ function Nav() {
               width={28}
               height={28}
               decoding="async"
-              className={`cursor-pointer transition-all duration-300 ${
+              fetchPriority="low"
+              className={`cursor-pointer transition-[width] duration-300 ${
                 onHero ? "w-5 sm:w-6" : "w-6 sm:w-7"
               }`}
               alt={dark ? t.nav.lightMode : t.nav.darkMode}

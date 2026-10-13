@@ -46,7 +46,7 @@ const HeroBalloon = ({
         px-5
         py-4
 
-        transition-all
+        transition-[transform,box-shadow]
         duration-300
         ease-out
 
@@ -105,7 +105,7 @@ const HeroBalloon = ({
           border
           border-black/10
 
-          transition-all
+          transition-transform
           duration-300
 
           group-hover:scale-110
@@ -134,10 +134,9 @@ const HeroBalloon = ({
           opacity-0
           blur-2xl
 
-          transition-all
+          transition-opacity
           duration-500
-
-          group-hover:opacity-100
+          md:group-hover:opacity-100
         "
       />
     </a>

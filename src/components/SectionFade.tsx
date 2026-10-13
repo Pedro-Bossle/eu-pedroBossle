@@ -13,6 +13,8 @@ const SECTION_IDS = [
 const PASSED_OPACITY = 0.62;
 const PREVIOUS_OPACITY = 0.4;
 const FOCUS_LINE = 0.42;
+/** Desktop-only: mobile PSI sofre com GBCRs + mask no scroll. */
+const DESKTOP_MQ = "(min-width: 768px)";
 
 const clamp = (value: number, min: number, max: number) =>
   Math.min(max, Math.max(min, value));
@@ -20,16 +22,26 @@ const clamp = (value: number, min: number, max: number) =>
 const lerp = (from: number, to: number, progress: number) =>
   from + (to - from) * progress;
 
-function enterAmount(top: number) {
-  const start = window.innerHeight * 0.92;
-  const end = window.innerHeight * FOCUS_LINE;
+function enterAmount(top: number, innerHeight: number) {
+  const start = innerHeight * 0.92;
+  const end = innerHeight * FOCUS_LINE;
   return clamp((start - top) / (start - end), 0, 1);
+}
+
+function clearSectionStyles(sections: HTMLElement[]) {
+  for (const section of sections) {
+    section.style.opacity = "1";
+    section.style.pointerEvents = "";
+    section.style.maskImage = "";
+    section.style.webkitMaskImage = "";
+  }
 }
 
 function applySectionFade() {
   const reduceMotion = window.matchMedia(
     "(prefers-reduced-motion: reduce)",
   ).matches;
+  const isDesktop = window.matchMedia(DESKTOP_MQ).matches;
 
   const sections = SECTION_IDS.map((id) => document.getElementById(id)).filter(
     (element): element is HTMLElement => element !== null,
@@ -37,40 +49,35 @@ function applySectionFade() {
 
   if (sections.length === 0) return;
 
-  if (reduceMotion) {
-    for (const section of sections) {
-      section.style.opacity = "1";
-      section.style.pointerEvents = "";
-      section.style.maskImage = "";
-      section.style.webkitMaskImage = "";
-    }
+  if (reduceMotion || !isDesktop) {
+    clearSectionStyles(sections);
     return;
   }
 
   const focus = window.innerHeight * FOCUS_LINE;
+  const vh = window.innerHeight;
   let active = 0;
 
-  sections.forEach((section, index) => {
-    if (section.getBoundingClientRect().top <= focus) active = index;
+  // Uma leitura por seção — evita forced reflow intercalado com writes
+  const tops = sections.map((section) => section.getBoundingClientRect().top);
+
+  tops.forEach((top, index) => {
+    if (top <= focus) active = index;
   });
 
   const seen = Number(document.documentElement.dataset.sectionsSeen ?? "0");
   let maxSeen = seen;
 
-  sections.forEach((section, index) => {
-    const enter = enterAmount(section.getBoundingClientRect().top);
+  tops.forEach((top, index) => {
+    const enter = enterAmount(top, vh);
     if (index > maxSeen && enter > 0.92) maxSeen = index;
   });
 
-  const activeTop = sections[active].getBoundingClientRect().top;
-  const previousFade = clamp(
-    (focus - activeTop) / (window.innerHeight * 0.28),
-    0,
-    1,
-  );
+  const activeTop = tops[active];
+  const previousFade = clamp((focus - activeTop) / (vh * 0.28), 0, 1);
 
   sections.forEach((section, index) => {
-    const enter = enterAmount(section.getBoundingClientRect().top);
+    const enter = enterAmount(tops[index], vh);
     let opacity = PASSED_OPACITY;
     let mask = "";
 
@@ -100,20 +107,33 @@ const SectionFade = () => {
   const lenis = useLenis();
 
   useEffect(() => {
-    applySectionFade();
+    let raf = 0;
+    const schedule = () => {
+      if (raf) return;
+      raf = window.requestAnimationFrame(() => {
+        raf = 0;
+        applySectionFade();
+      });
+    };
 
-    const onScroll = () => applySectionFade();
-    const unsubscribe = lenis?.on("scroll", onScroll);
-    window.addEventListener("resize", onScroll);
+    schedule();
+
+    const unsubscribe = lenis?.on("scroll", schedule);
+    window.addEventListener("resize", schedule);
 
     const main = document.querySelector("main");
-    const observer = new MutationObserver(onScroll);
+    const observer = new MutationObserver(schedule);
     if (main) observer.observe(main, { childList: true });
 
     return () => {
       unsubscribe?.();
-      window.removeEventListener("resize", onScroll);
+      window.removeEventListener("resize", schedule);
       observer.disconnect();
+      if (raf) window.cancelAnimationFrame(raf);
+      const sections = SECTION_IDS.map((id) =>
+        document.getElementById(id),
+      ).filter((element): element is HTMLElement => element !== null);
+      clearSectionStyles(sections);
     };
   }, [lenis]);
 

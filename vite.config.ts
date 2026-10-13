@@ -6,6 +6,24 @@ import tailwindcss from "@tailwindcss/vite";
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   base: "/",
+  build: {
+    cssCodeSplit: true,
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (!id.includes("node_modules")) return;
+          if (id.includes("lenis")) return "lenis";
+          if (
+            id.includes("react-dom") ||
+            id.includes("react-router") ||
+            id.includes(`${"node_modules"}/react/`)
+          ) {
+            return "react-vendor";
+          }
+        },
+      },
+    },
+  },
   server: {
     proxy: {
       "/api": {
