@@ -280,7 +280,7 @@ function HireMe() {
                     aria-selected={on}
                     onClick={() => setStyleId(item.id)}
                     className="
-                      flex h-11 w-max max-w-[70vw] shrink-0 snap-start items-center gap-2
+                      flex h-11 w-max max-w-[70vw] shrink-0 cursor-pointer snap-start items-center gap-2
                       px-3 text-left text-xs font-semibold leading-tight
                       transition-all duration-200
                       sm:h-11 sm:w-full sm:max-w-none sm:min-w-0 sm:px-2.5 sm:text-[11px] md:text-xs
