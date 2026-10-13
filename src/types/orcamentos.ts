@@ -100,3 +100,15 @@ export type OrcamentoSeed = {
   proposals: OrcamentoProposal[];
   profile: OrcamentoProfile;
 };
+
+/** Lead do formulário público da Home. */
+export type ContactLead = {
+  id: string;
+  name: string;
+  email: string;
+  idea: string;
+  style: string;
+  styleId: string;
+  created: string;
+  readAt: string | null;
+};

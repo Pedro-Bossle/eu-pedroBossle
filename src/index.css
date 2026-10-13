@@ -4,7 +4,11 @@
 
 :root {
   --bg-color: #f9f9f9;
-  --main-font: "Montserrat", sans-serif;
+  --main-font: "Montserrat", system-ui, -apple-system, sans-serif;
+}
+
+html {
+  font-family: var(--main-font);
 }
 
 @keyframes bounce-dot {
@@ -18,25 +22,46 @@
   }
 }
 
+@keyframes plane-idle {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+
+  50% {
+    transform: translateY(-10px) rotate(3deg);
+  }
+}
+
 @keyframes plane-fly {
   0% {
     opacity: 0;
-    transform: translate(-50%, 45vh) rotate(18deg) scale(0.7);
+    transform: translate(-50%, 42vh) rotate(22deg) scale(0.55);
   }
 
-  22% {
+  12% {
     opacity: 1;
-    transform: translate(-18%, -18vh) rotate(-12deg) scale(1.15);
+    transform: translate(-42%, 18vh) rotate(8deg) scale(0.85);
+  }
+
+  32% {
+    opacity: 1;
+    transform: translate(-8%, -22vh) rotate(-18deg) scale(1.12);
   }
 
   55% {
     opacity: 1;
-    transform: translate(28vw, -38vh) rotate(-26deg) scale(1.25);
+    transform: translate(22vw, -40vh) rotate(-28deg) scale(1.2);
+  }
+
+  78% {
+    opacity: 0.85;
+    transform: translate(34vw, -8vh) rotate(6deg) scale(1.05);
   }
 
   100% {
-    opacity: 0.2;
-    transform: translate(8vw, 75vh) rotate(14deg) scale(0.9);
+    opacity: 0;
+    transform: translate(18vw, 70vh) rotate(24deg) scale(0.75);
   }
 }
 
@@ -124,4 +149,10 @@ body {
   .resume-prompt {
     display: none !important;
   }
+}
+
+/* Contratar: placeholders legíveis em campos claros/escuros */
+.hire-section .hire-field::placeholder {
+  color: color-mix(in srgb, var(--hire-field-ink) 48%, transparent);
+  opacity: 1;
 }

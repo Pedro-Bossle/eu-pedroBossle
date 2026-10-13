@@ -10,6 +10,11 @@ import { tx, type Locale } from "../i18n/localize";
 const projects = projectsData as Project[];
 const MOVE_MS = 480;
 const REVEAL_DELAY_MS = MOVE_MS;
+const MD_MQ = "(min-width: 768px)";
+
+function prefersDesktopLayout() {
+  return window.matchMedia(MD_MQ).matches;
+}
 
 function CaseBody({
   projectCase,
@@ -124,14 +129,15 @@ function Cases() {
   const toggleCase = (title: string) => {
     if (revealTimer.current) window.clearTimeout(revealTimer.current);
 
-    const first = capturePositions();
+    const desktop = prefersDesktopLayout();
+    const first = desktop ? capturePositions() : null;
 
     if (open === title) {
       flushSync(() => {
         setRevealed(false);
         setOpen(null);
       });
-      animateFrom(first);
+      if (first) animateFrom(first);
       return;
     }
 
@@ -139,11 +145,17 @@ function Cases() {
       setRevealed(false);
       setOpen(title);
     });
-    animateFrom(first);
-    lenis?.scrollTo("#cases", { duration: 0.7 });
-    revealTimer.current = window.setTimeout(() => {
-      setRevealed(true);
-    }, REVEAL_DELAY_MS);
+
+    if (desktop && first) {
+      animateFrom(first);
+      lenis?.scrollTo("#cases", { duration: 0.7 });
+      revealTimer.current = window.setTimeout(() => {
+        setRevealed(true);
+      }, REVEAL_DELAY_MS);
+      return;
+    }
+
+    setRevealed(true);
   };
 
   return (
@@ -187,7 +199,7 @@ function Cases() {
               className={`
                 relative rounded-2xl bg-white ring-1 ring-black/5
                 dark:bg-[#1a1a1a] dark:ring-white/10
-                ${isOpen ? "z-10 order-first md:col-span-full" : "z-0"}
+                ${isOpen ? "z-10 md:order-first md:col-span-full" : "z-0"}
               `}
             >
               <button
@@ -200,6 +212,8 @@ function Cases() {
                   <img
                     src={logo}
                     alt=""
+                    width={64}
+                    height={64}
                     loading="lazy"
                     decoding="async"
                     className="h-14 w-14 shrink-0 object-contain sm:h-16 sm:w-16"

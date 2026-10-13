@@ -9,6 +9,11 @@ import { useLanguage } from "../i18n/LanguageContext";
 
 import github from "../assets/HeroBalloon/github.svg";
 
+const TRAVEL_MS = {
+  blocks: 900,
+  contact: 1250,
+} as const;
+
 const Hero = () => {
   const { t } = useLanguage();
   /*
@@ -21,30 +26,36 @@ const Hero = () => {
   */
   const [active, setActive] = useState<HeroIcon | null>(null);
   const [traveling, setTraveling] = useState<"blocks" | "contact" | null>(null);
-  const timeoutRef = useRef<number | null>(null);
+  const scrollTimeoutRef = useRef<number | null>(null);
+  const clearTimeoutRef = useRef<number | null>(null);
   const lenis = useLenis();
 
   useEffect(() => {
     return () => {
-      if (timeoutRef.current) window.clearTimeout(timeoutRef.current);
+      if (scrollTimeoutRef.current) window.clearTimeout(scrollTimeoutRef.current);
+      if (clearTimeoutRef.current) window.clearTimeout(clearTimeoutRef.current);
     };
   }, []);
 
-  const travelTo = (
-    target: "blocks" | "contact",
-    hash: string,
-    delay: number,
-  ) => {
-    if (timeoutRef.current) window.clearTimeout(timeoutRef.current);
+  const travelTo = (target: "blocks" | "contact", hash: string) => {
+    if (scrollTimeoutRef.current) window.clearTimeout(scrollTimeoutRef.current);
+    if (clearTimeoutRef.current) window.clearTimeout(clearTimeoutRef.current);
 
     setTraveling(target);
     setActive(target);
 
-    timeoutRef.current = window.setTimeout(() => {
-      lenis?.scrollTo(hash, { duration: 1.15 });
+    const animMs = TRAVEL_MS[target];
+    // Scroll starts late so the prop animation can play; state clears only after it ends.
+    const scrollAt = Math.round(animMs * 0.72);
+
+    scrollTimeoutRef.current = window.setTimeout(() => {
+      lenis?.scrollTo(hash, { duration: 1.35 });
+    }, scrollAt);
+
+    clearTimeoutRef.current = window.setTimeout(() => {
       setTraveling(null);
       setActive(null);
-    }, delay);
+    }, animMs);
   };
 
   const showIcon = (icon: HeroIcon) => {
@@ -175,7 +186,7 @@ const Hero = () => {
               href="#projetos"
               onClick={(event) => {
                 event.preventDefault();
-                travelTo("blocks", "#projetos", 900);
+                travelTo("blocks", "#projetos");
               }}
               className="
                 rounded-full
@@ -199,10 +210,37 @@ const Hero = () => {
             </a>
 
             <a
-              href="#contato"
+              href="#por-que"
               onClick={(event) => {
                 event.preventDefault();
-                travelTo("contact", "#contato", 1100);
+                lenis?.scrollTo("#por-que", { duration: 1.15 });
+              }}
+              className="
+                rounded-full
+                border
+                border-black/20
+                px-5
+                py-2.5
+                text-sm
+                opacity-70
+
+                transition-all
+                duration-200
+
+                hover:-translate-y-0.5
+                hover:opacity-100
+
+                dark:border-white/20
+              "
+            >
+              {t.hero.whySite}
+            </a>
+
+            <a
+              href="#contratar"
+              onClick={(event) => {
+                event.preventDefault();
+                travelTo("contact", "#contratar");
               }}
               className="
                 rounded-full
@@ -253,7 +291,7 @@ const Hero = () => {
             icon={<BlocksIcon className="h-7 w-7" />}
             onHover={() => showIcon("blocks")}
             onLeave={hideIcon}
-            onActivate={() => travelTo("blocks", "#projetos", 900)}
+            onActivate={() => travelTo("blocks", "#projetos")}
           />
 
           {/* =================================================
@@ -268,6 +306,8 @@ const Hero = () => {
               <img
                 src={github}
                 alt=""
+                width={24}
+                height={24}
                 decoding="async"
                 className="
                   h-6
@@ -285,13 +325,13 @@ const Hero = () => {
               ================================================= */}
 
           <HeroBalloon
-            href="#contato"
+            href="#contratar"
             title={t.hero.balloonContact}
             description={t.hero.balloonContactDesc}
             icon={<PlaneIcon className="h-7 w-7" />}
             onHover={() => showIcon("contact")}
             onLeave={hideIcon}
-            onActivate={() => travelTo("contact", "#contato", 1100)}
+            onActivate={() => travelTo("contact", "#contratar")}
           />
         </div>
       </div>
@@ -326,6 +366,8 @@ const Hero = () => {
         <img
           src={github}
           alt=""
+          width={160}
+          height={160}
           loading="lazy"
           decoding="async"
           className="
@@ -353,10 +395,9 @@ const Hero = () => {
 
           ${
             traveling === "contact"
-              ? "animate-[plane-fly_1.1s_cubic-bezier(0.16,1,0.3,1)_forwards]"
+              ? "animate-[plane-fly_1.25s_cubic-bezier(0.22,0.8,0.28,1)_forwards]"
               : `
-                transition-all
-                duration-1000
+                transition-all duration-1000
                 ease-[cubic-bezier(0.16,1,0.3,1)]
                 ${
                   active === "contact"
@@ -367,13 +408,32 @@ const Hero = () => {
           }
         `}
       >
-        <PlaneIcon
-          className="
-            h-52 w-52
-            sm:h-72 sm:w-72
-            md:h-80 md:w-80
-          "
-        />
+        <div
+          className={`relative ${
+            active === "contact" && traveling !== "contact"
+              ? "animate-[plane-idle_2.4s_ease-in-out_infinite]"
+              : ""
+          }`}
+        >
+          {traveling === "contact" ? (
+            <span
+              aria-hidden
+              className="
+                absolute top-1/2 -left-8 h-1 w-16 -translate-y-1/2
+                rounded-full bg-sky-300/50 blur-[1px]
+                sm:-left-12 sm:w-24
+                dark:bg-sky-200/40
+              "
+            />
+          ) : null}
+          <PlaneIcon
+            className="
+              h-44 w-44 drop-shadow-lg
+              sm:h-60 sm:w-60
+              md:h-72 md:w-72
+            "
+          />
+        </div>
       </div>
 
       {/* =====================================================
@@ -421,7 +481,7 @@ const Hero = () => {
         href="#projetos"
         onClick={(event) => {
           event.preventDefault();
-          travelTo("blocks", "#projetos", 900);
+          travelTo("blocks", "#projetos");
         }}
         className="
           absolute

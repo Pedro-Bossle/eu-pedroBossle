@@ -1,10 +1,25 @@
-import { useEffect, useState, type MouseEvent } from "react";
+import {
+  useEffect,
+  useId,
+  useRef,
+  useState,
+  type MouseEvent,
+  type ReactNode,
+} from "react";
 import { useLenis } from "lenis/react";
 import { Link, useLocation } from "react-router";
 import { useLanguage } from "../i18n/LanguageContext";
 import type { Locale } from "../i18n/localize";
 
 const TOP_SCROLL_THRESHOLD = 48;
+const DESKTOP_MQ = "(min-width: 1024px)";
+
+const NAV_LINKS = [
+  { hash: "projetos", key: "highlights" },
+  { hash: "cases", key: "cases" },
+  { hash: "contratar", key: "hire" },
+  { hash: "stack", key: "stack" },
+] as const;
 
 function LangButton({
   code,
@@ -34,6 +49,35 @@ function LangButton({
   );
 }
 
+function SectionLink({
+  hash,
+  className,
+  children,
+  onClick,
+}: {
+  hash: string;
+  className?: string;
+  children: ReactNode;
+  onClick?: () => void;
+}) {
+  const { pathname } = useLocation();
+  const href = `#${hash}`;
+
+  if (pathname === "/") {
+    return (
+      <a href={href} className={className} onClick={onClick}>
+        {children}
+      </a>
+    );
+  }
+
+  return (
+    <Link to={`/${href}`} className={className} onClick={onClick}>
+      {children}
+    </Link>
+  );
+}
+
 function Nav() {
   const { pathname } = useLocation();
   const isHome = pathname === "/";
@@ -41,17 +85,26 @@ function Nav() {
   const [isBouncing, setIsBouncing] = useState(false);
   const [heroInView, setHeroInView] = useState(true);
   const [atPageTop, setAtPageTop] = useState(true);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [dark, setDark] = useState(false);
+  const menuId = useId();
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
   const onHero = isHome ? heroInView : atPageTop;
+
   const handleAnimationEnd = () => {
     setIsBouncing(false);
   };
 
-  const [dark, setDark] = useState(false);
+  const closeMenu = () => setMenuOpen(false);
+
   useEffect(() => {
     document.documentElement.classList.toggle("dark", dark);
   }, [dark]);
 
-  // Home: compact while the hero is in view.
+  useEffect(() => {
+    closeMenu();
+  }, [pathname]);
+
   useEffect(() => {
     if (!isHome) return;
 
@@ -69,7 +122,6 @@ function Nav() {
     return () => observer.disconnect();
   }, [isHome, pathname]);
 
-  // Resume and other pages: compact at top, expands after scroll (same as home).
   useLenis((instance) => {
     if (isHome) return;
     const atTop = instance.scroll < TOP_SCROLL_THRESHOLD;
@@ -91,7 +143,30 @@ function Nav() {
     const resizeObserver = new ResizeObserver(updateHeaderHeight);
     resizeObserver.observe(header);
     return () => resizeObserver.disconnect();
-  }, [onHero]);
+  }, [onHero, menuOpen]);
+
+  useEffect(() => {
+    const mq = window.matchMedia(DESKTOP_MQ);
+    const onChange = () => {
+      if (mq.matches) closeMenu();
+    };
+    mq.addEventListener("change", onChange);
+    return () => mq.removeEventListener("change", onChange);
+  }, []);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        closeMenu();
+        menuButtonRef.current?.focus();
+      }
+    };
+
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [menuOpen]);
 
   const toggleDarkMode = (event: MouseEvent<HTMLButtonElement>) => {
     const button = event.currentTarget;
@@ -113,6 +188,37 @@ function Nav() {
     });
   };
 
+  const linkClass =
+    "text-gray-600 transition-colors duration-200 hover:text-gray-950 dark:text-neutral-300 dark:hover:text-white";
+
+  const menuLinkClass = `${linkClass} block py-3 text-base font-light`;
+
+  const langSwitcher = (
+    <div
+      className="flex items-center gap-1.5"
+      role="group"
+      aria-label="Language"
+    >
+      <LangButton
+        code="pt"
+        label={t.nav.langPt}
+        ariaLabel={t.nav.switchToPt}
+        active={locale === "pt"}
+        onSelect={setLocale}
+      />
+      <span className="text-xs opacity-30" aria-hidden>
+        /
+      </span>
+      <LangButton
+        code="en"
+        label={t.nav.langEn}
+        ariaLabel={t.nav.switchToEn}
+        active={locale === "en"}
+        onSelect={setLocale}
+      />
+    </div>
+  );
+
   return (
     <header
       id="site-header"
@@ -121,43 +227,38 @@ function Nav() {
         transition-all duration-300 ease-out
         ${
           onHero
-            ? "border-b border-b-gray-200 bg-[#F3F4F6] py-3 dark:border-b-gray-800 dark:bg-[#151515] sm:py-3"
-            : "border-b border-b-gray-200/80 bg-[#F3F4F6] py-5 shadow-sm dark:border-b-gray-800 dark:bg-[#151515] sm:py-6"
+            ? "border-b border-b-gray-200 bg-[#F3F4F6] py-3 dark:border-b-gray-800 dark:bg-[#151515]"
+            : "border-b border-b-gray-200/80 bg-[#F3F4F6] py-4 shadow-sm dark:border-b-gray-800 dark:bg-[#151515] sm:py-5"
         }
       `}
     >
-      <div
-        className={`
-          flex items-center justify-around px-1 text-center
-          transition-all duration-300
-          ${onHero ? "text-sm sm:text-base md:text-lg" : "text-base sm:text-lg md:text-xl"}
-        `}
-      >
+      <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 sm:px-6 md:px-8">
         <Link
           to="/"
-          className={`flex items-center transition-all duration-300 ${
+          className={`flex min-w-0 items-center transition-all duration-300 ${
             onHero ? "gap-1.5 sm:gap-2" : "gap-2 sm:gap-2.5"
           }`}
           onMouseEnter={() => setIsBouncing(true)}
+          onClick={closeMenu}
         >
           <span
-            className={`rounded-full bg-red-500 transition-all duration-300 ${
+            className={`shrink-0 rounded-full bg-red-500 transition-all duration-300 ${
               onHero ? "h-2.5 w-2.5 sm:h-3 sm:w-3" : "h-3.5 w-3.5 sm:h-4 sm:w-4"
             } ${isBouncing ? "animate-[bounce-dot_0.6s_ease-in-out]" : ""}`}
           />
           <span
-            className={`rounded-full bg-yellow-500 transition-all duration-300 ${
+            className={`shrink-0 rounded-full bg-yellow-500 transition-all duration-300 ${
               onHero ? "h-2.5 w-2.5 sm:h-3 sm:w-3" : "h-3.5 w-3.5 sm:h-4 sm:w-4"
             } ${isBouncing ? "animate-[bounce-dot_0.6s_ease-in-out_0.1s]" : ""}`}
           />
           <span
             onAnimationEnd={handleAnimationEnd}
-            className={`rounded-full bg-green-500 transition-all duration-300 ${
+            className={`shrink-0 rounded-full bg-green-500 transition-all duration-300 ${
               onHero ? "h-2.5 w-2.5 sm:h-3 sm:w-3" : "h-3.5 w-3.5 sm:h-4 sm:w-4"
             } ${isBouncing ? "animate-[bounce-dot_0.6s_ease-in-out_0.2s]" : ""}`}
-          />{" "}
+          />
           <h1
-            className={`ml-2 font-bold transition-all duration-300 sm:ml-4 md:ml-5 ${
+            className={`ml-2 truncate font-bold transition-all duration-300 sm:ml-3 ${
               onHero ? "text-lg" : "text-xl sm:text-2xl"
             }`}
           >
@@ -165,136 +266,85 @@ function Nav() {
           </h1>
         </Link>
 
-        <nav
-          className={`flex items-center text-center font-light transition-all duration-300 ${
-            onHero ? "gap-3 sm:gap-6 md:gap-10" : "gap-4 sm:gap-8 md:gap-12"
-          }`}
-        >
-          {pathname === "/" ? (
-            <a
-              href="#inicio"
-              className="hidden text-gray-600 transition-all duration-200 ease-in-out hover:scale-95 hover:text-gray-950 active:scale-90 sm:inline dark:text-white dark:hover:text-gray-100"
-            >
-              {t.nav.home}
-            </a>
-          ) : (
-            <Link
-              to="/#inicio"
-              className="hidden text-gray-600 transition-all duration-200 ease-in-out hover:scale-95 hover:text-gray-950 active:scale-90 sm:inline dark:text-white dark:hover:text-gray-100"
-            >
-              {t.nav.home}
-            </Link>
-          )}
-
-          {pathname === "/" ? (
-            <a
-              href="#projetos"
-              className="hidden text-gray-600 transition-all duration-200 ease-in-out hover:scale-95 hover:text-gray-950 active:scale-90 md:inline dark:text-white dark:hover:text-gray-100"
-            >
-              {t.nav.highlights}
-            </a>
-          ) : (
-            <Link
-              to="/#projetos"
-              className="hidden text-gray-600 transition-all duration-200 ease-in-out hover:scale-95 hover:text-gray-950 active:scale-90 md:inline dark:text-white dark:hover:text-gray-100"
-            >
-              {t.nav.highlights}
-            </Link>
-          )}
-
-          {pathname === "/" ? (
-            <a
-              href="#cases"
-              className="hidden text-gray-600 transition-all duration-200 ease-in-out hover:scale-95 hover:text-gray-950 active:scale-90 sm:inline dark:text-white dark:hover:text-gray-100"
-            >
-              {t.nav.cases}
-            </a>
-          ) : (
-            <Link
-              to="/#cases"
-              className="hidden text-gray-600 transition-all duration-200 ease-in-out hover:scale-95 hover:text-gray-950 active:scale-90 sm:inline dark:text-white dark:hover:text-gray-100"
-            >
-              {t.nav.cases}
-            </Link>
-          )}
-
-          {pathname === "/" ? (
-            <a
-              href="#stack"
-              className="hidden text-gray-600 transition-all duration-200 ease-in-out hover:scale-95 hover:text-gray-950 active:scale-90 md:inline dark:text-white dark:hover:text-gray-100"
-            >
-              {t.nav.stack}
-            </a>
-          ) : (
-            <Link
-              to="/#stack"
-              className="hidden text-gray-600 transition-all duration-200 ease-in-out hover:scale-95 hover:text-gray-950 active:scale-90 md:inline dark:text-white dark:hover:text-gray-100"
-            >
-              {t.nav.stack}
-            </Link>
-          )}
-
-          <Link
-            to="/curriculo-virtual"
-            aria-current={
-              pathname === "/curriculo-virtual" ? "page" : undefined
-            }
-            className={`hidden transition-all duration-200 ease-in-out hover:scale-95 active:scale-90 sm:inline ${
-              pathname === "/curriculo-virtual"
-                ? "font-medium text-gray-950 dark:text-white"
-                : "text-gray-600 hover:text-gray-950 dark:text-white dark:hover:text-gray-100"
-            }`}
+        <div className="flex shrink-0 items-center gap-2 sm:gap-3 lg:gap-5">
+          <nav
+            className="hidden items-center gap-5 font-light lg:flex xl:gap-8"
+            aria-label="Primary"
           >
-            {t.nav.resume}
-          </Link>
+            {NAV_LINKS.map((item) => (
+              <SectionLink key={item.hash} hash={item.hash} className={linkClass}>
+                {t.nav[item.key]}
+              </SectionLink>
+            ))}
+          </nav>
 
-          {pathname === "/" ? (
-            <a
-              href="#contato"
-              className="hidden text-gray-600 transition-all duration-200 ease-in-out hover:scale-95 hover:text-gray-950 active:scale-90 sm:inline dark:text-white dark:hover:text-gray-100"
-            >
-              {t.nav.contact}
-            </a>
-          ) : (
-            <Link
-              to="/#contato"
-              className="hidden text-gray-600 transition-all duration-200 ease-in-out hover:scale-95 hover:text-gray-950 active:scale-90 sm:inline dark:text-white dark:hover:text-gray-100"
-            >
-              {t.nav.contact}
-            </Link>
-          )}
-
-          <div className="flex items-center gap-1.5" role="group" aria-label="Language">
-            <LangButton
-              code="pt"
-              label={t.nav.langPt}
-              ariaLabel={t.nav.switchToPt}
-              active={locale === "pt"}
-              onSelect={setLocale}
-            />
-            <span className="text-xs opacity-30" aria-hidden>
-              /
-            </span>
-            <LangButton
-              code="en"
-              label={t.nav.langEn}
-              ariaLabel={t.nav.switchToEn}
-              active={locale === "en"}
-              onSelect={setLocale}
-            />
-          </div>
+          {langSwitcher}
 
           <button type="button" id="modeToggle" onClick={toggleDarkMode}>
             <img
               src={`${import.meta.env.BASE_URL}${dark ? "sun.png" : "moon.png"}`}
+              width={28}
+              height={28}
+              decoding="async"
               className={`cursor-pointer transition-all duration-300 ${
                 onHero ? "w-5 sm:w-6" : "w-6 sm:w-7"
               }`}
               alt={dark ? t.nav.lightMode : t.nav.darkMode}
             />
           </button>
-        </nav>
+
+          <button
+            ref={menuButtonRef}
+            type="button"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-neutral-800 transition-colors hover:bg-black/5 lg:hidden dark:text-neutral-100 dark:hover:bg-white/10"
+            aria-expanded={menuOpen}
+            aria-controls={menuId}
+            aria-label={menuOpen ? t.nav.closeMenu : t.nav.openMenu}
+            onClick={() => setMenuOpen((open) => !open)}
+          >
+            <span className="relative block h-3.5 w-5" aria-hidden>
+              <span
+                className={`absolute left-0 block h-0.5 w-full bg-current transition-all duration-200 ${
+                  menuOpen ? "top-1.5 rotate-45" : "top-0"
+                }`}
+              />
+              <span
+                className={`absolute left-0 top-1.5 block h-0.5 w-full bg-current transition-opacity duration-200 ${
+                  menuOpen ? "opacity-0" : "opacity-100"
+                }`}
+              />
+              <span
+                className={`absolute left-0 block h-0.5 w-full bg-current transition-all duration-200 ${
+                  menuOpen ? "top-1.5 -rotate-45" : "top-3"
+                }`}
+              />
+            </span>
+          </button>
+        </div>
       </div>
+
+      {menuOpen ? (
+        <div
+          id={menuId}
+          className="border-t border-gray-200/80 lg:hidden dark:border-gray-800"
+        >
+          <nav
+            className="mx-auto flex max-w-6xl flex-col px-4 py-3 sm:px-6 md:px-8"
+            aria-label="Mobile"
+          >
+            {NAV_LINKS.map((item) => (
+              <SectionLink
+                key={item.hash}
+                hash={item.hash}
+                className={menuLinkClass}
+                onClick={closeMenu}
+              >
+                {t.nav[item.key]}
+              </SectionLink>
+            ))}
+          </nav>
+        </div>
+      ) : null}
     </header>
   );
 }

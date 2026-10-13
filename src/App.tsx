@@ -1,9 +1,11 @@
+import { lazy, Suspense } from "react";
 import { BrowserRouter, Route, Routes } from "react-router";
 import "./App.css";
 import Layout from "./components/Layout/Layout";
 import Home from "./pages/Home";
-import ResumePage from "./pages/Resume";
-import OrcamentosApp from "./pages/orcamentos/OrcamentosApp";
+
+const ResumePage = lazy(() => import("./pages/Resume"));
+const OrcamentosApp = lazy(() => import("./pages/orcamentos/OrcamentosApp"));
 
 function isOrcamentosHost() {
   const host = window.location.hostname.toLowerCase();
@@ -17,9 +19,11 @@ function App() {
   if (isOrcamentosHost()) {
     return (
       <BrowserRouter>
-        <Routes>
-          <Route path="*" element={<OrcamentosApp />} />
-        </Routes>
+        <Suspense fallback={null}>
+          <Routes>
+            <Route path="*" element={<OrcamentosApp />} />
+          </Routes>
+        </Suspense>
       </BrowserRouter>
     );
   }
@@ -39,11 +43,20 @@ function App() {
           path="/curriculo-virtual"
           element={
             <Layout>
-              <ResumePage />
+              <Suspense fallback={null}>
+                <ResumePage />
+              </Suspense>
             </Layout>
           }
         />
-        <Route path="/orcamentos/*" element={<OrcamentosApp />} />
+        <Route
+          path="/orcamentos/*"
+          element={
+            <Suspense fallback={null}>
+              <OrcamentosApp />
+            </Suspense>
+          }
+        />
       </Routes>
     </BrowserRouter>
   );

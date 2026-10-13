@@ -1,7 +1,14 @@
 import { useEffect } from "react";
 import { useLenis } from "lenis/react";
 
-const SECTION_IDS = ["inicio", "projetos", "cases", "stack"] as const;
+const SECTION_IDS = [
+  "inicio",
+  "projetos",
+  "cases",
+  "por-que",
+  "contratar",
+  "stack",
+] as const;
 
 const PASSED_OPACITY = 0.62;
 const PREVIOUS_OPACITY = 0.4;

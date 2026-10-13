@@ -22,6 +22,7 @@ import {
 import { maskCpfCnpj } from "../../lib/documentMask";
 import { maskPhoneBr } from "../../lib/phoneMask";
 import type {
+  ContactLead,
   OrcamentoClient,
   OrcamentoComment,
   OrcamentoPreset,
@@ -41,6 +42,7 @@ import ProposalPdfDocument from "./ProposalPdfDocument";
 
 type Tab =
   | "dashboard"
+  | "inbox"
   | "clients"
   | "proposals"
   | "presets"
@@ -188,6 +190,10 @@ function Field({
 
 const navIcons: Record<Tab, string[]> = {
   dashboard: ["M3 12l9-9 9 9", "M5 10v10h14V10"],
+  inbox: [
+    "M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z",
+    "M22 6l-10 7L2 6",
+  ],
   clients: [
     "M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2",
     "M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8",
@@ -242,6 +248,8 @@ function Panel({
   const [pdfSource, setPdfSource] = useState<OrcamentoProposal | null>(null);
   const [contractSource, setContractSource] =
     useState<OrcamentoProposal | null>(null);
+  const [leads, setLeads] = useState<ContactLead[]>([]);
+  const [leadsLoading, setLeadsLoading] = useState(false);
   const [pdfBusy, setPdfBusy] = useState(false);
   const [sendBusyId, setSendBusyId] = useState<string | null>(null);
   const pdfRef = useRef<HTMLDivElement>(null);
@@ -297,12 +305,17 @@ function Panel({
     const sent = by("envi");
     const draft = by("elabor");
     const refused = by("recus");
-    const totalValue = proposals.reduce((s, p) => s + Number(p.total || 0), 0);
+    /* Pipeline ativo: exclui recusados de contagem e valor orçado */
+    const active = proposals.filter(
+      (p) => !p.status.toLowerCase().includes("recus"),
+    );
+    const totalValue = active.reduce((s, p) => s + Number(p.total || 0), 0);
     const approvedValue = approved.reduce(
       (s, p) => s + Number(p.total || 0),
       0,
     );
     return {
+      activeCount: active.length,
       totalValue,
       approvedValue,
       approved: approved.length,
@@ -753,12 +766,35 @@ function Panel({
 
   const nav: { id: Tab; label: string; short: string }[] = [
     { id: "dashboard", label: "Visão geral", short: "Início" },
+    { id: "inbox", label: "Inbox", short: "Inbox" },
     { id: "clients", label: "Clientes", short: "Clientes" },
     { id: "proposals", label: "Orçamentos", short: "Orçam." },
     { id: "presets", label: "Presets", short: "Presets" },
     { id: "profile", label: "Meus dados", short: "Dados" },
     { id: "settings", label: "Backup / seed", short: "Backup" },
   ];
+
+  useEffect(() => {
+    if (tab !== "inbox") return;
+    let cancelled = false;
+    setLeadsLoading(true);
+    orcamentosApi
+      .listLeads()
+      .then((data) => {
+        if (!cancelled) setLeads(data.leads);
+      })
+      .catch((e) => {
+        if (!cancelled) {
+          showToast(e instanceof Error ? e.message : "Erro ao carregar inbox");
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setLeadsLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [tab]);
 
   const blankPreset = (section: PresetSection = "timeline"): OrcamentoPreset => ({
     id: uid(),
@@ -1716,11 +1752,11 @@ function Panel({
                   },
                   {
                     label: "Orçamentos",
-                    value: String(proposals.length),
+                    value: String(stats.activeCount),
                     hint:
-                      proposals.length === 0
+                      stats.activeCount === 0
                         ? "nenhum no pipeline"
-                        : stats.draft === proposals.length
+                        : stats.draft === stats.activeCount
                           ? "todos em elaboração"
                           : stats.draft === 0
                             ? "nenhum em elaboração"
@@ -1729,7 +1765,7 @@ function Panel({
                   {
                     label: "Valor orçado",
                     value: money(stats.totalValue),
-                    hint: "soma de todas as propostas",
+                    hint: "soma sem propostas recusadas",
                   },
                   {
                     label: "Aprovado",
@@ -1836,6 +1872,127 @@ function Panel({
                     </div>
                   </div>
                 )}
+              </div>
+            </section>
+          ) : null}
+
+          {!editing && tab === "inbox" ? (
+            <section>
+              <div className="mb-6 flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <p className="text-sm font-medium uppercase tracking-widest opacity-60">
+                    Site
+                  </p>
+                  <h1 className="mt-1 text-2xl font-semibold tracking-tight sm:text-3xl">
+                    Inbox
+                  </h1>
+                  <p className="mt-2 text-sm text-neutral-500 dark:text-neutral-400">
+                    Contatos do formulário em devbossle.com.br
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  className={btn}
+                  disabled={leadsLoading}
+                  onClick={async () => {
+                    setLeadsLoading(true);
+                    try {
+                      const data = await orcamentosApi.listLeads();
+                      setLeads(data.leads);
+                    } catch (e) {
+                      showToast(
+                        e instanceof Error ? e.message : "Erro ao atualizar",
+                      );
+                    } finally {
+                      setLeadsLoading(false);
+                    }
+                  }}
+                >
+                  {leadsLoading ? "Carregando…" : "Atualizar"}
+                </button>
+              </div>
+
+              <div className="space-y-2">
+                {leads.map((lead) => (
+                  <article
+                    key={lead.id}
+                    className={`border p-4 transition ${
+                      lead.readAt
+                        ? "border-neutral-200 bg-white dark:border-neutral-800 dark:bg-[#151515]"
+                        : "border-emerald-600/40 bg-emerald-500/5 dark:border-emerald-400/30"
+                    }`}
+                  >
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <h3 className="font-semibold tracking-tight">
+                            {lead.name}
+                          </h3>
+                          {!lead.readAt ? (
+                            <span className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-[10px] font-bold text-emerald-800 dark:text-emerald-300">
+                              Novo
+                            </span>
+                          ) : null}
+                          {lead.style ? (
+                            <span className="rounded-full bg-neutral-100 px-2 py-0.5 text-[10px] font-bold text-neutral-600 dark:bg-neutral-800 dark:text-neutral-300">
+                              {lead.style}
+                            </span>
+                          ) : null}
+                        </div>
+                        <a
+                          href={`mailto:${lead.email}`}
+                          className="mt-1 block text-sm text-emerald-800 underline decoration-emerald-800/30 underline-offset-4 dark:text-emerald-300 dark:decoration-emerald-300/30"
+                        >
+                          {lead.email}
+                        </a>
+                        <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
+                          {lead.created
+                            ? new Date(lead.created).toLocaleString("pt-BR")
+                            : ""}
+                        </p>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {!lead.readAt ? (
+                          <button
+                            type="button"
+                            className={btn}
+                            onClick={async () => {
+                              try {
+                                const { lead: updated } =
+                                  await orcamentosApi.markLeadRead(lead.id);
+                                setLeads((prev) =>
+                                  prev.map((l) =>
+                                    l.id === updated.id ? updated : l,
+                                  ),
+                                );
+                              } catch (e) {
+                                showToast(
+                                  e instanceof Error ? e.message : "Erro",
+                                );
+                              }
+                            }}
+                          >
+                            Marcar lido
+                          </button>
+                        ) : null}
+                        <a
+                          href={`mailto:${lead.email}?subject=${encodeURIComponent(`Re: contato — ${lead.style || "site"}`)}`}
+                          className={btnPrimary}
+                        >
+                          Responder
+                        </a>
+                      </div>
+                    </div>
+                    <p className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-neutral-700 dark:text-neutral-300">
+                      {lead.idea}
+                    </p>
+                  </article>
+                ))}
+                {!leadsLoading && !leads.length ? (
+                  <div className="border border-dashed border-neutral-300 px-4 py-10 text-center text-sm text-neutral-500 dark:border-neutral-700 dark:text-neutral-400">
+                    Nenhum contato ainda.
+                  </div>
+                ) : null}
               </div>
             </section>
           ) : null}
@@ -2495,7 +2652,7 @@ function Panel({
       {!editing ? (
         <nav className="fixed inset-x-0 bottom-0 z-30 flex border-t border-neutral-200 bg-[#F3F4F6]/95 pb-[max(0.35rem,env(safe-area-inset-bottom))] pt-1 backdrop-blur dark:border-neutral-800 dark:bg-[#151515]/95 md:hidden">
           {nav
-            .filter((n) => n.id !== "settings")
+            .filter((n) => n.id !== "settings" && n.id !== "presets")
             .map((item) => {
               const active = tab === item.id;
               return (

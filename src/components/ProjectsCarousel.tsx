@@ -4,6 +4,7 @@ import {
   useRef,
   useState,
   type TouchEvent,
+  type TransitionEvent,
 } from "react";
 import projectsData from "../data/projects.json";
 import type { Project } from "../types/project";
@@ -14,27 +15,234 @@ import { tx, txList } from "../i18n/localize";
 const projects = projectsData as Project[];
 const SWIPE_THRESHOLD = 48;
 const AUTO_PLAY_MS = 5500;
+const TRANSITION_MS = 500;
+
+/** [clone último] + reais + [clone primeiro] — loop sem salto */
+const trackSlides: { project: Project; key: string }[] =
+  projects.length === 0
+    ? []
+    : [
+        {
+          project: projects[projects.length - 1],
+          key: `clone-tail-${projects[projects.length - 1].title}`,
+        },
+        ...projects.map((project) => ({
+          project,
+          key: project.title,
+        })),
+        {
+          project: projects[0],
+          key: `clone-head-${projects[0].title}`,
+        },
+      ];
+
+function ProjectSlide({ project }: { project: Project }) {
+  const { locale, t } = useLanguage();
+  const logo = project.image
+    ? projectLogos[project.image as keyof typeof projectLogos]
+    : undefined;
+
+  return (
+    <article
+      className="
+        relative flex w-full shrink-0 flex-col overflow-hidden
+        rounded-2xl bg-white shadow-sm ring-1 ring-black/5
+        dark:bg-[#1a1a1a] dark:shadow-none dark:ring-white/10
+        md:min-h-95 md:flex-row
+        [--card-bg:#ffffff] dark:[--card-bg:#1a1a1a]
+      "
+    >
+      <div
+        className="
+          relative order-1 h-50 overflow-hidden
+          sm:h-55
+          md:order-2 md:h-auto md:min-h-full md:w-[48%] md:self-stretch
+        "
+        style={{ backgroundColor: project.visual.background }}
+      >
+        <div
+          aria-hidden
+          className="
+            pointer-events-none absolute inset-0 opacity-25
+            bg-[radial-gradient(circle,currentColor_1px,transparent_1px)]
+            bg-size-[12px_12px]
+          "
+          style={{ color: project.visual.accent }}
+        />
+
+        <div
+          aria-hidden
+          className="
+            absolute left-1/2 top-1/2 h-36 w-36 -translate-x-1/2 -translate-y-1/2
+            rounded-full opacity-35 blur-3xl
+            sm:h-44 sm:w-44
+            md:h-56 md:w-56
+          "
+          style={{ backgroundColor: project.visual.accent }}
+        />
+
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 bottom-0 z-1 h-14 md:hidden"
+          style={{
+            background: `linear-gradient(
+              to bottom,
+              transparent 0%,
+              var(--card-bg) 100%
+            )`,
+          }}
+        />
+
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-y-0 left-0 z-1 hidden w-[55%] md:block"
+          style={{
+            background: `linear-gradient(
+              to right,
+              var(--card-bg) 0%,
+              transparent 75%,
+              transparent 100%
+            )`,
+          }}
+        />
+
+        {logo && (
+          <img
+            src={logo}
+            alt={`${t.projects.logoAlt} ${project.title}`}
+            width={512}
+            height={512}
+            loading="lazy"
+            decoding="async"
+            fetchPriority="low"
+            className="
+              absolute top-1/2 left-1/2 z-10 h-[75%] w-[75%]
+              -translate-x-1/2 -translate-y-1/2 object-contain
+            "
+          />
+        )}
+      </div>
+
+      <div
+        className="
+          relative order-2 flex flex-1 flex-col justify-center
+          gap-3 px-5 py-6
+          sm:px-6 sm:py-7
+          md:order-1 md:w-[52%] md:gap-4 md:px-9 md:py-10
+        "
+      >
+        <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-black/45 dark:text-white/45">
+          {txList(project.category, locale).join(" • ")}{" "}
+          <span className="mx-2 text-black/25 dark:text-white/25">·</span>
+          {project.year}
+        </p>
+
+        <h2 className="text-lg font-semibold leading-snug tracking-tight text-neutral-900 dark:text-neutral-50 sm:text-xl md:text-2xl">
+          {project.title}
+        </h2>
+
+        <p className="max-w-md text-sm leading-relaxed text-neutral-600 dark:text-neutral-400 md:text-[15px]">
+          {tx(project.description, locale)}
+        </p>
+
+        <div className="mt-1 flex flex-wrap gap-1.5">
+          {project.stack.map((tech) => (
+            <span
+              key={tech}
+              className="
+                rounded-md border border-black/8 bg-neutral-50
+                px-2 py-0.5 text-[11px] font-medium text-neutral-700
+                dark:border-white/10 dark:bg-white/5 dark:text-neutral-300
+              "
+            >
+              {tech}
+            </span>
+          ))}
+        </div>
+
+        {project.visibility !== "private" && (
+          <a
+            href={project.link || "#"}
+            {...(project.link
+              ? { target: "_blank", rel: "noopener noreferrer" }
+              : {})}
+            className="
+              mt-2 inline-flex w-fit items-center gap-1
+              text-sm font-medium text-neutral-900
+              underline decoration-black/25 underline-offset-4
+              transition-opacity duration-200 hover:opacity-60
+              dark:text-neutral-100 dark:decoration-white/30
+            "
+          >
+            {t.projects.access}
+            <span aria-hidden>→</span>
+          </a>
+        )}
+      </div>
+    </article>
+  );
+}
 
 const ProjectsCarousel = () => {
-  const { locale, t } = useLanguage();
-  const [current, setCurrent] = useState(0);
+  const { t } = useLanguage();
+  const n = projects.length;
+  /** Posição no trilho: 1 = primeiro real; 0 e n+1 são clones */
+  const [pos, setPos] = useState(1);
+  const [animate, setAnimate] = useState(true);
   const [hoverPaused, setHoverPaused] = useState(false);
   const [hiddenPaused, setHiddenPaused] = useState(false);
+  const jumping = useRef(false);
   const touchStartX = useRef<number | null>(null);
   const touchDeltaX = useRef(0);
 
-  const goTo = useCallback((index: number) => {
-    const total = projects.length;
-    setCurrent(((index % total) + total) % total);
-  }, []);
+  const logical =
+    n === 0 ? 0 : pos === 0 ? n - 1 : pos === n + 1 ? 0 : pos - 1;
+
+  const goTo = useCallback(
+    (index: number) => {
+      if (n === 0 || jumping.current) return;
+      setAnimate(true);
+      setPos(index + 1);
+    },
+    [n],
+  );
 
   const nextProject = useCallback(() => {
-    setCurrent((prev) => (prev + 1) % projects.length);
-  }, []);
+    if (n === 0 || jumping.current) return;
+    setAnimate(true);
+    setPos((p) => Math.min(p + 1, n + 1));
+  }, [n]);
 
   const previousProject = useCallback(() => {
-    setCurrent((prev) => (prev === 0 ? projects.length - 1 : prev - 1));
-  }, []);
+    if (n === 0 || jumping.current) return;
+    setAnimate(true);
+    setPos((p) => Math.max(p - 1, 0));
+  }, [n]);
+
+  const onTransitionEnd = (e: TransitionEvent<HTMLDivElement>) => {
+    if (e.propertyName !== "transform" || n === 0) return;
+
+    if (pos === n + 1) {
+      jumping.current = true;
+      setAnimate(false);
+      setPos(1);
+    } else if (pos === 0) {
+      jumping.current = true;
+      setAnimate(false);
+      setPos(n);
+    }
+  };
+
+  useEffect(() => {
+    if (animate) return;
+    const id = window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(() => {
+        setAnimate(true);
+        jumping.current = false;
+      });
+    });
+    return () => window.cancelAnimationFrame(id);
+  }, [animate, pos]);
 
   useEffect(() => {
     const onVisibility = () => setHiddenPaused(document.hidden);
@@ -43,15 +251,17 @@ const ProjectsCarousel = () => {
   }, []);
 
   useEffect(() => {
-    if (hoverPaused || hiddenPaused) return;
+    if (hoverPaused || hiddenPaused || n < 2) return;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
     const id = window.setInterval(() => {
-      setCurrent((prev) => (prev + 1) % projects.length);
+      if (jumping.current) return;
+      setAnimate(true);
+      setPos((p) => Math.min(p + 1, n + 1));
     }, AUTO_PLAY_MS);
 
     return () => window.clearInterval(id);
-  }, [current, hoverPaused, hiddenPaused]);
+  }, [pos, hoverPaused, hiddenPaused, n]);
 
   const onTouchStart = (e: TouchEvent) => {
     touchStartX.current = e.touches[0].clientX;
@@ -74,6 +284,8 @@ const ProjectsCarousel = () => {
     setHoverPaused(false);
   };
 
+  if (n === 0) return null;
+
   return (
     <div
       className="w-full rounded-2xl"
@@ -89,163 +301,21 @@ const ProjectsCarousel = () => {
         onTouchEnd={onTouchEnd}
       >
         <div
-          className="flex gap-4 transition-transform duration-500 ease-out"
-          style={{ transform: `translateX(calc(-${current} * (100% + 1rem)))` }}
+          className="flex gap-4 ease-out"
+          style={{
+            transform: `translateX(calc(-${pos} * (100% + 1rem)))`,
+            transition: animate
+              ? `transform ${TRANSITION_MS}ms ease-out`
+              : "none",
+          }}
+          onTransitionEnd={onTransitionEnd}
         >
-          {projects.map((project, index) => {
-            const logo = project.image
-              ? projectLogos[project.image as keyof typeof projectLogos]
-              : undefined;
-
-            return (
-              <article
-                key={project.title}
-                className="
-                  relative flex w-full shrink-0 flex-col overflow-hidden
-                  rounded-2xl bg-white shadow-sm ring-1 ring-black/5
-                  dark:bg-[#1a1a1a] dark:shadow-none dark:ring-white/10
-                  md:min-h-95 md:flex-row
-                  [--card-bg:#ffffff] dark:[--card-bg:#1a1a1a]
-                "
-              >
-                {/* Visual / logo — topo no mobile, direita no desktop */}
-                <div
-                  className="
-                    relative order-1 h-50 overflow-hidden
-                    sm:h-55
-                    md:order-2 md:h-auto md:min-h-full md:w-[48%] md:self-stretch
-                  "
-                  style={{ backgroundColor: project.visual.background }}
-                >
-                  <div
-                    aria-hidden
-                    className="
-                      pointer-events-none absolute inset-0 opacity-25
-                      bg-[radial-gradient(circle,currentColor_1px,transparent_1px)]
-                      bg-size-[12px_12px]
-                    "
-                    style={{ color: project.visual.accent }}
-                  />
-
-                  <div
-                    aria-hidden
-                    className="
-                      absolute left-1/2 top-1/2 h-36 w-36 -translate-x-1/2 -translate-y-1/2
-                      rounded-full opacity-35 blur-3xl
-                      sm:h-44 sm:w-44
-                      md:h-56 md:w-56
-                    "
-                    style={{ backgroundColor: project.visual.accent }}
-                  />
-
-                  {/* Degradê mobile: só na base, onde encontra o texto */}
-                  <div
-                    aria-hidden
-                    className="pointer-events-none absolute inset-x-0 bottom-0 z-1 h-14 md:hidden"
-                    style={{
-                      background: `linear-gradient(
-                        to bottom,
-                        transparent 0%,
-                        var(--card-bg) 100%
-                      )`,
-                    }}
-                  />
-
-                  {/* Degradê desktop: cor → fundo do card */}
-                  <div
-                    aria-hidden
-                    className="pointer-events-none absolute inset-y-0 left-0 z-1 hidden w-[55%] md:block"
-                    style={{
-                      background: `linear-gradient(
-                        to right,
-                        var(--card-bg) 0%,
-                        transparent 75%,
-                        transparent 100%
-                      )`,
-                    }}
-                  />
-
-                  {logo && (
-                    <img
-                      src={logo}
-                      alt={`${t.projects.logoAlt} ${project.title}`}
-                      loading={index === 0 ? "eager" : "lazy"}
-                      decoding="async"
-                      fetchPriority={index === 0 ? "high" : "low"}
-                      className="
-                        absolute top-1/2 left-1/2 z-10 h-[75%] w-[75%]
-                        -translate-x-1/2 -translate-y-1/2 object-contain
-                      "
-                    />
-                  )}
-                </div>
-
-                {/* Conteúdo — abaixo no mobile, esquerda no desktop */}
-                <div
-                  className="
-                    relative order-2 flex flex-1 flex-col justify-center
-                    gap-3 px-5 py-6
-                    sm:px-6 sm:py-7
-                    md:order-1 md:w-[52%] md:gap-4 md:px-9 md:py-10
-                  "
-                >
-                  <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-black/45 dark:text-white/45">
-                    {txList(project.category, locale).join(" • ")}{" "}
-                    <span className="mx-2 text-black/25 dark:text-white/25">
-                      ·
-                    </span>
-                    {project.year}
-                  </p>
-
-                  <h2 className="text-lg font-semibold leading-snug tracking-tight text-neutral-900 dark:text-neutral-50 sm:text-xl md:text-2xl">
-                    {project.title}
-                  </h2>
-
-                  <p className="max-w-md text-sm leading-relaxed text-neutral-600 dark:text-neutral-400 md:text-[15px]">
-                    {tx(project.description, locale)}
-                  </p>
-
-                  <div className="mt-1 flex flex-wrap gap-1.5">
-                    {project.stack.map((tech) => (
-                      <span
-                        key={tech}
-                        className="
-                          rounded-md border border-black/8 bg-neutral-50
-                          px-2 py-0.5 text-[11px] font-medium text-neutral-700
-                          dark:border-white/10 dark:bg-white/5 dark:text-neutral-300
-                        "
-                      >
-                        {tech}
-                      </span>
-                    ))}
-                  </div>
-
-                  {project.visibility !== "private" && (
-                    <a
-                      href={project.link || "#"}
-                      {...(project.link
-                        ? { target: "_blank", rel: "noopener noreferrer" }
-                        : {})}
-                      className="
-                        mt-2 inline-flex w-fit items-center gap-1
-                        text-sm font-medium text-neutral-900
-                        underline decoration-black/25 underline-offset-4
-                        transition-opacity duration-200 hover:opacity-60
-                        dark:text-neutral-100 dark:decoration-white/30
-                      "
-                    >
-                      {t.projects.access}
-                      <span aria-hidden>→</span>
-                    </a>
-                  )}
-                </div>
-              </article>
-            );
-          })}
+          {trackSlides.map(({ project, key }) => (
+            <ProjectSlide key={key} project={project} />
+          ))}
         </div>
       </div>
 
-      {/* Controles — touch-friendly, mobile first */}
       <div className="mt-5 flex items-center justify-between gap-3 sm:mt-6 sm:justify-center sm:gap-5">
         <button
           type="button"
@@ -277,18 +347,18 @@ const ProjectsCarousel = () => {
                 type="button"
                 onClick={() => goTo(index)}
                 aria-label={`${t.projects.goTo} ${project.title}`}
-                aria-current={current === index ? "true" : undefined}
+                aria-current={logical === index ? "true" : undefined}
                 className="h-2 cursor-pointer rounded-full transition-all duration-300"
                 style={{
-                  width: current === index ? 22 : 8,
-                  backgroundColor: projects[current].visual.accent,
-                  opacity: current === index ? 1 : 0.3,
+                  width: logical === index ? 22 : 8,
+                  backgroundColor: projects[logical].visual.accent,
+                  opacity: logical === index ? 1 : 0.3,
                 }}
               />
             ))}
           </div>
           <p className="text-[11px] tabular-nums tracking-wide text-black/40 dark:text-white/40">
-            {current + 1} / {projects.length}
+            {logical + 1} / {n}
           </p>
         </div>
 

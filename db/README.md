@@ -18,6 +18,7 @@ Além do Neon, configure (Production + Preview):
 | `ORCAMENTOS_PUBLIC_URL` | Base absoluta do painel (ex. `https://orcamentos.devbossle.com.br`) — obrigatória em Production para e-mails de reset/share |
 | `RESEND_API_KEY` | API key do Resend (Marketplace ou dashboard Resend) |
 | `RESEND_FROM` | Remetente, ex. `Pedro Bossle <orcamentos@devbossle.com.br>` |
+| `CONTACT_NOTIFY_EMAIL` | Destinatário dos leads do formulário da Home (fallback: e-mail do perfil) |
 
 ### E-mail (Resend)
 
@@ -30,7 +31,7 @@ Além do Neon, configure (Production + Preview):
 
 ## 3. Schema + RLS
 
-No SQL Editor do Neon, rode os arquivos `001`…`005` (nesta ordem), **ou**:
+No SQL Editor do Neon, rode os arquivos `001`…`007` (nesta ordem), **ou**:
 
 ```bash
 # com DATABASE_URL no ambiente
@@ -40,6 +41,7 @@ npm run db:migrate
 - `002` — link público da proposta (token + senha), comentários e decisão do cliente.
 - `005` — tokens de redefinição de senha do admin.
 - `006` — `session_version` para invalidar JWTs após reset de senha.
+- `007` — `contact_leads` (formulário da Home → inbox do painel).
 
 Policies: todas as tabelas com `FORCE ROW LEVEL SECURITY`. A API autentica e faz `set_config('app.authenticated','true', true)` em transação. Login e bootstrap usam funções `SECURITY DEFINER`.
 

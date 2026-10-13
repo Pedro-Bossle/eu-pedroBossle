@@ -21,8 +21,8 @@
       "destination": "/api/orcamentos-auth-reset-password"
     },
     {
-      "source": "/api/orcamentos/:path*",
-      "destination": "/api/orcamentos?path=:path*"
+      "source": "/api/orcamentos/(.*)",
+      "destination": "/api/orcamentos?path=$1"
     },
     {
       "source": "/((?!api/|@|src/|node_modules/|assets/)(?!.*\\.).*)",

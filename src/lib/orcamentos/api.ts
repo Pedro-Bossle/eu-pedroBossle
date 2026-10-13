@@ -1,4 +1,5 @@
 import type {
+  ContactLead,
   OrcamentoClient,
   OrcamentoComment,
   OrcamentoPreset,
@@ -179,4 +180,11 @@ export const orcamentosApi = {
         body: JSON.stringify(payload),
       },
     ),
+  listLeads: () =>
+    request<{ leads: ContactLead[] }>("/api/orcamentos/leads"),
+  markLeadRead: (id: string) =>
+    request<{ lead: ContactLead }>("/api/orcamentos/leads", {
+      method: "PATCH",
+      body: JSON.stringify({ id }),
+    }),
 };

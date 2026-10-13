@@ -1,11 +1,11 @@
 export type TranslationKeys = {
   nav: {
-    home: string;
     highlights: string;
     cases: string;
+    hire: string;
     stack: string;
-    resume: string;
-    contact: string;
+    openMenu: string;
+    closeMenu: string;
     lightMode: string;
     darkMode: string;
     langPt: string;
@@ -18,6 +18,7 @@ export type TranslationKeys = {
     tagline: string;
     passion: string;
     seeProjects: string;
+    whySite: string;
     getInTouch: string;
     balloonProjects: string;
     balloonProjectsDesc: string;
@@ -51,6 +52,36 @@ export type TranslationKeys = {
     eyebrow: string;
     title: string;
     subtitle: string;
+  };
+  why: {
+    eyebrow: string;
+    title: string;
+    steps: string[];
+    punchline: string;
+    cta: string;
+  };
+  hire: {
+    eyebrow: string;
+    title: string;
+    subtitle: string;
+    step1: string;
+    step2: string;
+    step3: string;
+    styleHint: string;
+    name: string;
+    email: string;
+    idea: string;
+    ideaPlaceholder: string;
+    submit: string;
+    submitting: string;
+    success: string;
+    error: string;
+    rateLimit: string;
+    or: string;
+    emailLink: string;
+    linkedinLink: string;
+    promise: string;
+    vibes: Record<string, string>;
   };
   contact: {
     eyebrow: string;
@@ -86,12 +117,12 @@ export type TranslationKeys = {
 
 const pt: TranslationKeys = {
   nav: {
-    home: "Início",
     highlights: "Destaques",
-    cases: "Cases",
+    cases: "Casos",
+    hire: "Contratar",
     stack: "Stack",
-    resume: "Currículo",
-    contact: "Contato",
+    openMenu: "Abrir menu",
+    closeMenu: "Fechar menu",
     lightMode: "Modo claro",
     darkMode: "Modo escuro",
     langPt: "PT",
@@ -106,6 +137,7 @@ const pt: TranslationKeys = {
     passion:
       "Apaixonado por soluções tecnológicas, por automatizar processos e por simplificar fluxos de trabalho.",
     seeProjects: "Ver projetos",
+    whySite: "Por que um site",
     getInTouch: "Entre em contato",
     balloonProjects: "Projetos",
     balloonProjectsDesc: "Veja o que estou construindo",
@@ -142,6 +174,68 @@ const pt: TranslationKeys = {
     title: "Stack e habilidades",
     subtitle:
       "Algumas das tecnologias que já trabalhei e que tenho familiaridade. Juntamente de habilidades e competências profissionais.",
+  },
+  why: {
+    eyebrow: "Presença digital",
+    title: "O guia completo para continuar invisível online",
+    steps: [
+      "Não tenha um website",
+      "Diga que Instagram é suficiente",
+      "Mande os clientes perguntarem tudo pelo WhatsApp",
+      "Responda quando puder",
+      "Não mostre preços nem serviços",
+      "Faça o cliente procurar as informações",
+      "Repita até o concorrente ficar com eles",
+    ],
+    punchline: "Ou faça o contrário — e seja encontrado.",
+    cta: "Quero ser encontrado",
+  },
+  hire: {
+    eyebrow: "Próximo passo",
+    title: "Como me contratar",
+    subtitle:
+      "Escolha um estilo, veja a seção mudar na hora e me conte sua ideia.",
+    step1: "Escolha seu estilo",
+    step2: "Conte sua ideia no formulário",
+    step3: "Tenha mais visibilidade online com um site que é a sua cara",
+    styleHint: "Toque em um estilo para ver a seção se transformar",
+    name: "Nome",
+    email: "E-mail",
+    idea: "Ideia",
+    ideaPlaceholder: "O que você precisa? Site, sistema, landing…",
+    submit: "Enviar mensagem",
+    submitting: "Enviando…",
+    success: "Mensagem enviada. Em breve entro em contato.",
+    error: "Não foi possível enviar. Tente de novo ou use o e-mail direto.",
+    rateLimit: "Muitas tentativas. Aguarde um pouco e tente novamente.",
+    or: "ou",
+    emailLink: "E-mail",
+    linkedinLink: "LinkedIn",
+    promise: "Mais visibilidade online com um site que é a sua cara.",
+    vibes: {
+      minimalism: "Limpo, sem firula — o conteúdo manda.",
+      swiss: "Tipo cartaz suíço: grade firme e tipografia no centro.",
+      "neo-brutalism": "Grosso, barulhento e sem medo de parecer ousado.",
+      claymorphism: "Botões e cards macios, quase dá pra apertar.",
+      glassmorphism: "Aquele efeito de vidro fosco que virou moda.",
+      neumorphism: "Relevo suave, tudo parecendo sair do fundo.",
+      cyberpunk: "Escuro, neon e clima de filme sci-fi.",
+      cybercore: "Visual de terminal: grid, ciano e cara técnica.",
+      synthwave: "Anos 80, pôr do sol e fita VHS.",
+      y2k: "Nostalgia dos anos 2000 — chrome, bolhas e rosa.",
+      "pixel-art": "Pixelado de propósito, clima de jogo antigo.",
+      scrapbook: "Parece colagem de caderno: kraft, recorte e cola.",
+      surrealism: "Estranho de propósito — formas e cores que não batem.",
+      bento: "Tudo em caixinhas organizadas, estilo dashboard moderno.",
+      editorial: "Clima de revista: título grande, hierarquia clara.",
+      maximalism: "Cor demais, detalhe demais — e está tudo bem.",
+      luxury: "Escuro, dourado e cara de marca premium.",
+      "conceptual-sketch": "Rascunho de ideia — linhas soltas, ainda em processo.",
+      ethereal: "Leve, suave, com um ar quase sonhador.",
+      bohemian: "Aconchegante, terracota e cara de ateliê.",
+      victorian: "Ornamento clássico, um pouco teatral.",
+      "wabi-sabi": "Simples e imperfeito de propósito — sem polimento demais.",
+    },
   },
   contact: {
     eyebrow: "Contato",
