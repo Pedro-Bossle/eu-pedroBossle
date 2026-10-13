@@ -46,7 +46,7 @@ const HeroBalloon = ({
         px-5
         py-4
 
-        transition-[transform,box-shadow]
+        transition-[translate,box-shadow]
         duration-300
         ease-out
 
@@ -65,7 +65,7 @@ const HeroBalloon = ({
         <h2
           className="
             font-semibold
-            transition-transform
+            transition-[translate]
             duration-300
             group-hover:-translate-x-1
           "
@@ -105,7 +105,7 @@ const HeroBalloon = ({
           border
           border-black/10
 
-          transition-transform
+          transition-[scale,rotate]
           duration-300
 
           group-hover:scale-110

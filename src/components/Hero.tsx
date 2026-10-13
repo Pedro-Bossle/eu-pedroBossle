@@ -195,7 +195,7 @@ const Hero = () => {
                 py-2.5
                 text-sm
 
-                transition-[transform,background-color,color]
+                transition-[translate,background-color,color]
                 duration-200
 
                 hover:-translate-y-0.5
@@ -224,7 +224,7 @@ const Hero = () => {
                 text-sm
                 opacity-70
 
-                transition-[transform,opacity]
+                transition-[translate,opacity]
                 duration-200
 
                 hover:-translate-y-0.5
@@ -251,7 +251,7 @@ const Hero = () => {
                 text-sm
                 opacity-70
 
-                transition-[transform,opacity]
+                transition-[translate,opacity]
                 duration-200
 
                 hover:-translate-y-0.5
@@ -352,7 +352,7 @@ const Hero = () => {
           top-1/2
           z-50
 
-          transition-[transform,opacity]
+          transition-[translate,rotate,opacity]
           duration-1000
           ease-[cubic-bezier(0.16,1,0.3,1)]
 
@@ -397,7 +397,7 @@ const Hero = () => {
             traveling === "contact"
               ? "animate-[plane-fly_1.25s_cubic-bezier(0.22,0.8,0.28,1)_forwards]"
               : `
-                transition-[transform,opacity] duration-1000
+                transition-[translate,rotate,opacity] duration-1000
                 ease-[cubic-bezier(0.16,1,0.3,1)]
                 ${
                   active === "contact"
@@ -452,7 +452,7 @@ const Hero = () => {
             traveling === "blocks"
               ? "animate-[blocks-travel_0.9s_cubic-bezier(0.16,1,0.3,1)_forwards]"
               : `
-                transition-[transform,opacity]
+                transition-[translate,rotate,opacity]
                 duration-1000
                 ease-[cubic-bezier(0.16,1,0.3,1)]
                 ${
