@@ -5,7 +5,6 @@ import { useLanguage } from "../i18n/LanguageContext";
 function WhyWebsite() {
   const { t } = useLanguage();
   const lenis = useLenis();
-  const listRef = useRef<HTMLOListElement>(null);
   const itemRefs = useRef<(HTMLLIElement | null)[]>([]);
   const [active, setActive] = useState(0);
   const steps = t.why.steps;
@@ -59,16 +58,6 @@ function WhyWebsite() {
     lenis?.scrollTo("#contratar", { duration: 1.1 });
   };
 
-  const goStep = (index: number) => {
-    const el = itemRefs.current[index];
-    if (!el) {
-      setActive(index);
-      return;
-    }
-    if (lenis) lenis.scrollTo(el, { offset: -120, duration: 0.7 });
-    else el.scrollIntoView({ behavior: "smooth", block: "center" });
-  };
-
   return (
     <section
       id="por-que"
@@ -87,7 +76,7 @@ function WhyWebsite() {
         {t.why.title}
       </h2>
 
-      <ol ref={listRef} className="mt-10 space-y-2">
+      <ol className="mt-10 space-y-2">
         {steps.map((step, index) => {
           const on = active === index;
           const passed = index < active;
@@ -97,40 +86,38 @@ function WhyWebsite() {
               ref={(node) => {
                 itemRefs.current[index] = node;
               }}
+              aria-current={on ? "step" : undefined}
+              className={`
+                flex w-full items-center gap-4 border-l-2 px-4 py-3 transition
+                duration-300
+                min-h-[calc(1.5rem+2.75rem)]
+                sm:min-h-0 sm:items-baseline
+                ${
+                  on
+                    ? "border-neutral-900 bg-neutral-100/80 dark:border-white dark:bg-neutral-900/60"
+                    : passed
+                      ? "border-neutral-300 opacity-70 dark:border-neutral-700"
+                      : "border-transparent opacity-45"
+                }
+              `}
             >
-              <button
-                type="button"
-                onClick={() => goStep(index)}
-                aria-current={on ? "step" : undefined}
+              <span
                 className={`
-                  flex w-full items-baseline gap-4 border-l-2 px-4 py-3 text-left transition
-                  duration-300
-                  ${
-                    on
-                      ? "border-neutral-900 bg-neutral-100/80 dark:border-white dark:bg-neutral-900/60"
-                      : passed
-                        ? "border-neutral-300 opacity-70 dark:border-neutral-700"
-                        : "border-transparent opacity-45 hover:opacity-80"
-                  }
+                  w-6 shrink-0 font-mono text-sm tabular-nums transition
+                  ${on ? "text-neutral-900 dark:text-white" : "opacity-50"}
                 `}
               >
-                <span
-                  className={`
-                    w-6 shrink-0 font-mono text-sm tabular-nums transition
-                    ${on ? "text-neutral-900 dark:text-white" : "opacity-50"}
-                  `}
-                >
-                  {index + 1}.
-                </span>
-                <span
-                  className={`
-                    text-base leading-snug transition sm:text-lg
-                    ${on ? "font-medium tracking-tight" : ""}
-                  `}
-                >
-                  {step}
-                </span>
-              </button>
+                {index + 1}.
+              </span>
+              <span
+                className={`
+                  line-clamp-2 text-base leading-snug transition
+                  sm:line-clamp-none sm:text-lg
+                  ${on ? "font-medium tracking-tight" : ""}
+                `}
+              >
+                {step}
+              </span>
             </li>
           );
         })}
