@@ -42,8 +42,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
 
       const password = generateSharePassword(8);
-      const passwordHash = await bcrypt.hash(password, 12);
-      const token = generateShareToken();
+      const passwordHash = await bcrypt.hash(password, 10);
+      const freshToken = generateShareToken();
 
       const proposal = await withAuth(async (db) => {
         const { rows: existing } = await db.query(
@@ -55,7 +55,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const keepToken =
           existing[0].share_token && action !== "regenerate-token"
             ? String(existing[0].share_token)
-            : token;
+            : freshToken;
         const nextStatus =
           String(existing[0].status) === "Em elaboração"
             ? "Enviado"
@@ -83,22 +83,32 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       if (!proposal) return json(res, 404, { error: "Proposta não encontrada" });
 
       const host = String(req.headers.host ?? "");
-      const token = String(proposal.shareToken ?? "");
+      const shareToken = String(proposal.shareToken ?? "");
       // Fallback relativo só para o painel (mesmo origin); e-mails usam URL absoluta confiável.
       const url =
-        publicProposalUrl(token, host) ?? `/orcamentos/p/${token}`;
+        publicProposalUrl(shareToken, host) ?? `/orcamentos/p/${shareToken}`;
 
       return json(res, 200, {
         proposal,
         password,
-        token: proposal.shareToken,
+        token: shareToken,
         url,
       });
     }
 
     return json(res, 405, { error: "Method not allowed" });
   } catch (error) {
-    console.error(error);
-    return json(res, 500, { error: "Falha ao gerenciar link da proposta" });
+    console.error("[proposals/share]", error);
+    const detail =
+      error instanceof Error ? error.message : "erro desconhecido";
+    /* Colunas ausentes → migration 002 não aplicada */
+    const needsMigration =
+      /share_token|share_password|share_enabled|share_created/i.test(detail);
+    return json(res, 500, {
+      error: needsMigration
+        ? "Schema desatualizado: rode npm run db:migrate (migration 002_proposal_share)"
+        : "Falha ao gerenciar link da proposta",
+      detail,
+    });
   }
 }

@@ -20,11 +20,18 @@ async function request<T>(
     },
     ...init,
   });
-  const data = await res.json().catch(() => ({}));
+  const data = (await res.json().catch(() => ({}))) as {
+    error?: string;
+    detail?: string;
+  };
   if (!res.ok) {
-    throw new Error(
-      typeof data.error === "string" ? data.error : `Erro ${res.status}`,
-    );
+    const base =
+      typeof data.error === "string" ? data.error : `Erro ${res.status}`;
+    const detail =
+      typeof data.detail === "string" && data.detail && data.detail !== base
+        ? ` (${data.detail})`
+        : "";
+    throw new Error(`${base}${detail}`);
   }
   return data as T;
 }
