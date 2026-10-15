@@ -1215,6 +1215,10 @@ function Panel({
                         })
                       }
                     />
+                    <p className="mt-1 text-[11px] leading-snug text-neutral-500 dark:text-neutral-400">
+                      Conta a partir do status Enviado ou da regeneração do
+                      link.
+                    </p>
                   </Field>
                   <Field label="Status" full>
                     <select

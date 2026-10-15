@@ -36,7 +36,16 @@ function Clause({
   );
 }
 
+function paymentLines(text: string) {
+  const lines = String(text || "")
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean);
+  return lines.length ? lines : ["A combinar."];
+}
+
 function ContractDocument({ data }: { data: ContractPayload }) {
+  const payLines = paymentLines(data.payment);
   return (
     <div
       className="contract-pdf bg-white text-[#0a0f0c]"
@@ -160,7 +169,11 @@ function ContractDocument({ data }: { data: ContractPayload }) {
           O valor total dos serviços é de <b>{data.totalLabel}</b>, a ser pago
           da seguinte forma:
         </p>
-        <p data-pdf-atom>{data.payment}</p>
+        {payLines.map((line, i) => (
+          <p key={`pay-${i}`} data-pdf-atom>
+            {line}
+          </p>
+        ))}
         {data.items.length ? (
           <ul className="my-1 list-disc pl-5">
             {data.items.map((item, i) => (

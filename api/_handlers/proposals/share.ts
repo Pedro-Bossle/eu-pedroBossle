@@ -66,7 +66,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
              share_token = $2,
              share_password_hash = $3,
              share_enabled = true,
-             share_created_at = COALESCE(share_created_at, now()),
+             /* Reinicia validade a cada geração/regeneração do link */
+             share_created_at = now(),
              status = $4,
              updated_at = now()
            WHERE id = $1`,

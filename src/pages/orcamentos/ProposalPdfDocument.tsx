@@ -5,6 +5,7 @@ import type {
   OrcamentoProfile,
   OrcamentoProposal,
 } from "../../types/orcamentos";
+import { proposalValidityEnd } from "../../lib/orcamentos/validity";
 import { money } from "./money";
 
 const LINK_TYPE: Record<string, string> = {
@@ -69,8 +70,7 @@ function ProposalPdfDocument({ proposal, client, profile }: Props) {
   const created = proposal.created
     ? new Date(proposal.created)
     : new Date();
-  const validity = new Date(created);
-  validity.setDate(validity.getDate() + Number(proposal.validity || 7));
+  const validity = proposalValidityEnd(proposal);
 
   const items = (proposal.items || []).filter(
     (x) => x.name || x.desc || Number(x.value),
@@ -78,6 +78,7 @@ function ProposalPdfDocument({ proposal, client, profile }: Props) {
   const publicLinks = (proposal.links || []).filter((l) => l.public && l.url);
   const scope = lines(proposal.scope);
   const timeline = lines(proposal.timeline);
+  const payment = lines(proposal.payment);
   const needs = lines(proposal.needs);
   const notes = lines(
     proposal.notes ||
@@ -235,12 +236,16 @@ function ProposalPdfDocument({ proposal, client, profile }: Props) {
       </Section>
 
       <Section number={next()} title="Forma de pagamento">
-        <p
-          data-pdf-atom
-          className="mb-1.5 text-[11.5px] leading-relaxed break-words [overflow-wrap:anywhere]"
-        >
-          {proposal.payment || "A combinar."}
-        </p>
+        {payment.length > 1 ? (
+          <BulletList items={payment} />
+        ) : (
+          <p
+            data-pdf-atom
+            className="mb-1.5 text-[11.5px] leading-relaxed break-words [overflow-wrap:anywhere]"
+          >
+            {payment[0] || "A combinar."}
+          </p>
+        )}
       </Section>
 
       <Section number={next()} title="O que preciso do cliente">

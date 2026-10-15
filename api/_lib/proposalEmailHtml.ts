@@ -50,7 +50,23 @@ export function buildProposalEmailHtml(input: {
     portfolio.replace(/^https?:\/\//i, "").replace(/\/$/, "") || "dev-bossle.vercel.app",
   );
   const linkedin = (profile.linkedin || "").trim();
-  const validityLabel = `${proposal.validity} dia${proposal.validity === 1 ? "" : "s"}`;
+  const validityDays = Number(proposal.validity || 7);
+  const validityStart = proposal.shareCreatedAt
+    ? new Date(proposal.shareCreatedAt)
+    : proposal.created
+      ? new Date(proposal.created)
+      : null;
+  const validityEnd =
+    validityStart && !Number.isNaN(validityStart.getTime())
+      ? (() => {
+          const d = new Date(validityStart);
+          d.setDate(d.getDate() + validityDays);
+          return d.toLocaleDateString("pt-BR");
+        })()
+      : null;
+  const validityLabel = validityEnd
+    ? `até ${validityEnd} (${validityDays} dia${validityDays === 1 ? "" : "s"})`
+    : `${validityDays} dia${validityDays === 1 ? "" : "s"}`;
   const version = escapeHtml(proposal.version || "1");
   const total = escapeHtml(moneyBrl(proposal.total));
   const ideaRaw =

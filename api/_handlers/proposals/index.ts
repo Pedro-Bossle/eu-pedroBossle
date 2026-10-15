@@ -49,7 +49,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
              status = EXCLUDED.status,
              items = EXCLUDED.items,
              links = EXCLUDED.links,
-             updated_at = now()`,
+             share_created_at = CASE
+               WHEN EXCLUDED.status = 'Enviado'
+                 AND proposals.status IS DISTINCT FROM 'Enviado'
+               THEN now()
+               ELSE proposals.share_created_at
+             END,
+             updated_at = now()`
           [
             id,
             body.clientId || null,

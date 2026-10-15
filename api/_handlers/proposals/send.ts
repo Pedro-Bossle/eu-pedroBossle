@@ -152,7 +152,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     await withAuth(async (db) => {
       await db.query(
         `UPDATE proposals
-         SET status = 'Enviado', updated_at = now()
+         SET status = 'Enviado',
+             share_created_at = now(),
+             updated_at = now()
          WHERE id = $1`,
         [id],
       );
