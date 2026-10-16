@@ -113,18 +113,23 @@ function Footer() {
             mt-14 flex flex-col gap-3 border-t border-neutral-200/80 pt-6
             text-sm text-neutral-500
             dark:border-neutral-800 dark:text-neutral-400
-            sm:flex-row sm:items-center sm:justify-between
+            sm:flex-row sm:items-end sm:justify-between
           "
         >
-          <p className="font-medium text-neutral-800 dark:text-neutral-200">
-            .dev Bossle
-          </p>
-          <p className="font-light">
-            {resume.city}
-            <span className="mx-2 opacity-40" aria-hidden>
-              ·
-            </span>
-            {t.contact.tagline}
+          <div className="space-y-1">
+            <p className="font-medium text-neutral-800 dark:text-neutral-200">
+              .dev Bossle
+            </p>
+            <p className="font-light">
+              {resume.city}
+              <span className="mx-2 opacity-40" aria-hidden>
+                ·
+              </span>
+              {t.contact.tagline}
+            </p>
+          </div>
+          <p className="text-xs font-light tracking-wide opacity-80">
+            © {new Date().getFullYear()} Pedro Bossle. {t.contact.copyright}
           </p>
         </div>
       </div>

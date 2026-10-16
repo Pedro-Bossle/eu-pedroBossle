@@ -1,4 +1,4 @@
-# https://www.devbossle.com.br
+# Canônico: https://www.devbossle.com.br (apex redireciona para www)
 User-agent: *
 Allow: /
 Allow: /curriculo-virtual
@@ -7,8 +7,9 @@ Allow: /curriculo-virtual
 Disallow: /orcamentos
 Disallow: /api/
 
-# Sitemap
+# Sitemap (usar propriedade www no Search Console)
 Sitemap: https://www.devbossle.com.br/sitemap.xml
+Sitemap: https://devbossle.com.br/sitemap.xml
 
 # Crawlers de IA (GEO / Generative Engine Optimization)
 User-agent: GPTBot

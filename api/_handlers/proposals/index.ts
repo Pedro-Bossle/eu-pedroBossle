@@ -55,7 +55,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                THEN now()
                ELSE proposals.share_created_at
              END,
-             updated_at = now()`
+             updated_at = now()`,
           [
             id,
             body.clientId || null,

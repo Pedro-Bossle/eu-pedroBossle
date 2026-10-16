@@ -92,6 +92,7 @@ export type TranslationKeys = {
     email: string;
     resumeLink: string;
     tagline: string;
+    copyright: string;
   };
   resume: {
     pageTitle: string;
@@ -246,6 +247,7 @@ const pt: TranslationKeys = {
     email: "Email",
     resumeLink: "Currículo",
     tagline: "Desenvolvimento web e sistemas.",
+    copyright: "Todos os direitos reservados.",
   },
   resume: {
     pageTitle: "Currículo",

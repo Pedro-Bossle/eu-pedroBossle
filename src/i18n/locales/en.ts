@@ -129,6 +129,7 @@ const en: TranslationKeys = {
     email: "Email",
     resumeLink: "Resume",
     tagline: "Web development and systems.",
+    copyright: "All rights reserved.",
   },
   resume: {
     pageTitle: "Resume",
