@@ -61,6 +61,9 @@ function Footer() {
         <h2 className="mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">
           {t.contact.title}
         </h2>
+        <p className="mt-2 max-w-xl text-sm leading-relaxed opacity-60">
+          {t.contact.tagline} · Caxias do Sul, RS — Serra Gaúcha
+        </p>
 
         <ul className="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-2 sm:gap-x-12 sm:gap-y-8">
           {links.map((link) => (

@@ -4,18 +4,35 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <title>Pedro Bossle | Desenvolvedor Web</title>
+    <title>
+      Pedro Bossle | Desenvolvedor Web em Caxias do Sul — Sites e Sistemas
+    </title>
     <meta
       name="description"
-      content="Transformo processos complexos em sistemas simples, rápidos e fáceis de usar. Sites e sistemas web sob medida."
+      content="Desenvolvedor web em Caxias do Sul (RS). Crio sites institucionais, landing pages e sistemas sob medida com React e TypeScript. Mais presença digital para o seu negócio — peça um orçamento."
     />
-    <meta name="author" content="Pedro Bossle" />
+    <meta name="author" content="Pedro Bossle Sandi" />
     <meta
       name="keywords"
-      content="Pedro Bossle, devbossle, desenvolvedor web, React, TypeScript, JavaScript, SQL, frontend, Caxias do Sul"
+      content="desenvolvedor web Caxias do Sul, criação de sites, landing page, sistemas web, React, TypeScript, presença digital, Pedro Bossle, devbossle, Serra Gaúcha, site profissional, automação de processos"
     />
-    <meta name="robots" content="index, follow" />
-    <link rel="canonical" href="https://dev-bossle.vercel.app/" />
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+    <meta name="googlebot" content="index, follow" />
+    <link rel="canonical" href="https://www.devbossle.com.br/" />
+    <link rel="alternate" hreflang="pt-BR" href="https://www.devbossle.com.br/" />
+    <link rel="alternate" hreflang="en" href="https://www.devbossle.com.br/?lang=en" />
+    <link rel="alternate" hreflang="x-default" href="https://www.devbossle.com.br/" />
+
+    <!-- GEO / Local SEO -->
+    <meta name="geo.region" content="BR-RS" />
+    <meta name="geo.placename" content="Caxias do Sul" />
+    <meta name="geo.position" content="-29.168;-51.179" />
+    <meta name="ICBM" content="-29.168, -51.179" />
+    <meta name="language" content="Portuguese" />
+    <meta name="coverage" content="Brazil" />
+    <meta name="distribution" content="global" />
+    <meta name="rating" content="general" />
+    <meta name="revisit-after" content="7 days" />
 
     <!-- Favicons -->
     <link rel="icon" href="/favicon.ico" sizes="any" />
@@ -23,51 +40,58 @@
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/site.webmanifest" />
     <meta name="theme-color" content="#0c1210" />
+    <link rel="sitemap" type="application/xml" href="/sitemap.xml" />
 
     <!-- Open Graph -->
     <meta property="og:type" content="website" />
     <meta property="og:locale" content="pt_BR" />
     <meta property="og:locale:alternate" content="en_US" />
     <meta property="og:site_name" content="devbossle" />
-    <meta property="og:url" content="https://dev-bossle.vercel.app/" />
-    <meta property="og:title" content="Pedro Bossle | Desenvolvedor Web" />
+    <meta property="og:url" content="https://www.devbossle.com.br/" />
+    <meta
+      property="og:title"
+      content="Pedro Bossle | Desenvolvedor Web em Caxias do Sul"
+    />
     <meta
       property="og:description"
-      content="Transformo processos complexos em sistemas simples, rápidos e fáceis de usar."
+      content="Sites, landing pages e sistemas web sob medida. React, TypeScript e foco em presença digital para negócios da Serra Gaúcha e além."
     />
     <meta
       property="og:image"
-      content="https://dev-bossle.vercel.app/og-image.jpg"
+      content="https://www.devbossle.com.br/og-image.jpg"
     />
     <meta
       property="og:image:secure_url"
-      content="https://dev-bossle.vercel.app/og-image.jpg"
+      content="https://www.devbossle.com.br/og-image.jpg"
     />
     <meta property="og:image:type" content="image/jpeg" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
     <meta
       property="og:image:alt"
-      content="devbossle — Pedro Bossle, Desenvolvedor Web"
+      content="devbossle — Pedro Bossle, Desenvolvedor Web em Caxias do Sul"
     />
 
     <!-- Twitter / X -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Pedro Bossle | Desenvolvedor Web" />
+    <meta
+      name="twitter:title"
+      content="Pedro Bossle | Desenvolvedor Web em Caxias do Sul"
+    />
     <meta
       name="twitter:description"
-      content="Transformo processos complexos em sistemas simples, rápidos e fáceis de usar."
+      content="Sites, landing pages e sistemas web sob medida. React, TypeScript e presença digital."
     />
     <meta
       name="twitter:image"
-      content="https://dev-bossle.vercel.app/og-image.jpg"
+      content="https://www.devbossle.com.br/og-image.jpg"
     />
     <meta
       name="twitter:image:alt"
       content="devbossle — Pedro Bossle, Desenvolvedor Web"
     />
 
-    <!-- Self-hosted Montserrat (latin) — sem third-party / sem render-block do Google Fonts -->
+    <!-- Self-hosted Montserrat (latin) -->
     <link
       rel="preload"
       href="/fonts/montserrat-latin-wght.woff2"
@@ -75,6 +99,178 @@
       type="font/woff2"
       crossorigin
     />
+
+    <!-- JSON-LD: Person + ProfessionalService + FAQ (SEO + GEO) -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "WebSite",
+            "@id": "https://www.devbossle.com.br/#website",
+            "url": "https://www.devbossle.com.br/",
+            "name": "devbossle",
+            "alternateName": [".dev Bossle", "Pedro Bossle"],
+            "inLanguage": ["pt-BR", "en"],
+            "description": "Portfólio e contato de Pedro Bossle — desenvolvedor web em Caxias do Sul.",
+            "publisher": { "@id": "https://www.devbossle.com.br/#person" }
+          },
+          {
+            "@type": "Person",
+            "@id": "https://www.devbossle.com.br/#person",
+            "name": "Pedro Bossle Sandi",
+            "alternateName": "Pedro Bossle",
+            "url": "https://www.devbossle.com.br/",
+            "image": "https://www.devbossle.com.br/og-image.jpg",
+            "jobTitle": "Desenvolvedor Web",
+            "description": "Desenvolvedor web especializado em React, TypeScript e sistemas sob medida. Atende Caxias do Sul e clientes remotos.",
+            "email": "mailto:pedro.bossle.s@gmail.com",
+            "address": {
+              "@type": "PostalAddress",
+              "addressLocality": "Caxias do Sul",
+              "addressRegion": "RS",
+              "addressCountry": "BR"
+            },
+            "sameAs": [
+              "https://github.com/Pedro-Bossle",
+              "https://www.linkedin.com/in/pedro-bossle-sandi-685625277/",
+              "https://www.instagram.com/pedro_bossle/"
+            ],
+            "knowsAbout": [
+              "Desenvolvimento web",
+              "React",
+              "TypeScript",
+              "JavaScript",
+              "SQL",
+              "Criação de sites",
+              "Landing pages",
+              "Sistemas web",
+              "Automação de processos",
+              "Presença digital"
+            ]
+          },
+          {
+            "@type": "ProfessionalService",
+            "@id": "https://www.devbossle.com.br/#service",
+            "name": "devbossle — Desenvolvimento Web",
+            "url": "https://www.devbossle.com.br/",
+            "image": "https://www.devbossle.com.br/og-image.jpg",
+            "description": "Criação de sites institucionais, landing pages e sistemas web sob medida para empresas e profissionais.",
+            "provider": { "@id": "https://www.devbossle.com.br/#person" },
+            "areaServed": [
+              {
+                "@type": "City",
+                "name": "Caxias do Sul"
+              },
+              {
+                "@type": "AdministrativeArea",
+                "name": "Rio Grande do Sul"
+              },
+              {
+                "@type": "Country",
+                "name": "Brasil"
+              }
+            ],
+            "address": {
+              "@type": "PostalAddress",
+              "addressLocality": "Caxias do Sul",
+              "addressRegion": "RS",
+              "addressCountry": "BR"
+            },
+            "geo": {
+              "@type": "GeoCoordinates",
+              "latitude": -29.168,
+              "longitude": -51.179
+            },
+            "priceRange": "$$",
+            "availableLanguage": ["Portuguese", "English"],
+            "serviceType": [
+              "Criação de sites",
+              "Landing pages",
+              "Sistemas web",
+              "Automação de processos",
+              "Presença digital"
+            ],
+            "hasOfferCatalog": {
+              "@type": "OfferCatalog",
+              "name": "Serviços de desenvolvimento web",
+              "itemListElement": [
+                {
+                  "@type": "Offer",
+                  "itemOffered": {
+                    "@type": "Service",
+                    "name": "Site institucional",
+                    "description": "Site profissional para apresentar empresa, serviços e contato."
+                  }
+                },
+                {
+                  "@type": "Offer",
+                  "itemOffered": {
+                    "@type": "Service",
+                    "name": "Landing page",
+                    "description": "Página de conversão para campanhas e captura de leads."
+                  }
+                },
+                {
+                  "@type": "Offer",
+                  "itemOffered": {
+                    "@type": "Service",
+                    "name": "Sistema web sob medida",
+                    "description": "Aplicações internas para operação, vendas e gestão."
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "@type": "FAQPage",
+            "@id": "https://www.devbossle.com.br/#faq",
+            "mainEntity": [
+              {
+                "@type": "Question",
+                "name": "Por que ter um site se já tenho Instagram?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Instagram não substitui um site: no site você controla a informação, mostra serviços e preços com clareza, aparece no Google e passa credibilidade. O cliente encontra você 24h sem depender do algoritmo da rede social."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Você desenvolve sites em Caxias do Sul?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Sim. Pedro Bossle atende Caxias do Sul e a Serra Gaúcha, além de clientes remotos em todo o Brasil, com sites, landing pages e sistemas web sob medida."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Quais tecnologias você usa?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Principalmente React, TypeScript, JavaScript, HTML, CSS e SQL, com integrações via APIs e ferramentas como Supabase quando o projeto pede."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Como contratar um site ou sistema?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Pelo formulário em https://www.devbossle.com.br/#contratar: escolha um estilo visual, descreva a ideia e envie. Em seguida você recebe retorno com próximos passos e orçamento."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Você faz sistemas internos além de sites?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Sim. Além de sites e landing pages, desenvolvo sistemas web que unificam operação, vendas e processos — como plataformas internas de credenciamento, gestão e presença digital."
+                }
+              }
+            ]
+          }
+        ]
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>

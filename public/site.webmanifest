@@ -1,10 +1,12 @@
 {
-  "name": "Pedro Bossle | Desenvolvedor Web",
+  "name": "Pedro Bossle | Desenvolvedor Web em Caxias do Sul",
   "short_name": "devbossle",
-  "description": "Transformo processos complexos em sistemas simples, rápidos e fáceis de usar.",
+  "description": "Sites, landing pages e sistemas web sob medida. React e TypeScript — Caxias do Sul / RS.",
   "start_url": "/",
   "display": "standalone",
   "lang": "pt-BR",
+  "dir": "ltr",
+  "categories": ["business", "productivity"],
   "theme_color": "#0c1210",
   "background_color": "#0c1210",
   "icons": [

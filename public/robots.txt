@@ -1,0 +1,31 @@
+# https://www.devbossle.com.br
+User-agent: *
+Allow: /
+Allow: /curriculo-virtual
+
+# Painel interno — não indexar
+Disallow: /orcamentos
+Disallow: /api/
+
+# Sitemap
+Sitemap: https://www.devbossle.com.br/sitemap.xml
+
+# Crawlers de IA (GEO / Generative Engine Optimization)
+User-agent: GPTBot
+Allow: /
+Allow: /llms.txt
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /

@@ -48,6 +48,19 @@ function OrcamentosApp() {
   const [loadError, setLoadError] = useState("");
 
   useEffect(() => {
+    document.title = "Orçamentos · .dev Bossle";
+    let robots = document.head.querySelector<HTMLMetaElement>(
+      'meta[name="robots"]',
+    );
+    if (!robots) {
+      robots = document.createElement("meta");
+      robots.setAttribute("name", "robots");
+      document.head.appendChild(robots);
+    }
+    robots.setAttribute("content", "noindex, nofollow");
+  }, []);
+
+  useEffect(() => {
     if (publicToken) return;
     let cancelled = false;
     (async () => {
