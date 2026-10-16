@@ -16,6 +16,11 @@ import {
   PRESET_SECTIONS,
 } from "../../lib/orcamentos/presets";
 import {
+  applyProposalTemplate,
+  downloadProposalTemplate,
+  parseProposalTemplate,
+} from "../../lib/orcamentos/proposalTemplate";
+import {
   buildShareClientMessage,
   whatsappShareUrl,
 } from "../../lib/orcamentos/shareMessage";
@@ -265,6 +270,45 @@ function Panel({
   const openProposal = (proposal: OrcamentoProposal) => {
     setEditStep("projeto");
     setEditing(proposal);
+  };
+
+  const templateInputRef = useRef<HTMLInputElement>(null);
+  /** "current" aplica no orçamento aberto; "new" cria um novo orçamento. */
+  const templateTargetRef = useRef<"current" | "new">("new");
+
+  const pickTemplateFile = (target: "current" | "new") => {
+    templateTargetRef.current = target;
+    templateInputRef.current?.click();
+  };
+
+  const exportTemplate = (proposal: OrcamentoProposal) => {
+    try {
+      downloadProposalTemplate(proposal);
+      showToast("Modelo exportado");
+    } catch (e) {
+      showToast(e instanceof Error ? e.message : "Falha ao exportar modelo");
+    }
+  };
+
+  const importTemplate = async (file: File) => {
+    try {
+      const template = parseProposalTemplate(await file.text());
+      if (templateTargetRef.current === "current" && editing) {
+        if (
+          !window.confirm(
+            "Importar o modelo vai substituir textos, etapas e valores deste orçamento. Continuar?",
+          )
+        )
+          return;
+        setEditing(applyProposalTemplate(editing, template));
+        setEditStep("projeto");
+      } else {
+        openProposal(applyProposalTemplate(blankProposal(), template));
+      }
+      showToast("Modelo importado — revise e salve");
+    } catch (e) {
+      showToast(e instanceof Error ? e.message : "Falha ao importar modelo");
+    }
   };
 
   useEffect(() => {
@@ -987,6 +1031,17 @@ function Panel({
 
   return (
     <div className="min-h-dvh bg-[#f9f9f9] text-neutral-900 dark:bg-[#121212] dark:text-[#f9f9f9] [&_a]:cursor-pointer [&_button:disabled]:cursor-not-allowed [&_button:not(:disabled)]:cursor-pointer [&_label]:cursor-pointer [&_select]:cursor-pointer [&_summary]:cursor-pointer [&_input[type=checkbox]]:cursor-pointer [&_input[type=radio]]:cursor-pointer [&_[role=button]]:cursor-pointer">
+      <input
+        ref={templateInputRef}
+        type="file"
+        accept="application/json,.json,text/plain,.txt"
+        className="hidden"
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          e.target.value = "";
+          if (file) void importTemplate(file);
+        }}
+      />
       <header className="sticky top-0 z-30 border-b border-neutral-200 bg-[#F3F4F6] dark:border-neutral-800 dark:bg-[#151515]">
         <div className={`${shellClass} flex items-center justify-between gap-3 px-4 py-3 sm:px-6 sm:py-4 xl:px-8 2xl:px-10`}>
           <Link to="/" className="flex cursor-pointer items-center gap-2 sm:gap-2.5">
@@ -1079,6 +1134,20 @@ function Panel({
                     }}
                   >
                     Cancelar
+                  </button>
+                  <button
+                    type="button"
+                    className={btn}
+                    onClick={() => pickTemplateFile("current")}
+                  >
+                    Importar modelo
+                  </button>
+                  <button
+                    type="button"
+                    className={btn}
+                    onClick={() => exportTemplate(editing)}
+                  >
+                    Exportar modelo
                   </button>
                   <button
                     type="button"
@@ -2207,13 +2276,22 @@ function Panel({
                     Orçamentos
                   </h1>
                 </div>
-                <button
-                  type="button"
-                  className={btnPrimary}
-                  onClick={() => openProposal(blankProposal())}
-                >
-                  + Novo
-                </button>
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    className={btn}
+                    onClick={() => pickTemplateFile("new")}
+                  >
+                    Importar modelo
+                  </button>
+                  <button
+                    type="button"
+                    className={btnPrimary}
+                    onClick={() => openProposal(blankProposal())}
+                  >
+                    + Novo
+                  </button>
+                </div>
               </div>
 
               <div className="mb-4 flex flex-wrap gap-2">
