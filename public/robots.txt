@@ -7,9 +7,8 @@ Allow: /curriculo-virtual
 Disallow: /orcamentos
 Disallow: /api/
 
-# Sitemap (usar propriedade www no Search Console)
+# Sitemap — somente a URL canônica (www); a do apex redireciona e o Google a marca como "Página com redirecionamento"
 Sitemap: https://www.devbossle.com.br/sitemap.xml
-Sitemap: https://devbossle.com.br/sitemap.xml
 
 # Crawlers de IA (GEO / Generative Engine Optimization)
 User-agent: GPTBot
