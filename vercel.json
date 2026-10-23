@@ -42,8 +42,16 @@
       "destination": "/api/orcamentos-auth-reset-password"
     },
     {
+      "source": "/api/orcamentos/prospects/settings",
+      "destination": "/api/orcamentos-prospects-settings"
+    },
+    {
+      "source": "/api/orcamentos/prospects/search",
+      "destination": "/api/orcamentos-prospects-search"
+    },
+    {
       "source": "/api/orcamentos/(.*)",
-      "destination": "/api/orcamentos?path=$1"
+      "destination": "/api/orcamentos"
     },
     {
       "source": "/((?!api/|@|src/|node_modules/|assets/)(?!.*\\.).*)",

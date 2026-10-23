@@ -42,6 +42,17 @@ npm run db:migrate
 - `005` — tokens de redefinição de senha do admin.
 - `006` — `session_version` para invalidar JWTs após reset de senha.
 - `007` — `contact_leads` (formulário da Home → inbox do painel).
+<<<<<<< Updated upstream
+=======
+- `008` — `prospect_leads` (menu **Prospecção**) e `integration_settings` (chave do Gemini criptografada).
+
+### Prospecção com Gemini
+
+1. Crie uma chave em [Google AI Studio](https://aistudio.google.com/apikey) e, no Google Cloud, restrinja-a à **Generative Language API**.
+2. No painel: **Prospecção → Gemini** → cole a chave e salve. O navegador nunca recebe a chave de volta (só os 4 últimos caracteres).
+3. **Buscar com Gemini** usa Google Maps + Pesquisa Google (modelo padrão `gemini-2.5-flash`, editável) e grava os leads no Neon. Mesmo nome + cidade atualiza em vez de duplicar. No free tier, 429 no AI Studio = cota diária (a chave está ok).
+4. A busca pode levar até ~1 min; por isso `vercel.json` define `maxDuration: 60` para `api/orcamentos.ts`.
+>>>>>>> Stashed changes
 
 Policies: todas as tabelas com `FORCE ROW LEVEL SECURITY`. A API autentica e faz `set_config('app.authenticated','true', true)` em transação. Login e bootstrap usam funções `SECURITY DEFINER`.
 

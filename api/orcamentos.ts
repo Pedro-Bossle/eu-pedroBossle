@@ -8,6 +8,10 @@ type RouteHandler = (
 /**
  * Rotas não-auth (auth tem entrypoints próprios leves).
  * Lazy-load evita derrubar a function no cold start.
+ *
+ * O rewrite em vercel.json manda /api/orcamentos/* → /api/orcamentos
+ * sem colocar a subrota na query (barra em ?path= quebrava prospects/settings).
+ * O path real continua em req.url.
  */
 const loaders: Record<string, () => Promise<{ default: RouteHandler }>> = {
   bootstrap: () => import("./_handlers/bootstrap.js"),
@@ -29,19 +33,35 @@ const loaders: Record<string, () => Promise<{ default: RouteHandler }>> = {
 };
 
 function routeKey(req: VercelRequest): string {
+  const candidates = [
+    req.url,
+    typeof req.headers["x-forwarded-uri"] === "string"
+      ? req.headers["x-forwarded-uri"]
+      : "",
+    typeof req.headers["x-invoke-path"] === "string"
+      ? req.headers["x-invoke-path"]
+      : "",
+  ];
+
+  for (const raw of candidates) {
+    if (!raw) continue;
+    const pathOnly = String(raw).split("?")[0] ?? "";
+    const marker = "/api/orcamentos/";
+    const idx = pathOnly.indexOf(marker);
+    if (idx >= 0) {
+      return pathOnly.slice(idx + marker.length).replace(/^\/+|\/+$/g, "");
+    }
+  }
+
+  // Compat com deploys antigos que ainda mandavam ?path=
   const q = req.query.path;
   if (Array.isArray(q)) {
     const joined = q.filter(Boolean).join("/");
     if (joined) return joined.replace(/^\/+|\/+$/g, "");
   } else if (typeof q === "string" && q.length > 0) {
-    return q.replace(/^\/+|\/+$/g, "");
+    return decodeURIComponent(q).replace(/^\/+|\/+$/g, "");
   }
 
-  const url = req.url ?? "";
-  const pathOnly = (url.split("?")[0] ?? "").replace(/\/+$/, "");
-  const marker = "/api/orcamentos/";
-  const idx = pathOnly.indexOf(marker);
-  if (idx >= 0) return pathOnly.slice(idx + marker.length);
   return "";
 }
 
@@ -55,7 +75,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const key = routeKey(req);
     const loader = loaders[key];
     if (!loader) {
-      res.status(404).json({ error: "Not found" });
+      res.status(404).json({ error: "Not found", path: key || null });
       return;
     }
 
