@@ -19,6 +19,7 @@ Além do Neon, configure (Production + Preview):
 | `RESEND_API_KEY` | API key do Resend (Marketplace ou dashboard Resend) |
 | `RESEND_FROM` | Remetente, ex. `Pedro Bossle <orcamentos@devbossle.com.br>` |
 | `CONTACT_NOTIFY_EMAIL` | Destinatário dos leads do formulário da Home (fallback: e-mail do perfil) |
+| `ORCAMENTOS_SECRETS_KEY` | Opcional (≥ 16 chars). Criptografa a chave do Gemini salva no Neon. Sem ela, usa `ORCAMENTOS_SESSION_SECRET`. Trocar qualquer uma exige salvar a chave do Gemini de novo |
 
 ### E-mail (Resend)
 
@@ -31,7 +32,7 @@ Além do Neon, configure (Production + Preview):
 
 ## 3. Schema + RLS
 
-No SQL Editor do Neon, rode os arquivos `001`…`007` (nesta ordem), **ou**:
+No SQL Editor do Neon, rode os arquivos `001`…`008` (nesta ordem), **ou**:
 
 ```bash
 # com DATABASE_URL no ambiente
@@ -42,6 +43,14 @@ npm run db:migrate
 - `005` — tokens de redefinição de senha do admin.
 - `006` — `session_version` para invalidar JWTs após reset de senha.
 - `007` — `contact_leads` (formulário da Home → inbox do painel).
+- `008` — `prospect_leads` (menu **Prospecção**) e `integration_settings` (chave do Gemini criptografada).
+
+### Prospecção com Gemini
+
+1. Crie uma chave em [Google AI Studio](https://aistudio.google.com/apikey) e, no Google Cloud, restrinja-a à **Generative Language API**.
+2. No painel: **Prospecção → Gemini** → cole a chave e salve. O navegador nunca recebe a chave de volta (só os 4 últimos caracteres).
+3. **Buscar com Gemini** usa o embasamento no Google Maps + Pesquisa Google (modelo padrão `gemini-3.8-flash`, editável) e grava os leads direto no Neon. Mesmo nome + cidade atualiza o lead em vez de duplicar.
+4. A busca pode levar até ~1 min; por isso `vercel.json` define `maxDuration: 60` para `api/orcamentos.ts`.
 
 Policies: todas as tabelas com `FORCE ROW LEVEL SECURITY`. A API autentica e faz `set_config('app.authenticated','true', true)` em transação. Login e bootstrap usam funções `SECURITY DEFINER`.
 

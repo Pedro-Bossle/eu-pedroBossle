@@ -43,11 +43,22 @@ import {
   proposalPdfFilename,
 } from "./downloadProposalPdf";
 import { money, uid } from "./money";
+import {
+  btn,
+  btnPrimary,
+  cardClass,
+  focusRing,
+  inputClass,
+  shellClass,
+  textareaClass,
+} from "./panelStyles";
 import ProposalPdfDocument from "./ProposalPdfDocument";
+import Prospects from "./Prospects";
 
 type Tab =
   | "dashboard"
   | "inbox"
+  | "prospects"
   | "clients"
   | "proposals"
   | "presets"
@@ -90,20 +101,6 @@ const blankProposal = (clientId = ""): OrcamentoProposal => ({
   links: [],
   created: new Date().toISOString(),
 });
-
-const focusRing =
-  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2 dark:focus-visible:ring-emerald-400 dark:focus-visible:ring-offset-[#121212]";
-const inputClass =
-  `w-full min-h-12 border border-neutral-200 bg-[#f9f9f9] px-4 py-3.5 text-base outline-none transition focus:border-emerald-600 dark:border-neutral-700 dark:bg-[#121212] dark:focus:border-emerald-400 ${focusRing}`;
-const textareaClass = `${inputClass} min-h-40 resize-y leading-relaxed`;
-const cardClass =
-  "border border-neutral-200 bg-white p-5 dark:border-neutral-800 dark:bg-[#151515] xl:p-6";
-const shellClass =
-  "mx-auto w-full max-w-6xl xl:max-w-7xl 2xl:max-w-[1600px]";
-const btn =
-  `inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 border border-neutral-200 bg-white px-4 py-2.5 text-sm font-medium transition-[border-color,opacity] hover:border-neutral-400 disabled:cursor-not-allowed dark:border-neutral-700 dark:bg-[#151515] dark:hover:border-neutral-500 ${focusRing}`;
-const btnPrimary =
-  `inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 bg-neutral-900 px-4 py-2.5 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-[#f9f9f9] dark:text-neutral-900 ${focusRing}`;
 
 const EDIT_STEPS = [
   { id: "projeto", label: "Projeto" },
@@ -198,6 +195,12 @@ const navIcons: Record<Tab, string[]> = {
   inbox: [
     "M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z",
     "M22 6l-10 7L2 6",
+  ],
+  prospects: [
+    "M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16",
+    "M21 21l-4.35-4.35",
+    "M11 8v6",
+    "M8 11h6",
   ],
   clients: [
     "M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2",
@@ -811,6 +814,7 @@ function Panel({
   const nav: { id: Tab; label: string; short: string }[] = [
     { id: "dashboard", label: "Visão geral", short: "Início" },
     { id: "inbox", label: "Inbox", short: "Inbox" },
+    { id: "prospects", label: "Prospecção", short: "Leads" },
     { id: "clients", label: "Clientes", short: "Clientes" },
     { id: "proposals", label: "Orçamentos", short: "Orçam." },
     { id: "presets", label: "Presets", short: "Presets" },
@@ -2068,6 +2072,13 @@ function Panel({
                 ) : null}
               </div>
             </section>
+          ) : null}
+
+          {!editing && tab === "prospects" ? (
+            <Prospects
+              senderName={profile.name.trim().split(/\s+/)[0] || "Pedro"}
+              showToast={showToast}
+            />
           ) : null}
 
           {!editing && tab === "clients" ? (

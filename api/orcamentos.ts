@@ -26,6 +26,9 @@ const loaders: Record<string, () => Promise<{ default: RouteHandler }>> = {
   "public/proposal": () => import("./_handlers/public/proposal.js"),
   "public/unlock": () => import("./_handlers/public/unlock.js"),
   leads: () => import("./_handlers/leads.js"),
+  prospects: () => import("./_handlers/prospects/index.js"),
+  "prospects/settings": () => import("./_handlers/prospects/settings.js"),
+  "prospects/search": () => import("./_handlers/prospects/search.js"),
 };
 
 function routeKey(req: VercelRequest): string {

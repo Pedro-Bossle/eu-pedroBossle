@@ -5,6 +5,9 @@ import type {
   OrcamentoPreset,
   OrcamentoProfile,
   OrcamentoProposal,
+  ProspectInput,
+  ProspectLead,
+  ProspectSettings,
   PublicProposalPayload,
 } from "../../types/orcamentos";
 
@@ -193,5 +196,60 @@ export const orcamentosApi = {
     request<{ lead: ContactLead }>("/api/orcamentos/leads", {
       method: "PATCH",
       body: JSON.stringify({ id }),
+    }),
+  listProspects: () =>
+    request<{ leads: ProspectLead[] }>("/api/orcamentos/prospects"),
+  saveProspect: (lead: ProspectInput) =>
+    request<{ lead: ProspectLead }>("/api/orcamentos/prospects", {
+      method: "POST",
+      body: JSON.stringify(lead),
+    }),
+  importProspects: (leads: ProspectInput[]) =>
+    request<{
+      added: number;
+      updated: number;
+      skipped: number;
+      leads: ProspectLead[];
+    }>("/api/orcamentos/prospects", {
+      method: "POST",
+      body: JSON.stringify({ leads }),
+    }),
+  patchProspect: (
+    id: string,
+    patch: { sent?: boolean; replied?: boolean; message?: string },
+  ) =>
+    request<{ lead: ProspectLead }>("/api/orcamentos/prospects", {
+      method: "PATCH",
+      body: JSON.stringify({ id, ...patch }),
+    }),
+  deleteProspect: (id: string) =>
+    request<{ ok: boolean }>(
+      `/api/orcamentos/prospects?id=${encodeURIComponent(id)}`,
+      { method: "DELETE" },
+    ),
+  prospectSettings: () =>
+    request<{ settings: ProspectSettings }>(
+      "/api/orcamentos/prospects/settings",
+    ),
+  saveProspectSettings: (payload: { apiKey?: string; model?: string }) =>
+    request<{ settings: ProspectSettings }>(
+      "/api/orcamentos/prospects/settings",
+      { method: "PUT", body: JSON.stringify(payload) },
+    ),
+  deleteProspectSettings: () =>
+    request<{ settings: ProspectSettings }>(
+      "/api/orcamentos/prospects/settings",
+      { method: "DELETE" },
+    ),
+  searchProspects: (payload: { niche: string; city: string; limit: number }) =>
+    request<{
+      added: number;
+      updated: number;
+      leads: ProspectLead[];
+      queries: string[];
+      model: string;
+    }>("/api/orcamentos/prospects/search", {
+      method: "POST",
+      body: JSON.stringify(payload),
     }),
 };

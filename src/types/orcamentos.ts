@@ -112,3 +112,42 @@ export type ContactLead = {
   created: string;
   readAt: string | null;
 };
+
+/** Lead de prospecção (negócio local para oferecer site). */
+export type ProspectLead = {
+  id: string;
+  name: string;
+  niche: string;
+  city: string;
+  address: string;
+  neighborhood: string;
+  website: string;
+  email: string;
+  whatsapp: string;
+  phone: string;
+  instagram: string;
+  problems: string;
+  pitch: string;
+  /** Mensagem editada à mão; vazia = gerar automaticamente. */
+  message: string;
+  mapsUrl: string;
+  source: "manual" | "import" | "gemini" | string;
+  sent: boolean;
+  sentAt: string | null;
+  replied: boolean;
+  repliedAt: string | null;
+  created: string;
+  updated: string;
+};
+
+export type ProspectInput = Partial<
+  Omit<ProspectLead, "created" | "updated" | "sentAt" | "repliedAt">
+>;
+
+export type ProspectSettings = {
+  configured: boolean;
+  last4: string;
+  model: string;
+  defaultModel: string;
+  updated: string | null;
+};
