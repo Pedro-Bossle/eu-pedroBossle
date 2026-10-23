@@ -925,7 +925,13 @@ function Prospects({ senderName, showToast }: Props) {
 
       {loadError ? (
         <div className="border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-800 dark:text-amber-300">
-          {loadError}. Se acabou de atualizar o painel, rode a migration <span className="font-mono">008_prospects.sql</span> no Neon.
+          {loadError}
+          {/relation|does not exist|undefined_table|008/i.test(loadError) ? (
+            <>
+              {" "}
+              Rode a migration <span className="font-mono">008_prospects.sql</span> no Neon.
+            </>
+          ) : null}
         </div>
       ) : null}
 

@@ -158,7 +158,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     return json(res, 405, {
       error:
-        "Method not allowed. Para salvar a chave do Gemini use PUT /api/orcamentos/prospects/settings; para buscar, POST /api/orcamentos/prospects/search.",
+        "Method not allowed. Busca: POST /api/orcamentos/prospects/search (chave Gemini via GEMINI_API_KEY no env).",
     });
   } catch (error) {
     console.error(error);
