@@ -19,7 +19,8 @@ Além do Neon, configure (Production + Preview):
 | `RESEND_API_KEY` | API key do Resend (Marketplace ou dashboard Resend) |
 | `RESEND_FROM` | Remetente, ex. `Pedro Bossle <orcamentos@devbossle.com.br>` |
 | `GEMINI_API_KEY` | Chave do Google AI Studio (prospecção). Só no servidor — não vai ao navegador |
-| `GEMINI_MODEL` | Modelo padrão: `gemini-3.8-flash` (2.5 bloqueado para chaves novas) |
+| `GEMINI_MODEL` | Modelo principal: `gemini-3.8-flash` (2.5 bloqueado para projetos novos) |
+| `GEMINI_FALLBACK_MODELS` | Opcional. Reserva quando o principal não tem busca liberada (padrão `gemini-2.5-flash,gemini-2.5-flash-lite`; `none` desliga) |
 | `CONTACT_NOTIFY_EMAIL` | Destinatário dos leads do formulário da Home (fallback: e-mail do perfil) |
 
 ### E-mail (Resend)
@@ -33,7 +34,7 @@ Além do Neon, configure (Production + Preview):
 
 ## 3. Schema + RLS
 
-No SQL Editor do Neon, rode os arquivos `001`…`007` (nesta ordem), **ou**:
+No SQL Editor do Neon, rode os arquivos `001`…`008` (nesta ordem), **ou**:
 
 ```bash
 # com DATABASE_URL no ambiente
@@ -44,23 +45,22 @@ npm run db:migrate
 - `005` — tokens de redefinição de senha do admin.
 - `006` — `session_version` para invalidar JWTs após reset de senha.
 - `007` — `contact_leads` (formulário da Home → inbox do painel).
-<<<<<<< Updated upstream
-=======
-- `008` — `prospect_leads` (menu **Prospecção**) e `integration_settings` (chave do Gemini criptografada).
+- `008` — `prospect_leads` (menu **Prospecção**). `integration_settings` ficou como legado: a chave do Gemini vem do ambiente.
 
 ### Prospecção com Gemini
 
 1. Crie uma chave em [Google AI Studio](https://aistudio.google.com/apikey) e, no Google Cloud, restrinja-a à **Generative Language API**.
-2. No painel: **Prospecção → Gemini** → cole a chave e salve. O navegador nunca recebe a chave de volta (só os 4 últimos caracteres).
-3. **Buscar com Gemini** usa `GEMINI_API_KEY` + `GEMINI_MODEL` do ambiente (padrão `gemini-3.8-flash`), Google Maps + Pesquisa Google, e grava no Neon. Sem chave criptografada no banco. No free tier, 429 = cota diária.
-4. A busca pode levar até ~1 min; por isso `vercel.json` define `maxDuration: 60` para `api/orcamentos.ts`.
->>>>>>> Stashed changes
+2. **Plano gratuito:** só o Gemini 2.5 Flash / Flash-Lite tem busca no Google Maps e na Pesquisa Google (até 500 pedidos/dia). Os modelos 3.x devolvem **429 com `limit: 0`** sem faturamento. O painel tenta `GEMINI_MODEL` e, se não houver busca liberada, os modelos de `GEMINI_FALLBACK_MODELS` (padrão `gemini-2.5-flash,gemini-2.5-flash-lite`; `none` desliga). Projetos novos podem não ter acesso ao 2.5: use a chave de um projeto mais antigo ou ative o faturamento (Tier 1, 5.000 buscas grátis/mês nos 3.x).
+3. Defina `GEMINI_API_KEY` (e, se quiser, `GEMINI_MODEL`, padrão `gemini-3.8-flash`, e `GEMINI_FALLBACK_MODELS`) na Vercel e faça um novo deploy.
+4. No painel: **Prospecção → Gemini → Testar conexão** confere a chave/modelo e se a busca no Google está liberada, mostrando a mensagem original do Google quando falha.
+5. A busca pode levar até ~1 min; `vercel.json` define `maxDuration: 60` para `api/orcamentos-prospects-search.ts`.
 
 Policies: todas as tabelas com `FORCE ROW LEVEL SECURITY`. A API autentica e faz `set_config('app.authenticated','true', true)` em transação. Login e bootstrap usam funções `SECURITY DEFINER`.
 
 A API HTTP usa poucas Serverless Functions (Hobby ≤ 12):
 - auth leve: `api/orcamentos-auth-*.ts` (login/me/logout/forgot/reset)
-- demais rotas: `api/orcamentos.ts` + rewrite `/api/orcamentos/:path*` → `/api/orcamentos?path=`
+- prospecção: `api/orcamentos-prospects-search.ts` e `api/orcamentos-prospects-settings.ts`
+- demais rotas: `api/orcamentos.ts` + rewrite `/api/orcamentos/:path*` → `/api/orcamentos` (a subrota é lida de `req.url`)
 Handlers em `api/_handlers/*`. Catch-all `[...path]` não funciona fora do Next.js.
 
 ## 4. Bootstrap do usuário

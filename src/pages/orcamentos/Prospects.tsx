@@ -19,6 +19,7 @@ import {
   type SiteStatus,
 } from "../../lib/orcamentos/prospects";
 import type {
+  GeminiCheck,
   ProspectInput,
   ProspectLead,
   ProspectSettings,
@@ -503,6 +504,24 @@ function Prospects({ senderName, showToast }: Props) {
   const [statusFilter, setStatusFilter] = useState<"" | LeadStatus>("");
 
   const [panel, setPanel] = useState<"" | "gemini" | "import">("");
+  const [checking, setChecking] = useState(false);
+  const [checkResult, setCheckResult] = useState<GeminiCheck | null>(null);
+
+  const runCheck = async () => {
+    setChecking(true);
+    setCheckResult(null);
+    try {
+      const { check } = await orcamentosApi.testGemini();
+      setCheckResult(check);
+    } catch (e) {
+      setCheckResult({
+        key: { ok: false, message: e instanceof Error ? e.message : "Falha ao testar" },
+        grounding: null,
+      });
+    } finally {
+      setChecking(false);
+    }
+  };
   const [editingId, setEditingId] = useState<string | null>(null);
   const [creating, setCreating] = useState<ProspectInput | null>(null);
 
@@ -608,7 +627,7 @@ function Prospects({ senderName, showToast }: Props) {
       setNicheFilter("");
       setSearchInfo(
         r.leads.length
-          ? `${r.added} novo(s) e ${r.updated} atualizado(s) para “${niche.trim()}” em ${city.trim()}. Confira os telefones antes de chamar.`
+          ? `${r.added} novo(s) e ${r.updated} atualizado(s) para “${niche.trim()}” em ${city.trim()} (modelo ${r.model}). Confira os telefones antes de chamar.`
           : "O Gemini não encontrou negócios novos para essa busca. Tente outro nicho ou bairro.",
       );
     } catch (e) {
@@ -769,6 +788,13 @@ function Prospects({ senderName, showToast }: Props) {
                 <span className="text-neutral-500 dark:text-neutral-400">
                   {" "}
                   · modelo <span className="font-mono">{settings.model}</span>
+                  {settings.fallbackModels?.length ? (
+                    <>
+                      {" "}
+                      · reserva{" "}
+                      <span className="font-mono">{settings.fallbackModels.join(", ")}</span>
+                    </>
+                  ) : null}
                 </span>
               </>
             ) : (
@@ -777,16 +803,57 @@ function Prospects({ senderName, showToast }: Props) {
               </span>
             )}
           </p>
+          {settings?.configured ? (
+            <div className="space-y-3">
+              <button type="button" className={btn} onClick={runCheck} disabled={checking}>
+                {checking ? "Testando…" : "Testar conexão"}
+              </button>
+              {checkResult ? (
+                <ul className="space-y-2 text-sm">
+                  {[
+                    { label: "Chave e modelo", r: checkResult.key },
+                    {
+                      label: "Busca no Google (Maps + Pesquisa)",
+                      r: checkResult.grounding ?? { ok: false, message: "Não testado: a chave falhou antes." },
+                    },
+                  ].map(({ label, r }) => (
+                    <li
+                      key={label}
+                      className={`border px-3 py-2 ${
+                        r.ok
+                          ? "border-emerald-600/40 bg-emerald-500/5 dark:border-emerald-400/30"
+                          : "border-amber-500/40 bg-amber-500/10"
+                      }`}
+                    >
+                      <p className="font-medium">
+                        {r.ok ? "✓" : "✕"} {label}
+                      </p>
+                      <p className="mt-0.5 text-neutral-600 dark:text-neutral-300">{r.message}</p>
+                      {"detail" in r && r.detail ? (
+                        <p className="mt-1 font-mono text-xs break-words text-neutral-500 dark:text-neutral-400">
+                          Google: {r.detail}
+                        </p>
+                      ) : null}
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
+            </div>
+          ) : null}
           <ul className="list-disc space-y-1 pl-5 text-xs text-neutral-500 dark:text-neutral-400">
             <li>
               Modelo padrão:{" "}
-              <span className="font-mono">{settings?.defaultModel ?? "gemini-3.8-flash"}</span>
-              {" "}
+              <span className="font-mono">{settings?.defaultModel ?? "gemini-3.8-flash"}</span>{" "}
               (chaves novas não acessam mais o 2.5)
             </li>
             <li>
-              A busca usa Google Maps + Pesquisa Google. No free tier, ~500 pedidos/dia — 429 no AI
-              Studio = cota, não chave inválida.
+              No plano gratuito, só o <strong>Gemini 2.5 Flash / Flash-Lite</strong> tem busca no Google (até 500
+              pedidos/dia). Os 3.x só buscam com faturamento ativo. Se o modelo principal não tiver busca, o painel
+              tenta os de reserva sozinho.
+            </li>
+            <li>
+              Projetos novos do Google podem não ter acesso ao 2.5. Nesse caso, use a chave de um projeto mais
+              antigo ou ative o faturamento (5.000 buscas grátis por mês nos 3.x, depois pago por consulta).
             </li>
             <li>No Google Cloud, restrinja a chave à “Generative Language API”.</li>
           </ul>
