@@ -150,4 +150,6 @@ export type ProspectSettings = {
   model: string;
   defaultModel: string;
   updated: string | null;
+  /** Sempre "env" — chave/modelo vêm de GEMINI_API_KEY / GEMINI_MODEL. */
+  source?: "env" | string;
 };

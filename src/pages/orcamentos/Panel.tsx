@@ -44,10 +44,12 @@ import {
 } from "./downloadProposalPdf";
 import { money, uid } from "./money";
 import ProposalPdfDocument from "./ProposalPdfDocument";
+import Prospects from "./Prospects";
 
 type Tab =
   | "dashboard"
   | "inbox"
+  | "prospects"
   | "clients"
   | "proposals"
   | "presets"
@@ -198,6 +200,12 @@ const navIcons: Record<Tab, string[]> = {
   inbox: [
     "M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z",
     "M22 6l-10 7L2 6",
+  ],
+  prospects: [
+    "M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16",
+    "M21 21l-4.35-4.35",
+    "M11 8v6",
+    "M8 11h6",
   ],
   clients: [
     "M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2",
@@ -811,6 +819,7 @@ function Panel({
   const nav: { id: Tab; label: string; short: string }[] = [
     { id: "dashboard", label: "Visão geral", short: "Início" },
     { id: "inbox", label: "Inbox", short: "Inbox" },
+    { id: "prospects", label: "Prospecção", short: "Leads" },
     { id: "clients", label: "Clientes", short: "Clientes" },
     { id: "proposals", label: "Orçamentos", short: "Orçam." },
     { id: "presets", label: "Presets", short: "Presets" },
@@ -1947,6 +1956,13 @@ function Panel({
                 )}
               </div>
             </section>
+          ) : null}
+
+          {!editing && tab === "prospects" ? (
+            <Prospects
+              senderName={profile.name.trim().split(/\s+/)[0] || "Pedro"}
+              showToast={showToast}
+            />
           ) : null}
 
           {!editing && tab === "inbox" ? (

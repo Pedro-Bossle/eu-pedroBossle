@@ -1,16 +1,20 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { json, readBody, requireSession } from "../../_lib/auth.js";
 import { withAuth } from "../../_lib/db.js";
+import { GeminiError, searchLeadsWithGemini } from "../../_lib/gemini.js";
 import {
-  GEMINI_DEFAULT_MODEL,
-  GeminiError,
-  searchLeadsWithGemini,
-} from "../../_lib/gemini.js";
-import { sanitizeProspect, upsertProspect, type ProspectLead } from "../../_lib/prospects.js";
+  geminiApiKey,
+  geminiConfigured,
+  geminiModel,
+} from "../../_lib/geminiEnv.js";
+import {
+  sanitizeProspect,
+  upsertProspect,
+  type ProspectLead,
+} from "../../_lib/prospects.js";
 import { rateLimit } from "../../_lib/rateLimit.js";
-import { decryptSecret } from "../../_lib/secrets.js";
 
-/** Busca leads novos com o Gemini e já grava no Neon. */
+/** Busca leads novos com o Gemini (chave/modelo do env) e grava no Neon. */
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   const session = await requireSession(req, res);
   if (!session) return;
@@ -21,10 +25,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const niche = String(body.niche ?? "").trim().slice(0, 80);
   const city = String(body.city ?? "").trim().slice(0, 80);
   const limit = Math.min(20, Math.max(3, Math.round(Number(body.limit) || 10)));
-  if (niche.length < 3) return json(res, 400, { error: "Informe o nicho (ex.: oficina mecânica)" });
+  if (niche.length < 3) {
+    return json(res, 400, { error: "Informe o nicho (ex.: oficina mecânica)" });
+  }
   if (city.length < 3) return json(res, 400, { error: "Informe a cidade" });
 
-  // Limite nosso (anti-abuso). O 429 do Google AI Studio é separado e vem do Gemini.
   const rl = rateLimit(`prospects-search:${session.sub}`, 4, 60_000);
   if (!rl.ok) {
     return json(res, 429, {
@@ -32,38 +37,33 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     });
   }
 
+  if (!geminiConfigured()) {
+    return json(res, 400, {
+      error:
+        "GEMINI_API_KEY não configurada no ambiente. Defina no .env / Vercel e redeploy.",
+    });
+  }
+
+  const apiKey = geminiApiKey();
+  const model = geminiModel();
+
   try {
-    const setup = await withAuth(async (db) => {
-      const { rows } = await db.query(
-        "SELECT api_key_enc, model FROM integration_settings WHERE provider = 'gemini'",
-      );
+    const skip = await withAuth(async (db) => {
       const existing = await db.query(
         `SELECT name FROM prospect_leads WHERE lower(city) = lower($1)
          ORDER BY created_at DESC LIMIT 60`,
         [city],
       );
-      return {
-        enc: String(rows[0]?.api_key_enc ?? ""),
-        model: String(rows[0]?.model || GEMINI_DEFAULT_MODEL),
-        skip: existing.rows.map((r) => String(r.name)),
-      };
+      return existing.rows.map((r) => String(r.name));
     });
-
-    if (!setup.enc) {
-      return json(res, 400, { error: "Cadastre a chave do Gemini em Prospecção → Gemini antes de buscar." });
-    }
-    const apiKey = decryptSecret(setup.enc);
-    if (!apiKey) {
-      return json(res, 400, { error: "Não consegui ler a chave salva. Salve a chave do Gemini de novo." });
-    }
 
     const { leads: found, queries } = await searchLeadsWithGemini({
       apiKey,
-      model: setup.model,
+      model,
       niche,
       city,
       limit,
-      skip: setup.skip,
+      skip,
     });
 
     const saved = await withAuth(async (db) => {
@@ -86,7 +86,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       updated: saved.filter((s) => !s.inserted).length,
       leads: saved.map((s) => s.lead),
       queries,
-      model: setup.model,
+      model,
     });
   } catch (error) {
     if (error instanceof GeminiError) {

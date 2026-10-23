@@ -231,16 +231,6 @@ export const orcamentosApi = {
     request<{ settings: ProspectSettings }>(
       "/api/orcamentos/prospects/settings",
     ),
-  saveProspectSettings: (payload: { apiKey?: string; model?: string }) =>
-    request<{ settings: ProspectSettings }>(
-      "/api/orcamentos/prospects/settings",
-      { method: "PUT", body: JSON.stringify(payload) },
-    ),
-  deleteProspectSettings: () =>
-    request<{ settings: ProspectSettings }>(
-      "/api/orcamentos/prospects/settings",
-      { method: "DELETE" },
-    ),
   searchProspects: (payload: { niche: string; city: string; limit: number }) =>
     request<{
       added: number;

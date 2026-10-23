@@ -511,11 +511,6 @@ function Prospects({ senderName, showToast }: Props) {
   const [importMsg, setImportMsg] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
 
-  const [apiKey, setApiKey] = useState("");
-  const [model, setModel] = useState("");
-  const [keyBusy, setKeyBusy] = useState(false);
-  const [confirmRemoveKey, setConfirmRemoveKey] = useState(false);
-
   useEffect(() => {
     let cancelled = false;
     (async () => {
@@ -527,7 +522,6 @@ function Prospects({ senderName, showToast }: Props) {
         if (cancelled) return;
         setLeads(list.leads);
         setSettings(cfg.settings);
-        setModel(cfg.settings.model);
       } catch (e) {
         if (!cancelled) setLoadError(e instanceof Error ? e.message : "Falha ao carregar os leads");
       } finally {
@@ -601,7 +595,7 @@ function Prospects({ senderName, showToast }: Props) {
     }
     if (!settings?.configured) {
       setPanel("gemini");
-      showToast("Cadastre a chave do Gemini primeiro");
+      showToast("Defina GEMINI_API_KEY no ambiente do servidor");
       return;
     }
     setSearching(true);
@@ -655,39 +649,6 @@ function Prospects({ senderName, showToast }: Props) {
       setImportMsg(e instanceof Error ? e.message : "Falha ao importar");
     } finally {
       setImportBusy(false);
-    }
-  };
-
-  const saveKey = async () => {
-    setKeyBusy(true);
-    try {
-      const { settings: s } = await orcamentosApi.saveProspectSettings({
-        apiKey: apiKey.trim() || undefined,
-        model: model.trim(),
-      });
-      setSettings(s);
-      setModel(s.model);
-      setApiKey("");
-      showToast(apiKey.trim() ? "Chave do Gemini salva" : "Modelo atualizado");
-    } catch (e) {
-      showToast(e instanceof Error ? e.message : "Erro ao salvar");
-    } finally {
-      setKeyBusy(false);
-    }
-  };
-
-  const removeKey = async () => {
-    setKeyBusy(true);
-    try {
-      const { settings: s } = await orcamentosApi.deleteProspectSettings();
-      setSettings(s);
-      setModel(s.model);
-      setConfirmRemoveKey(false);
-      showToast("Chave removida");
-    } catch (e) {
-      showToast(e instanceof Error ? e.message : "Erro ao remover");
-    } finally {
-      setKeyBusy(false);
     }
   };
 
@@ -781,7 +742,7 @@ function Prospects({ senderName, showToast }: Props) {
               : searchInfo ||
                 (settings?.configured
                   ? `${base.length} de ${leads.length} leads salvos nessa busca.`
-                  : "Cadastre a chave do Gemini para buscar leads novos. Os campos também filtram a lista.")}
+                  : "Configure GEMINI_API_KEY no servidor para buscar leads novos. Os campos também filtram a lista.")}
           </span>
           <a href={mapsSearch} target="_blank" rel="noopener noreferrer" className={linkClass}>
             Abrir no Google Maps ↗
@@ -789,86 +750,43 @@ function Prospects({ senderName, showToast }: Props) {
         </div>
       </form>
 
-      {/* Gemini */}
+      {/* Gemini (somente status — chave/modelo no .env / Vercel) */}
       {panel === "gemini" ? (
         <div className={`${cardClass} mb-4 space-y-4`}>
           <div>
-            <h2 className="text-lg font-semibold tracking-tight">Chave do Gemini</h2>
+            <h2 className="text-lg font-semibold tracking-tight">Gemini</h2>
             <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
-              Crie a chave no Google AI Studio. Ela fica criptografada no Neon e só o servidor usa; o navegador nunca recebe a chave.
+              A chave e o modelo vêm do ambiente do servidor (
+              <span className="font-mono">GEMINI_API_KEY</span> /{" "}
+              <span className="font-mono">GEMINI_MODEL</span>
+              ). Nada é salvo na sessão nem no banco.
             </p>
           </div>
           <p className="text-sm">
             {settings?.configured ? (
               <>
-                Chave salva: <span className="font-mono">••••{settings.last4}</span>
-                {settings.updated ? (
-                  <span className="text-neutral-500 dark:text-neutral-400">
-                    {" "}
-                    · atualizada em {new Date(settings.updated).toLocaleDateString("pt-BR")}
-                  </span>
-                ) : null}
+                Chave no env: <span className="font-mono">••••{settings.last4}</span>
+                <span className="text-neutral-500 dark:text-neutral-400">
+                  {" "}
+                  · modelo <span className="font-mono">{settings.model}</span>
+                </span>
               </>
             ) : (
-              <span className="text-neutral-500 dark:text-neutral-400">Nenhuma chave salva.</span>
+              <span className="text-amber-700 dark:text-amber-300">
+                GEMINI_API_KEY ausente no ambiente. Defina no .env local e na Vercel (Production).
+              </span>
             )}
           </p>
-          <form
-            className="grid gap-4 sm:grid-cols-2"
-            onSubmit={(e) => {
-              e.preventDefault();
-              void saveKey();
-            }}
-          >
-            <Labeled label={settings?.configured ? "Trocar chave" : "Chave da API"}>
-              <input
-                className={`${inputClass} font-mono`}
-                type="password"
-                autoComplete="off"
-                value={apiKey}
-                onChange={(e) => setApiKey(e.target.value)}
-                placeholder={settings?.configured ? "Deixe vazio para manter a atual" : "AIza…"}
-              />
-            </Labeled>
-            <Labeled label="Modelo">
-              <input
-                className={`${inputClass} font-mono`}
-                value={model}
-                onChange={(e) => setModel(e.target.value)}
-                placeholder={settings?.defaultModel}
-              />
-            </Labeled>
-            <div className="flex flex-wrap gap-2 sm:col-span-2">
-              <button
-                type="submit"
-                className={btnPrimary}
-                disabled={keyBusy || (!apiKey.trim() && !settings?.configured)}
-              >
-                {keyBusy ? "Salvando…" : "Salvar"}
-              </button>
-              {settings?.configured ? (
-                confirmRemoveKey ? (
-                  <>
-                    <button type="button" className={`${btn} text-red-600 dark:text-red-400`} onClick={removeKey} disabled={keyBusy}>
-                      Remover a chave
-                    </button>
-                    <button type="button" className={btn} onClick={() => setConfirmRemoveKey(false)}>
-                      Cancelar
-                    </button>
-                  </>
-                ) : (
-                  <button type="button" className={btn} onClick={() => setConfirmRemoveKey(true)}>
-                    Remover chave
-                  </button>
-                )
-              ) : null}
-            </div>
-          </form>
           <ul className="list-disc space-y-1 pl-5 text-xs text-neutral-500 dark:text-neutral-400">
-            <li>A busca usa Google Maps + Pesquisa Google. No free tier isso costuma ser ~500 pedidos/dia — se o AI Studio mostrar 429, a chave está certa; espere o reset ou ative billing.</li>
-            <li>Modelo sugerido: <span className="font-mono">gemini-2.5-flash</span> (bom para Maps no free tier).</li>
+            <li>
+              Modelo padrão (EmerLAB):{" "}
+              <span className="font-mono">{settings?.defaultModel ?? "gemini-2.5-flash"}</span>
+            </li>
+            <li>
+              A busca usa Google Maps + Pesquisa Google. No free tier, ~500 pedidos/dia — 429 no AI
+              Studio = cota, não chave inválida.
+            </li>
             <li>No Google Cloud, restrinja a chave à “Generative Language API”.</li>
-            <li>Dados do Maps mostram o link “Google Maps” em cada lead, como o Google exige.</li>
           </ul>
         </div>
       ) : null}
