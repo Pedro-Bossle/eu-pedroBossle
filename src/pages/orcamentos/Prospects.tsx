@@ -19,6 +19,7 @@ import {
   type SiteStatus,
 } from "../../lib/orcamentos/prospects";
 import type {
+  GeminiCheck,
   ProspectInput,
   ProspectLead,
   ProspectSettings,
@@ -503,6 +504,24 @@ function Prospects({ senderName, showToast }: Props) {
   const [statusFilter, setStatusFilter] = useState<"" | LeadStatus>("");
 
   const [panel, setPanel] = useState<"" | "gemini" | "import">("");
+  const [checking, setChecking] = useState(false);
+  const [checkResult, setCheckResult] = useState<GeminiCheck | null>(null);
+
+  const runCheck = async () => {
+    setChecking(true);
+    setCheckResult(null);
+    try {
+      const { check } = await orcamentosApi.testGemini();
+      setCheckResult(check);
+    } catch (e) {
+      setCheckResult({
+        key: { ok: false, message: e instanceof Error ? e.message : "Falha ao testar" },
+        grounding: null,
+      });
+    } finally {
+      setChecking(false);
+    }
+  };
   const [editingId, setEditingId] = useState<string | null>(null);
   const [creating, setCreating] = useState<ProspectInput | null>(null);
 
@@ -777,16 +796,57 @@ function Prospects({ senderName, showToast }: Props) {
               </span>
             )}
           </p>
+          {settings?.configured ? (
+            <div className="space-y-3">
+              <button type="button" className={btn} onClick={runCheck} disabled={checking}>
+                {checking ? "Testando…" : "Testar conexão"}
+              </button>
+              {checkResult ? (
+                <ul className="space-y-2 text-sm">
+                  {[
+                    { label: "Chave e modelo", r: checkResult.key },
+                    {
+                      label: "Busca no Google (Maps + Pesquisa)",
+                      r: checkResult.grounding ?? { ok: false, message: "Não testado: a chave falhou antes." },
+                    },
+                  ].map(({ label, r }) => (
+                    <li
+                      key={label}
+                      className={`border px-3 py-2 ${
+                        r.ok
+                          ? "border-emerald-600/40 bg-emerald-500/5 dark:border-emerald-400/30"
+                          : "border-amber-500/40 bg-amber-500/10"
+                      }`}
+                    >
+                      <p className="font-medium">
+                        {r.ok ? "✓" : "✕"} {label}
+                      </p>
+                      <p className="mt-0.5 text-neutral-600 dark:text-neutral-300">{r.message}</p>
+                      {"detail" in r && r.detail ? (
+                        <p className="mt-1 font-mono text-xs break-words text-neutral-500 dark:text-neutral-400">
+                          Google: {r.detail}
+                        </p>
+                      ) : null}
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
+            </div>
+          ) : null}
           <ul className="list-disc space-y-1 pl-5 text-xs text-neutral-500 dark:text-neutral-400">
             <li>
               Modelo padrão:{" "}
-              <span className="font-mono">{settings?.defaultModel ?? "gemini-3.8-flash"}</span>
-              {" "}
+              <span className="font-mono">{settings?.defaultModel ?? "gemini-3.8-flash"}</span>{" "}
               (chaves novas não acessam mais o 2.5)
             </li>
             <li>
-              A busca usa Google Maps + Pesquisa Google. No free tier, ~500 pedidos/dia — 429 no AI
-              Studio = cota, não chave inválida.
+              A busca usa o Google Maps e a Pesquisa Google do Gemini. O Google <strong>não libera</strong> essas
+              ferramentas no plano gratuito: sem faturamento ativo no projeto, toda busca volta 429, mesmo sem uso
+              no dia.
+            </li>
+            <li>
+              Com faturamento (Tier 1), são 5.000 consultas grátis por mês nos modelos Gemini 3 ou mais novos;
+              depois, o Google cobra por consulta.
             </li>
             <li>No Google Cloud, restrinja a chave à “Generative Language API”.</li>
           </ul>

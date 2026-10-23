@@ -33,7 +33,7 @@ Além do Neon, configure (Production + Preview):
 
 ## 3. Schema + RLS
 
-No SQL Editor do Neon, rode os arquivos `001`…`007` (nesta ordem), **ou**:
+No SQL Editor do Neon, rode os arquivos `001`…`008` (nesta ordem), **ou**:
 
 ```bash
 # com DATABASE_URL no ambiente
@@ -44,23 +44,22 @@ npm run db:migrate
 - `005` — tokens de redefinição de senha do admin.
 - `006` — `session_version` para invalidar JWTs após reset de senha.
 - `007` — `contact_leads` (formulário da Home → inbox do painel).
-<<<<<<< Updated upstream
-=======
-- `008` — `prospect_leads` (menu **Prospecção**) e `integration_settings` (chave do Gemini criptografada).
+- `008` — `prospect_leads` (menu **Prospecção**). `integration_settings` ficou como legado: a chave do Gemini vem do ambiente.
 
 ### Prospecção com Gemini
 
 1. Crie uma chave em [Google AI Studio](https://aistudio.google.com/apikey) e, no Google Cloud, restrinja-a à **Generative Language API**.
-2. No painel: **Prospecção → Gemini** → cole a chave e salve. O navegador nunca recebe a chave de volta (só os 4 últimos caracteres).
-3. **Buscar com Gemini** usa `GEMINI_API_KEY` + `GEMINI_MODEL` do ambiente (padrão `gemini-3.8-flash`), Google Maps + Pesquisa Google, e grava no Neon. Sem chave criptografada no banco. No free tier, 429 = cota diária.
-4. A busca pode levar até ~1 min; por isso `vercel.json` define `maxDuration: 60` para `api/orcamentos.ts`.
->>>>>>> Stashed changes
+2. **Ative o faturamento do projeto** no AI Studio (Tier 1). O Google não libera Google Maps nem Pesquisa Google no plano gratuito: sem faturamento, toda busca volta **429** já no primeiro pedido. Com faturamento, são 5.000 consultas grátis por mês nos modelos Gemini 3+.
+3. Defina `GEMINI_API_KEY` (e, se quiser, `GEMINI_MODEL`, padrão `gemini-3.8-flash`) na Vercel e faça um novo deploy.
+4. No painel: **Prospecção → Gemini → Testar conexão** confere a chave/modelo e se a busca no Google está liberada, mostrando a mensagem original do Google quando falha.
+5. A busca pode levar até ~1 min; `vercel.json` define `maxDuration: 60` para `api/orcamentos-prospects-search.ts`.
 
 Policies: todas as tabelas com `FORCE ROW LEVEL SECURITY`. A API autentica e faz `set_config('app.authenticated','true', true)` em transação. Login e bootstrap usam funções `SECURITY DEFINER`.
 
 A API HTTP usa poucas Serverless Functions (Hobby ≤ 12):
 - auth leve: `api/orcamentos-auth-*.ts` (login/me/logout/forgot/reset)
-- demais rotas: `api/orcamentos.ts` + rewrite `/api/orcamentos/:path*` → `/api/orcamentos?path=`
+- prospecção: `api/orcamentos-prospects-search.ts` e `api/orcamentos-prospects-settings.ts`
+- demais rotas: `api/orcamentos.ts` + rewrite `/api/orcamentos/:path*` → `/api/orcamentos` (a subrota é lida de `req.url`)
 Handlers em `api/_handlers/*`. Catch-all `[...path]` não funciona fora do Next.js.
 
 ## 4. Bootstrap do usuário

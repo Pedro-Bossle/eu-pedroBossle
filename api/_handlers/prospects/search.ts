@@ -90,7 +90,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     });
   } catch (error) {
     if (error instanceof GeminiError) {
-      return json(res, error.status, { error: error.message });
+      return json(res, error.status, {
+        error: error.message,
+        code: error.code,
+        detail: error.detail || undefined,
+      });
     }
     console.error(error);
     return json(res, 500, { error: "Falha na busca com o Gemini" });

@@ -8,6 +8,7 @@ import type {
   ProspectInput,
   ProspectLead,
   ProspectSettings,
+  GeminiCheck,
   PublicProposalPayload,
 } from "../../types/orcamentos";
 
@@ -230,6 +231,11 @@ export const orcamentosApi = {
   prospectSettings: () =>
     request<{ settings: ProspectSettings }>(
       "/api/orcamentos/prospects/settings",
+    ),
+  testGemini: () =>
+    request<{ check: GeminiCheck; model: string }>(
+      "/api/orcamentos/prospects/settings",
+      { method: "POST", body: "{}" },
     ),
   searchProspects: (payload: { niche: string; city: string; limit: number }) =>
     request<{

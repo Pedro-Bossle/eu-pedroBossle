@@ -45,11 +45,180 @@ export type GeminiLead = {
   mapsUrl: string;
 };
 
+export type GeminiErrorCode =
+  | "free_tier_grounding"
+  | "rate_limit_minute"
+  | "quota_daily"
+  | "quota"
+  | "invalid_key"
+  | "forbidden"
+  | "model_not_found"
+  | "timeout"
+  | "network"
+  | "blocked"
+  | "bad_format"
+  | "unknown";
+
 export class GeminiError extends Error {
   status: number;
-  constructor(message: string, status = 502) {
+  code: GeminiErrorCode;
+  /** Mensagem original do Google (para diagnóstico no painel). */
+  detail: string;
+  constructor(message: string, status = 502, code: GeminiErrorCode = "unknown", detail = "") {
     super(message);
     this.status = status;
+    this.code = code;
+    this.detail = detail;
+  }
+}
+
+type GoogleErrorBody = {
+  error?: {
+    code?: number;
+    message?: string;
+    status?: string;
+    details?: {
+      "@type"?: string;
+      retryDelay?: string;
+      violations?: { quotaMetric?: string; quotaId?: string; quotaValue?: string }[];
+    }[];
+  };
+};
+
+/**
+ * Traduz o erro do Google em algo acionável.
+ * Importante: no plano gratuito o Google NÃO libera embasamento no Google Maps
+ * nem na Pesquisa Google ("Not available" na tabela de preços). Uma chave sem
+ * faturamento recebe 429 com limite 0 já no primeiro pedido, mesmo sem uso no dia.
+ */
+export function explainGeminiError(status: number, body: GoogleErrorBody, model: string): GeminiError {
+  const msg = body.error?.message ?? "";
+  const detail = msg.slice(0, 400);
+  const details = body.error?.details ?? [];
+  const violations = details.flatMap((d) => d.violations ?? []);
+  const quotaText = [msg, ...violations.map((v) => `${v.quotaId ?? ""} ${v.quotaMetric ?? ""} ${v.quotaValue ?? ""}`)].join(" ");
+  const retry = details.find((d) => d.retryDelay)?.retryDelay ?? "";
+  const retrySec = Math.ceil(parseFloat(retry) || 0);
+
+  if (status === 400 && /api key/i.test(msg)) {
+    return new GeminiError("A GEMINI_API_KEY foi recusada pelo Google. Confira a chave no ambiente (Vercel / .env) e faça um novo deploy.", 400, "invalid_key", detail);
+  }
+  if (status === 403) {
+    return new GeminiError("A chave não tem permissão para a API do Gemini. No Google Cloud, libere a “Generative Language API” nas restrições da chave.", 403, "forbidden", detail);
+  }
+  if (status === 404) {
+    return new GeminiError(
+      `O modelo "${model}" não está disponível para esta chave. Defina GEMINI_MODEL=${GEMINI_DEFAULT_MODEL} no ambiente.`,
+      400,
+      "model_not_found",
+      detail,
+    );
+  }
+  if (status === 429) {
+    const zeroLimit =
+      /limit:\s*0\b/i.test(msg) ||
+      violations.some((v) => v.quotaValue === "0") ||
+      (/free_?tier/i.test(quotaText) && /ground|search|maps/i.test(quotaText));
+    if (zeroLimit) {
+      return new GeminiError(
+        "Sua chave está no plano gratuito do Gemini, e o Google não libera a busca no Google Maps nem na Pesquisa Google nele — por isso o 429 mesmo sem uso no dia. Ative o faturamento do projeto no Google AI Studio (Tier 1): a busca passa a ter 5.000 consultas grátis por mês e depois é cobrada por consulta.",
+        429,
+        "free_tier_grounding",
+        detail,
+      );
+    }
+    if (/per.?minute|PerMinute/i.test(quotaText) || (retrySec > 0 && retrySec <= 120)) {
+      return new GeminiError(
+        `Limite por minuto do Gemini atingido. Tente de novo em ${retrySec || 60}s.`,
+        429,
+        "rate_limit_minute",
+        detail,
+      );
+    }
+    if (/per.?day|PerDay/i.test(quotaText)) {
+      return new GeminiError(
+        "Cota diária do Gemini esgotada. Ela reinicia à meia-noite no horário do Pacífico (5h em Brasília).",
+        429,
+        "quota_daily",
+        detail,
+      );
+    }
+    return new GeminiError(
+      "O Google recusou por cota (429). Veja o detalhe abaixo e confira o uso em aistudio.google.com/rate-limit.",
+      429,
+      "quota",
+      detail,
+    );
+  }
+  return new GeminiError(msg ? `Gemini: ${msg.slice(0, 200)}` : `Gemini respondeu com erro ${status}.`, 502, "unknown", detail);
+}
+
+async function callGemini(
+  apiKey: string,
+  model: string,
+  body: Record<string, unknown>,
+  timeoutMs: number,
+): Promise<Record<string, unknown>> {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), timeoutMs);
+  let res: Response;
+  try {
+    res = await fetch(`${ENDPOINT}/${encodeURIComponent(model)}:generateContent`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
+      body: JSON.stringify(body),
+      signal: ctrl.signal,
+    });
+  } catch (error) {
+    if ((error as Error).name === "AbortError") {
+      throw new GeminiError("O Gemini demorou demais para responder. Tente com menos resultados.", 504, "timeout");
+    }
+    throw new GeminiError("Não foi possível falar com o Gemini agora.", 502, "network");
+  } finally {
+    clearTimeout(timer);
+  }
+  const data = (await res.json().catch(() => ({}))) as Record<string, unknown>;
+  if (!res.ok) throw explainGeminiError(res.status, data as GoogleErrorBody, model);
+  return data;
+}
+
+export type GeminiCheck = {
+  key: { ok: boolean; message: string; detail?: string };
+  grounding: { ok: boolean; message: string; code?: GeminiErrorCode; detail?: string } | null;
+};
+
+/**
+ * Diagnóstico em duas etapas:
+ * 1. pedido simples (sem ferramentas) — confirma chave e modelo, funciona até no plano gratuito;
+ * 2. pedido com Pesquisa Google — confirma se o projeto libera embasamento (exige faturamento).
+ */
+export async function checkGemini(apiKey: string, model: string): Promise<GeminiCheck> {
+  try {
+    await callGemini(apiKey, model, { contents: [{ role: "user", parts: [{ text: "Responda apenas: OK" }] }] }, 20_000);
+  } catch (e) {
+    const err = e as GeminiError;
+    return { key: { ok: false, message: err.message, detail: err.detail }, grounding: null };
+  }
+  try {
+    await callGemini(
+      apiKey,
+      model,
+      {
+        contents: [{ role: "user", parts: [{ text: "Em uma frase curta: qual é o site oficial da Prefeitura de Caxias do Sul?" }] }],
+        tools: [{ googleSearch: {} }],
+      },
+      30_000,
+    );
+    return {
+      key: { ok: true, message: `Chave e modelo ${model} funcionando.` },
+      grounding: { ok: true, message: "Busca com Google liberada. O botão Buscar com Gemini deve funcionar." },
+    };
+  } catch (e) {
+    const err = e as GeminiError;
+    return {
+      key: { ok: true, message: `Chave e modelo ${model} funcionando.` },
+      grounding: { ok: false, message: err.message, code: err.code, detail: err.detail },
+    };
   }
 }
 
@@ -113,27 +282,7 @@ export async function searchLeadsWithGemini(opts: {
   };
   if (coords) body.toolConfig = { retrievalConfig: { latLng: coords } };
 
-  const ctrl = new AbortController();
-  const timer = setTimeout(() => ctrl.abort(), opts.timeoutMs ?? 55_000);
-  let res: Response;
-  try {
-    res = await fetch(`${ENDPOINT}/${encodeURIComponent(opts.model)}:generateContent`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "x-goog-api-key": opts.apiKey },
-      body: JSON.stringify(body),
-      signal: ctrl.signal,
-    });
-  } catch (error) {
-    if ((error as Error).name === "AbortError") {
-      throw new GeminiError("O Gemini demorou demais para responder. Tente com menos resultados.", 504);
-    }
-    throw new GeminiError("Não foi possível falar com o Gemini agora.");
-  } finally {
-    clearTimeout(timer);
-  }
-
-  const data = (await res.json().catch(() => ({}))) as {
-    error?: { message?: string; status?: string };
+  const data = (await callGemini(opts.apiKey, opts.model, body, opts.timeoutMs ?? 55_000)) as {
     candidates?: {
       content?: { parts?: { text?: string }[] };
       finishReason?: string;
@@ -142,44 +291,21 @@ export async function searchLeadsWithGemini(opts: {
     promptFeedback?: { blockReason?: string };
   };
 
-  if (!res.ok) {
-    const msg = data.error?.message ?? "";
-    if (res.status === 400 && /api key/i.test(msg)) {
-      throw new GeminiError("A chave do Gemini foi recusada. Confira a chave salva em Prospecção → Gemini.", 400);
-    }
-    if (res.status === 403) {
-      throw new GeminiError("A chave não tem permissão para a API do Gemini. Confira as restrições da chave no Google Cloud.", 403);
-    }
-    if (res.status === 404) {
-      throw new GeminiError(
-        msg.includes("no longer available")
-          ? `O modelo "${opts.model}" não está disponível nesta chave (Google restringe 2.5 a contas antigas). Defina GEMINI_MODEL=gemini-3.8-flash no env / Vercel.`
-          : `O modelo "${opts.model}" não foi encontrado. Defina GEMINI_MODEL (ex.: gemini-3.8-flash) no env / Vercel.`,
-        400,
-      );
-    }
-    if (res.status === 429) {
-      throw new GeminiError(
-        "Cota do Google AI Studio esgotada (429). A chave está ok — no free tier o Maps/Search grounding costuma ser ~500 pedidos/dia. Espere o reset (meia-noite PT) ou ative faturamento no projeto Google Cloud / AI Studio.",
-        429,
-      );
-    }
-    throw new GeminiError(msg ? `Gemini: ${msg}` : `Gemini respondeu com erro ${res.status}.`);
-  }
-
   const cand = data.candidates?.[0];
   if (!cand) {
     throw new GeminiError(
       data.promptFeedback?.blockReason
         ? "O Gemini recusou a busca. Tente descrever o nicho de outro jeito."
         : "O Gemini não devolveu resultados.",
+      502,
+      data.promptFeedback?.blockReason ? "blocked" : "unknown",
     );
   }
 
   const text = (cand.content?.parts ?? []).map((p) => p.text ?? "").join("");
   const rows = extractJsonArray(text);
   if (rows === null) {
-    throw new GeminiError("O Gemini respondeu fora do formato esperado. Tente buscar de novo.");
+    throw new GeminiError("O Gemini respondeu fora do formato esperado. Tente buscar de novo.", 502, "bad_format");
   }
   const chunks = (cand.groundingMetadata?.groundingChunks ?? [])
     .map((c) => c.maps)

@@ -144,6 +144,11 @@ export type ProspectInput = Partial<
   Omit<ProspectLead, "created" | "updated" | "sentAt" | "repliedAt">
 >;
 
+export type GeminiCheck = {
+  key: { ok: boolean; message: string; detail?: string };
+  grounding: { ok: boolean; message: string; code?: string; detail?: string } | null;
+};
+
 export type ProspectSettings = {
   configured: boolean;
   last4: string;
