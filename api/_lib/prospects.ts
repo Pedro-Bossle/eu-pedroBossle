@@ -99,7 +99,7 @@ function normalizeMapsUrl(raw: unknown): string {
     : "";
 }
 
-/** Limpa um lead vindo do painel, de importação ou do Gemini. */
+/** Limpa um lead vindo do painel ou de importação ("gemini" fica aceito para leads antigos). */
 export function sanitizeProspect(input: ProspectInput) {
   return {
     name: clip(input.name, 200),
