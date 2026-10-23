@@ -779,8 +779,10 @@ function Prospects({ senderName, showToast }: Props) {
           </p>
           <ul className="list-disc space-y-1 pl-5 text-xs text-neutral-500 dark:text-neutral-400">
             <li>
-              Modelo padrão (EmerLAB):{" "}
-              <span className="font-mono">{settings?.defaultModel ?? "gemini-2.5-flash"}</span>
+              Modelo padrão:{" "}
+              <span className="font-mono">{settings?.defaultModel ?? "gemini-3.8-flash"}</span>
+              {" "}
+              (chaves novas não acessam mais o 2.5)
             </li>
             <li>
               A busca usa Google Maps + Pesquisa Google. No free tier, ~500 pedidos/dia — 429 no AI

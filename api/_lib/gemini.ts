@@ -4,8 +4,12 @@
  * (para olhar os sites encontrados). Roda só no servidor: a chave não vai ao navegador.
  */
 
-/** Flash estável no free tier (Maps grounding ~500 req/dia). */
-export const GEMINI_DEFAULT_MODEL = "gemini-2.5-flash";
+/**
+ * Flash padrão para chaves novas (AI Studio).
+ * gemini-2.5-flash ainda existe, mas o Google devolve 404 para projetos novos —
+ * a própria API recomenda gemini-3.8-flash.
+ */
+export const GEMINI_DEFAULT_MODEL = "gemini-3.8-flash";
 
 const ENDPOINT = "https://generativelanguage.googleapis.com/v1beta/models";
 
@@ -147,7 +151,12 @@ export async function searchLeadsWithGemini(opts: {
       throw new GeminiError("A chave não tem permissão para a API do Gemini. Confira as restrições da chave no Google Cloud.", 403);
     }
     if (res.status === 404) {
-      throw new GeminiError(`O modelo "${opts.model}" não foi encontrado. Troque o modelo em Prospecção → Gemini.`, 400);
+      throw new GeminiError(
+        msg.includes("no longer available")
+          ? `O modelo "${opts.model}" não está disponível nesta chave (Google restringe 2.5 a contas antigas). Defina GEMINI_MODEL=gemini-3.8-flash no env / Vercel.`
+          : `O modelo "${opts.model}" não foi encontrado. Defina GEMINI_MODEL (ex.: gemini-3.8-flash) no env / Vercel.`,
+        400,
+      );
     }
     if (res.status === 429) {
       throw new GeminiError(

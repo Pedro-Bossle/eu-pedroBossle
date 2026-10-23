@@ -19,7 +19,7 @@ Além do Neon, configure (Production + Preview):
 | `RESEND_API_KEY` | API key do Resend (Marketplace ou dashboard Resend) |
 | `RESEND_FROM` | Remetente, ex. `Pedro Bossle <orcamentos@devbossle.com.br>` |
 | `GEMINI_API_KEY` | Chave do Google AI Studio (prospecção). Só no servidor — não vai ao navegador |
-| `GEMINI_MODEL` | Modelo padrão (EmerLAB): `gemini-2.5-flash` |
+| `GEMINI_MODEL` | Modelo padrão: `gemini-3.8-flash` (2.5 bloqueado para chaves novas) |
 | `CONTACT_NOTIFY_EMAIL` | Destinatário dos leads do formulário da Home (fallback: e-mail do perfil) |
 
 ### E-mail (Resend)
@@ -52,7 +52,7 @@ npm run db:migrate
 
 1. Crie uma chave em [Google AI Studio](https://aistudio.google.com/apikey) e, no Google Cloud, restrinja-a à **Generative Language API**.
 2. No painel: **Prospecção → Gemini** → cole a chave e salve. O navegador nunca recebe a chave de volta (só os 4 últimos caracteres).
-3. **Buscar com Gemini** usa `GEMINI_API_KEY` + `GEMINI_MODEL` do ambiente (padrão `gemini-2.5-flash`, como no EmerLAB), Google Maps + Pesquisa Google, e grava no Neon. Sem chave criptografada no banco. No free tier, 429 = cota diária.
+3. **Buscar com Gemini** usa `GEMINI_API_KEY` + `GEMINI_MODEL` do ambiente (padrão `gemini-3.8-flash`), Google Maps + Pesquisa Google, e grava no Neon. Sem chave criptografada no banco. No free tier, 429 = cota diária.
 4. A busca pode levar até ~1 min; por isso `vercel.json` define `maxDuration: 60` para `api/orcamentos.ts`.
 >>>>>>> Stashed changes
 
