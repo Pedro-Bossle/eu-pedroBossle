@@ -16,9 +16,9 @@ const en: TranslationKeys = {
     switchToEn: "Switch to English",
   },
   hero: {
-    role: "Developer",
+    role: "Web developer in Caxias do Sul, Brazil",
     tagline:
-      "I turn complex processes into simple, fast, and easy-to-use systems.",
+      "I build websites and systems that turn complex processes into simple, fast, and easy-to-use solutions.",
     passion:
       "Passionate about technology solutions, about automating processes, and about simplifying workflows.",
     seeProjects: "View projects",

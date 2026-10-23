@@ -132,9 +132,9 @@ const pt: TranslationKeys = {
     switchToEn: "Switch to English",
   },
   hero: {
-    role: "Desenvolvedor",
+    role: "Desenvolvedor web em Caxias do Sul",
     tagline:
-      "Transformo processos complexos em sistemas simples, rápidos e fáceis de usar.",
+      "Crio sites e sistemas que transformam processos complexos em soluções simples, rápidas e fáceis de usar.",
     passion:
       "Apaixonado por soluções tecnológicas, por automatizar processos e por simplificar fluxos de trabalho.",
     seeProjects: "Ver projetos",

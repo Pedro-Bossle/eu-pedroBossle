@@ -12,16 +12,15 @@ type PageSeo = {
 
 const PAGES: Record<string, PageSeo> = {
   "/": {
-    title:
-      "Pedro Bossle | Desenvolvedor Web em Caxias do Sul — Sites e Sistemas",
+    title: "Programador e Desenvolvedor Web em Caxias do Sul | Pedro Bossle",
     description:
-      "Desenvolvedor web em Caxias do Sul (RS). Crio sites institucionais, landing pages e sistemas sob medida com React e TypeScript. Mais presença digital para o seu negócio.",
+      "Programador e desenvolvedor web em Caxias do Sul (RS): criação de sites, landing pages e sistemas sob medida para empresas da Serra Gaúcha. Peça seu orçamento.",
     path: "/",
   },
   "/curriculo-virtual": {
-    title: "Currículo Virtual | Pedro Bossle — Desenvolvedor Web",
+    title: "Currículo | Pedro Bossle — Programador e Desenvolvedor Web em Caxias do Sul",
     description:
-      "Currículo de Pedro Bossle: experiência, stack (React, TypeScript, SQL), projetos e formação. Desenvolvedor web em Caxias do Sul.",
+      "Currículo de Pedro Bossle, programador e desenvolvedor web em Caxias do Sul (RS): experiência, stack (React, TypeScript, SQL), projetos e formação.",
     path: "/curriculo-virtual",
   },
 };

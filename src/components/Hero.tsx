@@ -112,34 +112,37 @@ const Hero = () => {
             =================================================== */}
 
         <div className="relative z-10">
-          {/* Pequeno identificador */}
+          {/* H1 = identificador (profissão + cidade) + nome — mesmo visual de antes,
+              mas o Google lê "Desenvolvedor web em Caxias do Sul — Pedro Bossle" */}
 
-          <p
-            className="
-              mb-2
-              text-sm
-              font-medium
-              uppercase
-              tracking-widest
-              opacity-60
-            "
-          >
-            {t.hero.role}
-          </p>
+          <h1>
+            <span
+              className="
+                mb-2
+                block
+                text-sm
+                font-medium
+                uppercase
+                tracking-widest
+                opacity-60
+              "
+            >
+              {t.hero.role}
+            </span>
+            <span className="sr-only"> — </span>
+            <span
+              className="
+                block
+                text-4xl
+                font-bold
+                tracking-tight
 
-          {/* Nome */}
-
-          <h1
-            className="
-              text-4xl
-              font-bold
-              tracking-tight
-
-              sm:text-5xl
-              md:text-6xl
-            "
-          >
-            Pedro Bossle
+                sm:text-5xl
+                md:text-6xl
+              "
+            >
+              Pedro Bossle
+            </span>
           </h1>
 
           {/* Descrição */}
