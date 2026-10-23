@@ -1,4 +1,7 @@
 {
+  "functions": {
+    "api/orcamentos.ts": { "maxDuration": 60 }
+  },
   "headers": [
     {
       "source": "/orcamentos/(.*)",
