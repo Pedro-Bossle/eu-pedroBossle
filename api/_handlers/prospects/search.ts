@@ -5,7 +5,7 @@ import { GeminiError, searchLeadsWithGemini } from "../../_lib/gemini.js";
 import {
   geminiApiKey,
   geminiConfigured,
-  geminiModel,
+  geminiModels,
 } from "../../_lib/geminiEnv.js";
 import {
   sanitizeProspect,
@@ -45,7 +45,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   const apiKey = geminiApiKey();
-  const model = geminiModel();
+  const models = geminiModels();
 
   try {
     const skip = await withAuth(async (db) => {
@@ -57,9 +57,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return existing.rows.map((r) => String(r.name));
     });
 
-    const { leads: found, queries } = await searchLeadsWithGemini({
+    const { leads: found, queries, model } = await searchLeadsWithGemini({
       apiKey,
-      model,
+      models,
       niche,
       city,
       limit,

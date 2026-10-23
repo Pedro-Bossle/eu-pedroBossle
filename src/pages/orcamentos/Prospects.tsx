@@ -627,7 +627,7 @@ function Prospects({ senderName, showToast }: Props) {
       setNicheFilter("");
       setSearchInfo(
         r.leads.length
-          ? `${r.added} novo(s) e ${r.updated} atualizado(s) para “${niche.trim()}” em ${city.trim()}. Confira os telefones antes de chamar.`
+          ? `${r.added} novo(s) e ${r.updated} atualizado(s) para “${niche.trim()}” em ${city.trim()} (modelo ${r.model}). Confira os telefones antes de chamar.`
           : "O Gemini não encontrou negócios novos para essa busca. Tente outro nicho ou bairro.",
       );
     } catch (e) {
@@ -788,6 +788,13 @@ function Prospects({ senderName, showToast }: Props) {
                 <span className="text-neutral-500 dark:text-neutral-400">
                   {" "}
                   · modelo <span className="font-mono">{settings.model}</span>
+                  {settings.fallbackModels?.length ? (
+                    <>
+                      {" "}
+                      · reserva{" "}
+                      <span className="font-mono">{settings.fallbackModels.join(", ")}</span>
+                    </>
+                  ) : null}
                 </span>
               </>
             ) : (
@@ -840,13 +847,13 @@ function Prospects({ senderName, showToast }: Props) {
               (chaves novas não acessam mais o 2.5)
             </li>
             <li>
-              A busca usa o Google Maps e a Pesquisa Google do Gemini. O Google <strong>não libera</strong> essas
-              ferramentas no plano gratuito: sem faturamento ativo no projeto, toda busca volta 429, mesmo sem uso
-              no dia.
+              No plano gratuito, só o <strong>Gemini 2.5 Flash / Flash-Lite</strong> tem busca no Google (até 500
+              pedidos/dia). Os 3.x só buscam com faturamento ativo. Se o modelo principal não tiver busca, o painel
+              tenta os de reserva sozinho.
             </li>
             <li>
-              Com faturamento (Tier 1), são 5.000 consultas grátis por mês nos modelos Gemini 3 ou mais novos;
-              depois, o Google cobra por consulta.
+              Projetos novos do Google podem não ter acesso ao 2.5. Nesse caso, use a chave de um projeto mais
+              antigo ou ative o faturamento (5.000 buscas grátis por mês nos 3.x, depois pago por consulta).
             </li>
             <li>No Google Cloud, restrinja a chave à “Generative Language API”.</li>
           </ul>

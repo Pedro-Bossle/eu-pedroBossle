@@ -11,6 +11,42 @@
  */
 export const GEMINI_DEFAULT_MODEL = "gemini-3.8-flash";
 
+/**
+ * Modelos tentados quando o principal não tem busca liberada.
+ * Os 2.5 têm busca grátis no plano gratuito (até 500 pedidos/dia na Pesquisa
+ * Google e 500 no Maps); os 3.x só com faturamento. Projetos novos podem não
+ * ter acesso ao 2.5 (404) — aí o fallback é pulado.
+ */
+export const GEMINI_FALLBACK_MODELS = ["gemini-2.5-flash", "gemini-2.5-flash-lite"];
+
+/** Pesquisa Google + Maps juntos só a partir do 3.5; antes disso, só o Maps. */
+export function groundingTools(model: string): Record<string, unknown>[] {
+  const m = model.match(/gemini-(\d+)(?:\.(\d+))?/i);
+  const version = m ? Number(m[1]) + Number(m[2] ?? 0) / 10 : 99;
+  return version >= 3.5 ? [{ googleMaps: {} }, { googleSearch: {} }] : [{ googleMaps: {} }];
+}
+
+/** Vale tentar o próximo modelo? (busca não liberada ou modelo indisponível) */
+const tryNext = (e: unknown) =>
+  e instanceof GeminiError && (e.code === "free_tier_grounding" || e.code === "model_not_found");
+
+function allModelsFailed(models: string[], errors: GeminiError[]): GeminiError {
+  const freeTier = errors.some((e) => e.code === "free_tier_grounding");
+  const old = models.filter((m) => /gemini-2\./.test(m));
+  const oldMissing = old.length > 0 && errors.filter((e) => e.code === "model_not_found").length >= old.length;
+  const detail = errors.map((e, i) => `${models[i]}: ${e.detail || e.message}`).join(" | ").slice(0, 600);
+  if (freeTier && oldMissing) {
+    return new GeminiError(
+      "Esta chave é de um projeto novo no plano gratuito: os modelos 3.x não têm busca no Google sem faturamento, e o Google não libera o Gemini 2.5 (que tem busca grátis) para projetos novos. Use uma chave de um projeto mais antigo que ainda acessa o 2.5 — como a do seu outro sistema — ou ative o faturamento.",
+      429,
+      "free_tier_grounding",
+      detail,
+    );
+  }
+  const last = errors[errors.length - 1];
+  return new GeminiError(last.message, last.status, last.code, detail);
+}
+
 const ENDPOINT = "https://generativelanguage.googleapis.com/v1beta/models";
 
 /** Coordenadas para puxar os resultados do Maps para a cidade certa. */
@@ -121,7 +157,7 @@ export function explainGeminiError(status: number, body: GoogleErrorBody, model:
       (/free_?tier/i.test(quotaText) && /ground|search|maps/i.test(quotaText));
     if (zeroLimit) {
       return new GeminiError(
-        "Sua chave está no plano gratuito do Gemini, e o Google não libera a busca no Google Maps nem na Pesquisa Google nele — por isso o 429 mesmo sem uso no dia. Ative o faturamento do projeto no Google AI Studio (Tier 1): a busca passa a ter 5.000 consultas grátis por mês e depois é cobrada por consulta.",
+        `No plano gratuito, o ${model} não tem busca no Google Maps nem na Pesquisa Google — por isso o 429 mesmo sem uso no dia. Use o Gemini 2.5 Flash (busca grátis, até 500 pedidos/dia) ou ative o faturamento do projeto no Google AI Studio.`,
         429,
         "free_tier_grounding",
         detail,
@@ -192,34 +228,54 @@ export type GeminiCheck = {
  * 1. pedido simples (sem ferramentas) — confirma chave e modelo, funciona até no plano gratuito;
  * 2. pedido com Pesquisa Google — confirma se o projeto libera embasamento (exige faturamento).
  */
-export async function checkGemini(apiKey: string, model: string): Promise<GeminiCheck> {
+export async function checkGemini(apiKey: string, models: string[]): Promise<GeminiCheck & { model: string }> {
+  const primary = models[0];
   try {
-    await callGemini(apiKey, model, { contents: [{ role: "user", parts: [{ text: "Responda apenas: OK" }] }] }, 20_000);
+    await callGemini(apiKey, primary, { contents: [{ role: "user", parts: [{ text: "Responda apenas: OK" }] }] }, 20_000);
   } catch (e) {
     const err = e as GeminiError;
-    return { key: { ok: false, message: err.message, detail: err.detail }, grounding: null };
+    // Modelo principal indisponível: o teste de busca abaixo ainda tenta os de reserva
+    if (err.code !== "model_not_found") {
+      return { key: { ok: false, message: err.message, detail: err.detail }, grounding: null, model: primary };
+    }
   }
-  try {
-    await callGemini(
-      apiKey,
-      model,
-      {
-        contents: [{ role: "user", parts: [{ text: "Em uma frase curta: qual é o site oficial da Prefeitura de Caxias do Sul?" }] }],
-        tools: [{ googleSearch: {} }],
-      },
-      30_000,
-    );
-    return {
-      key: { ok: true, message: `Chave e modelo ${model} funcionando.` },
-      grounding: { ok: true, message: "Busca com Google liberada. O botão Buscar com Gemini deve funcionar." },
-    };
-  } catch (e) {
-    const err = e as GeminiError;
-    return {
-      key: { ok: true, message: `Chave e modelo ${model} funcionando.` },
-      grounding: { ok: false, message: err.message, code: err.code, detail: err.detail },
-    };
+  const errors: GeminiError[] = [];
+  for (const model of models) {
+    try {
+      await callGemini(
+        apiKey,
+        model,
+        {
+          contents: [{ role: "user", parts: [{ text: "Em uma frase curta: onde fica a Prefeitura de Caxias do Sul?" }] }],
+          tools: groundingTools(model),
+        },
+        30_000,
+      );
+      return {
+        key: { ok: true, message: "Chave funcionando." },
+        grounding: {
+          ok: true,
+          message:
+            model === primary
+              ? `Busca no Google liberada com ${model}.`
+              : `Busca liberada com ${model} (o ${primary} não tem busca nesta chave). A Prospecção vai usar o ${model} automaticamente.`,
+        },
+        model,
+      };
+    } catch (e) {
+      if (!tryNext(e)) {
+        const err = e as GeminiError;
+        return { key: { ok: true, message: "Chave funcionando." }, grounding: { ok: false, message: err.message, code: err.code, detail: err.detail }, model };
+      }
+      errors.push(e as GeminiError);
+    }
   }
+  const err = allModelsFailed(models, errors);
+  return {
+    key: { ok: true, message: "Chave funcionando." },
+    grounding: { ok: false, message: err.message, code: err.code, detail: err.detail },
+    model: primary,
+  };
 }
 
 function buildPrompt(niche: string, city: string, limit: number, skip: string[]) {
@@ -266,6 +322,28 @@ type MapsChunk = { maps?: { uri?: string; title?: string; placeId?: string } };
 
 export async function searchLeadsWithGemini(opts: {
   apiKey: string;
+  /** Em ordem de preferência; o próximo só é tentado se o anterior não tiver busca liberada. */
+  models: string[];
+  niche: string;
+  city: string;
+  limit: number;
+  skip: string[];
+  timeoutMs?: number;
+}): Promise<{ leads: GeminiLead[]; queries: string[]; model: string }> {
+  const errors: GeminiError[] = [];
+  for (const model of opts.models) {
+    try {
+      return { ...(await searchWithModel({ ...opts, model })), model };
+    } catch (e) {
+      if (!tryNext(e)) throw e;
+      errors.push(e as GeminiError);
+    }
+  }
+  throw allModelsFailed(opts.models, errors);
+}
+
+async function searchWithModel(opts: {
+  apiKey: string;
   model: string;
   niche: string;
   city: string;
@@ -278,7 +356,7 @@ export async function searchLeadsWithGemini(opts: {
     contents: [
       { role: "user", parts: [{ text: buildPrompt(opts.niche, opts.city, opts.limit, opts.skip) }] },
     ],
-    tools: [{ googleMaps: {} }, { googleSearch: {} }],
+    tools: groundingTools(opts.model),
   };
   if (coords) body.toolConfig = { retrievalConfig: { latLng: coords } };
 

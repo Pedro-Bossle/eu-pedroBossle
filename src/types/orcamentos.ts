@@ -153,6 +153,8 @@ export type ProspectSettings = {
   configured: boolean;
   last4: string;
   model: string;
+  /** Tentados em ordem quando o modelo principal não tem busca liberada. */
+  fallbackModels?: string[];
   defaultModel: string;
   updated: string | null;
   /** Sempre "env" — chave/modelo vêm de GEMINI_API_KEY / GEMINI_MODEL. */

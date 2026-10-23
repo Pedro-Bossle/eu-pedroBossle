@@ -5,6 +5,7 @@ import {
   geminiApiKey,
   geminiConfigured,
   geminiModel,
+  geminiModels,
 } from "../../_lib/geminiEnv.js";
 
 import { rateLimit } from "../../_lib/rateLimit.js";
@@ -28,8 +29,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return json(res, 429, { error: `Espere ${rl.retryAfterSec}s para testar de novo (limite do painel, não do Google).` });
     }
     try {
-      const check = await checkGemini(geminiApiKey(), geminiModel());
-      return json(res, 200, { check, model: geminiModel() });
+      const { model, ...check } = await checkGemini(geminiApiKey(), geminiModels());
+      return json(res, 200, { check, model });
     } catch (error) {
       console.error(error);
       return json(res, 500, { error: "Falha ao testar o Gemini" });
@@ -50,6 +51,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         configured: geminiConfigured(),
         last4: key ? key.slice(-4) : "",
         model: geminiModel(),
+        fallbackModels: geminiModels().slice(1),
         defaultModel: GEMINI_DEFAULT_MODEL,
         updated: null,
         source: "env" as const,

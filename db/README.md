@@ -19,7 +19,8 @@ Além do Neon, configure (Production + Preview):
 | `RESEND_API_KEY` | API key do Resend (Marketplace ou dashboard Resend) |
 | `RESEND_FROM` | Remetente, ex. `Pedro Bossle <orcamentos@devbossle.com.br>` |
 | `GEMINI_API_KEY` | Chave do Google AI Studio (prospecção). Só no servidor — não vai ao navegador |
-| `GEMINI_MODEL` | Modelo padrão: `gemini-3.8-flash` (2.5 bloqueado para chaves novas) |
+| `GEMINI_MODEL` | Modelo principal: `gemini-3.8-flash` (2.5 bloqueado para projetos novos) |
+| `GEMINI_FALLBACK_MODELS` | Opcional. Reserva quando o principal não tem busca liberada (padrão `gemini-2.5-flash,gemini-2.5-flash-lite`; `none` desliga) |
 | `CONTACT_NOTIFY_EMAIL` | Destinatário dos leads do formulário da Home (fallback: e-mail do perfil) |
 
 ### E-mail (Resend)
@@ -49,8 +50,8 @@ npm run db:migrate
 ### Prospecção com Gemini
 
 1. Crie uma chave em [Google AI Studio](https://aistudio.google.com/apikey) e, no Google Cloud, restrinja-a à **Generative Language API**.
-2. **Ative o faturamento do projeto** no AI Studio (Tier 1). O Google não libera Google Maps nem Pesquisa Google no plano gratuito: sem faturamento, toda busca volta **429** já no primeiro pedido. Com faturamento, são 5.000 consultas grátis por mês nos modelos Gemini 3+.
-3. Defina `GEMINI_API_KEY` (e, se quiser, `GEMINI_MODEL`, padrão `gemini-3.8-flash`) na Vercel e faça um novo deploy.
+2. **Plano gratuito:** só o Gemini 2.5 Flash / Flash-Lite tem busca no Google Maps e na Pesquisa Google (até 500 pedidos/dia). Os modelos 3.x devolvem **429 com `limit: 0`** sem faturamento. O painel tenta `GEMINI_MODEL` e, se não houver busca liberada, os modelos de `GEMINI_FALLBACK_MODELS` (padrão `gemini-2.5-flash,gemini-2.5-flash-lite`; `none` desliga). Projetos novos podem não ter acesso ao 2.5: use a chave de um projeto mais antigo ou ative o faturamento (Tier 1, 5.000 buscas grátis/mês nos 3.x).
+3. Defina `GEMINI_API_KEY` (e, se quiser, `GEMINI_MODEL`, padrão `gemini-3.8-flash`, e `GEMINI_FALLBACK_MODELS`) na Vercel e faça um novo deploy.
 4. No painel: **Prospecção → Gemini → Testar conexão** confere a chave/modelo e se a busca no Google está liberada, mostrando a mensagem original do Google quando falha.
 5. A busca pode levar até ~1 min; `vercel.json` define `maxDuration: 60` para `api/orcamentos-prospects-search.ts`.
 
