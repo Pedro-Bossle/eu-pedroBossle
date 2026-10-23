@@ -28,13 +28,22 @@ export function groundingTools(model: string): Record<string, unknown>[] {
 
 /** Vale tentar o próximo modelo? (busca não liberada ou modelo indisponível) */
 const tryNext = (e: unknown) =>
-  e instanceof GeminiError && (e.code === "free_tier_grounding" || e.code === "model_not_found");
+  e instanceof GeminiError &&
+  (e.code === "free_tier_grounding" || e.code === "model_not_found" || e.code === "overloaded");
 
 function allModelsFailed(models: string[], errors: GeminiError[]): GeminiError {
   const freeTier = errors.some((e) => e.code === "free_tier_grounding");
   const old = models.filter((m) => /gemini-2\./.test(m));
   const oldMissing = old.length > 0 && errors.filter((e) => e.code === "model_not_found").length >= old.length;
   const detail = errors.map((e, i) => `${models[i]}: ${e.detail || e.message}`).join(" | ").slice(0, 600);
+  if (errors.length && errors.every((e) => e.code === "overloaded")) {
+    return new GeminiError(
+      "O Google está com os modelos do Gemini sobrecarregados agora (pico de uso do lado deles). A chave está ok: tente de novo em alguns minutos.",
+      503,
+      "overloaded",
+      detail,
+    );
+  }
   if (freeTier && oldMissing) {
     return new GeminiError(
       "Esta chave é de um projeto novo no plano gratuito: os modelos 3.x não têm busca no Google sem faturamento, e o Google não libera o Gemini 2.5 (que tem busca grátis) para projetos novos. Use uma chave de um projeto mais antigo que ainda acessa o 2.5 — como a do seu outro sistema — ou ative o faturamento.",
@@ -86,6 +95,7 @@ export type GeminiErrorCode =
   | "rate_limit_minute"
   | "quota_daily"
   | "quota"
+  | "overloaded"
   | "invalid_key"
   | "forbidden"
   | "model_not_found"
@@ -136,6 +146,18 @@ export function explainGeminiError(status: number, body: GoogleErrorBody, model:
   const retry = details.find((d) => d.retryDelay)?.retryDelay ?? "";
   const retrySec = Math.ceil(parseFloat(retry) || 0);
 
+  if (
+    status === 503 ||
+    body.error?.status === "UNAVAILABLE" ||
+    /high demand|overloaded|try again later/i.test(msg)
+  ) {
+    return new GeminiError(
+      `O Google está com o ${model} sobrecarregado agora (pico de uso do lado deles). Não é problema da chave: tente de novo em alguns minutos.`,
+      503,
+      "overloaded",
+      detail,
+    );
+  }
   if (status === 400 && /api key/i.test(msg)) {
     return new GeminiError("A GEMINI_API_KEY foi recusada pelo Google. Confira a chave no ambiente (Vercel / .env) e faça um novo deploy.", 400, "invalid_key", detail);
   }
@@ -189,7 +211,28 @@ export function explainGeminiError(status: number, body: GoogleErrorBody, model:
   return new GeminiError(msg ? `Gemini: ${msg.slice(0, 200)}` : `Gemini respondeu com erro ${status}.`, 502, "unknown", detail);
 }
 
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+/** Sobrecarga do Google costuma passar em segundos: tenta de novo antes de desistir do modelo. */
 async function callGemini(
+  apiKey: string,
+  model: string,
+  body: Record<string, unknown>,
+  timeoutMs: number,
+  retryDelaysMs: number[] = [1500, 4000],
+): Promise<Record<string, unknown>> {
+  for (let attempt = 0; ; attempt += 1) {
+    try {
+      return await callGeminiOnce(apiKey, model, body, timeoutMs);
+    } catch (e) {
+      const delay = retryDelaysMs[attempt];
+      if (!(e instanceof GeminiError) || e.code !== "overloaded" || delay === undefined) throw e;
+      await sleep(delay);
+    }
+  }
+}
+
+async function callGeminiOnce(
   apiKey: string,
   model: string,
   body: Record<string, unknown>,
@@ -234,8 +277,8 @@ export async function checkGemini(apiKey: string, models: string[]): Promise<Gem
     await callGemini(apiKey, primary, { contents: [{ role: "user", parts: [{ text: "Responda apenas: OK" }] }] }, 20_000);
   } catch (e) {
     const err = e as GeminiError;
-    // Modelo principal indisponível: o teste de busca abaixo ainda tenta os de reserva
-    if (err.code !== "model_not_found") {
+    // Modelo principal indisponível ou sobrecarregado: o teste de busca abaixo ainda tenta os de reserva
+    if (err.code !== "model_not_found" && err.code !== "overloaded") {
       return { key: { ok: false, message: err.message, detail: err.detail }, grounding: null, model: primary };
     }
   }
@@ -258,7 +301,13 @@ export async function checkGemini(apiKey: string, models: string[]): Promise<Gem
           message:
             model === primary
               ? `Busca no Google liberada com ${model}.`
-              : `Busca liberada com ${model} (o ${primary} não tem busca nesta chave). A Prospecção vai usar o ${model} automaticamente.`,
+              : `Busca liberada com ${model} (o ${primary} ${
+                  errors[0]?.code === "overloaded"
+                    ? "está sobrecarregado no Google agora"
+                    : errors[0]?.code === "model_not_found"
+                      ? "não está disponível nesta chave"
+                      : "não tem busca nesta chave"
+                }). A Prospecção usa o ${model} automaticamente quando precisar.`,
         },
         model,
       };
