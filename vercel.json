@@ -1,8 +1,4 @@
 {
-  "functions": {
-    "api/orcamentos-prospects-search.ts": { "maxDuration": 60 },
-    "api/orcamentos-prospects-settings.ts": { "maxDuration": 60 }
-  },
   "headers": [
     {
       "source": "/orcamentos/(.*)",
@@ -44,14 +40,6 @@
     {
       "source": "/api/orcamentos/auth/reset-password",
       "destination": "/api/orcamentos-auth-reset-password"
-    },
-    {
-      "source": "/api/orcamentos/prospects/settings",
-      "destination": "/api/orcamentos-prospects-settings"
-    },
-    {
-      "source": "/api/orcamentos/prospects/search",
-      "destination": "/api/orcamentos-prospects-search"
     },
     {
       "source": "/api/orcamentos/(.*)",

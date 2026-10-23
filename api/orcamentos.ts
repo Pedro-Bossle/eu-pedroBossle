@@ -10,7 +10,7 @@ type RouteHandler = (
  * Lazy-load evita derrubar a function no cold start.
  *
  * O rewrite em vercel.json manda /api/orcamentos/* → /api/orcamentos
- * sem colocar a subrota na query (barra em ?path= quebrava prospects/settings).
+ * sem colocar a subrota na query (barra em ?path= quebrava subrotas com barra).
  * O path real continua em req.url.
  */
 const loaders: Record<string, () => Promise<{ default: RouteHandler }>> = {
@@ -31,9 +31,6 @@ const loaders: Record<string, () => Promise<{ default: RouteHandler }>> = {
   "public/unlock": () => import("./_handlers/public/unlock.js"),
   leads: () => import("./_handlers/leads.js"),
   prospects: () => import("./_handlers/prospects/index.js"),
-  // Fallbacks se o rewrite dedicado falhar (Hobby / edge cases)
-  "prospects/settings": () => import("./_handlers/prospects/settings.js"),
-  "prospects/search": () => import("./_handlers/prospects/search.js"),
 };
 
 function routeKey(req: VercelRequest): string {

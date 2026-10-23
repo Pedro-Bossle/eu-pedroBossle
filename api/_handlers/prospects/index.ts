@@ -156,10 +156,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return json(res, 200, { ok: true });
     }
 
-    return json(res, 405, {
-      error:
-        "Method not allowed. Busca: POST /api/orcamentos/prospects/search (chave Gemini via GEMINI_API_KEY no env).",
-    });
+    return json(res, 405, { error: "Method not allowed" });
   } catch (error) {
     console.error(error);
     return json(res, 500, { error: "Falha nos leads de prospecção" });

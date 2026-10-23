@@ -131,7 +131,7 @@ export type ProspectLead = {
   /** Mensagem editada à mão; vazia = gerar automaticamente. */
   message: string;
   mapsUrl: string;
-  source: "manual" | "import" | "gemini" | string;
+  source: "manual" | "import" | string;
   sent: boolean;
   sentAt: string | null;
   replied: boolean;
@@ -143,20 +143,3 @@ export type ProspectLead = {
 export type ProspectInput = Partial<
   Omit<ProspectLead, "created" | "updated" | "sentAt" | "repliedAt">
 >;
-
-export type GeminiCheck = {
-  key: { ok: boolean; message: string; detail?: string };
-  grounding: { ok: boolean; message: string; code?: string; detail?: string } | null;
-};
-
-export type ProspectSettings = {
-  configured: boolean;
-  last4: string;
-  model: string;
-  /** Tentados em ordem quando o modelo principal não tem busca liberada. */
-  fallbackModels?: string[];
-  defaultModel: string;
-  updated: string | null;
-  /** Sempre "env" — chave/modelo vêm de GEMINI_API_KEY / GEMINI_MODEL. */
-  source?: "env" | string;
-};
