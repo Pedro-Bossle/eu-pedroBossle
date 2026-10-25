@@ -321,5 +321,37 @@
         "en": "It was used during the class presentations, where the leaderboard recorded the top players."
       }
     }
+  },
+  {
+    "title": "Biblioteca Farrapos",
+    "description": {
+      "pt": "Estante online com as minhas recomendações de livros: 42 títulos com capa, contracapa, lombada, sinopse, autor, nível de dificuldade e link de compra. Feita para o trabalho “Você tem brio?” do Capítulo Farrapos nº 1111.",
+      "en": "Online bookshelf with my book recommendations: 42 titles with front and back covers, spine, synopsis, author, difficulty level and a purchase link. Built for the “Você tem brio?” project of Capítulo Farrapos nº 1111."
+    },
+    "stack": [
+      "HTML",
+      "CSS",
+      "Javascript"
+    ],
+    "visibility": "public",
+    "category": {
+      "pt": [
+        "Site",
+        "Catálogo de livros"
+      ],
+      "en": [
+        "Website",
+        "Book catalog"
+      ]
+    },
+    "year": 2026,
+    "featured": true,
+    "openSource": true,
+    "image": "biblioteca",
+    "link": "https://pedro-bossle.github.io/biblioteca/",
+    "visual": {
+      "background": "#14213D",
+      "accent": "#E0B44C"
+    }
   }
 ]

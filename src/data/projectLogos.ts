@@ -5,6 +5,7 @@ import temploVirtual from "../assets/logos/templo-virtual.webp";
 import flowLogo from "../assets/logos/flow-logo.webp";
 import maxilogo from "../assets/logos/maxi-logo.webp";
 import squarelogo from "../assets/logos/square-logo.webp";
+import biblioteca from "../assets/logos/biblioteca.webp";
 
 export const projectLogos = {
   farrapos,
@@ -14,4 +15,5 @@ export const projectLogos = {
   "flow-logo": flowLogo,
   "maxi-logo": maxilogo,
   "square-logo": squarelogo,
+  biblioteca,
 };
