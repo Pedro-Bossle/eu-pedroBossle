@@ -31,7 +31,7 @@ Além do Neon, configure (Production + Preview):
 
 ## 3. Schema + RLS
 
-No SQL Editor do Neon, rode os arquivos `001`…`008` (nesta ordem), **ou**:
+No SQL Editor do Neon, rode os arquivos `001`…`009` (nesta ordem), **ou**:
 
 ```bash
 # com DATABASE_URL no ambiente
