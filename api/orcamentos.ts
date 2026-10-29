@@ -31,6 +31,14 @@ const loaders: Record<string, () => Promise<{ default: RouteHandler }>> = {
   "public/unlock": () => import("./_handlers/public/unlock.js"),
   leads: () => import("./_handlers/leads.js"),
   prospects: () => import("./_handlers/prospects/index.js"),
+  // Funil (009)
+  "prospects/stage": () => import("./_handlers/prospects/stage.js"),
+  "prospects/followup": () => import("./_handlers/prospects/followup.js"),
+  "prospects/bot-tokens": () => import("./_handlers/prospects/botTokens.js"),
+  // Rotas dos bots (Authorization: Bearer dbb_…)
+  "bot/leads": () => import("./_handlers/bot/leads.js"),
+  "bot/queue": () => import("./_handlers/bot/queue.js"),
+  "bot/move": () => import("./_handlers/bot/move.js"),
 };
 
 function routeKey(req: VercelRequest): string {
