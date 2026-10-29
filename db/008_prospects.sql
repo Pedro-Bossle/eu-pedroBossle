@@ -1,5 +1,5 @@
--- Prospecção: leads de negócios locais (busca manual, importação ou Gemini).
--- integration_settings ficou legado; a chave Gemini atual vem de GEMINI_API_KEY no env.
+-- Prospecção: leads de negócios locais (cadastro manual ou importação).
+-- integration_settings é legado (integração com Gemini removida); pode ficar vazia.
 
 CREATE TABLE IF NOT EXISTS prospect_leads (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
