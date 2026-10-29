@@ -34,7 +34,7 @@ Além do Neon, configure (Production + Preview):
 
 ## 3. Schema + RLS
 
-No SQL Editor do Neon, rode os arquivos `001`…`008` (nesta ordem), **ou**:
+No SQL Editor do Neon, rode os arquivos `001`…`009` (nesta ordem), **ou**:
 
 ```bash
 # com DATABASE_URL no ambiente
@@ -46,6 +46,32 @@ npm run db:migrate
 - `006` — `session_version` para invalidar JWTs após reset de senha.
 - `007` — `contact_leads` (formulário da Home → inbox do painel).
 - `008` — `prospect_leads` (menu **Prospecção**). `integration_settings` ficou como legado: a chave do Gemini vem do ambiente.
+- `009` — funil de prospecção: etapas (`stage`), saídas com motivo, pontuação, fontes do telefone, follow-up aprovado, histórico (`prospect_events`) e tokens dos bots (`bot_tokens`, só o hash).
+
+### Funil e bots (009)
+
+Etapas: `encontrado` → `aguardando` → `aprovado` → `enviado` → `followup` → `respondeu` → `proposta` → `resultado` (`result` = fechado | perdido).
+Saídas: `descartado`, `banco_b`, `revisar`, `nao_contatar`, `sem_resposta`, `invalido` (sempre com motivo).
+
+Painel (sessão do Pedro):
+
+| Rota | Uso |
+|---|---|
+| `PATCH /api/orcamentos/prospects/stage` | `{ id, to, note?, result?, message? }` — aprovar, recusar, proposta, fechado… |
+| `GET /api/orcamentos/prospects/stage?id=` | Histórico do lead |
+| `POST /api/orcamentos/prospects/followup` | `{ id, message }` — aprova o texto do follow-up |
+| `GET/POST/DELETE /api/orcamentos/prospects/bot-tokens` | Cria (`{ name, role }`, token aparece uma vez), lista e revoga tokens |
+
+Bots (`Authorization: Bearer dbb_…`):
+
+| Rota | Bot | Uso |
+|---|---|---|
+| `GET /api/orcamentos/bot/leads?name=&city=&whatsapp=` | Dev Bossle (`prospector`) | Checa duplicado |
+| `POST /api/orcamentos/bot/leads` | Dev Bossle | Cria/atualiza lead em `encontrado`, `aguardando` ou saída. Para `aguardando` o servidor exige: sem site, 2 fontes de telefone, `siteCheck`, nota ≥ 70 e mensagem |
+| `GET /api/orcamentos/bot/queue` | Whatsapp (`executor`) | Só leads `aprovado` e follow-ups aprovados, dentro da janela (seg–sex 9h–11h30 e 14h–17h30) e do limite de 15 por dia |
+| `POST /api/orcamentos/bot/move` | Os dois | `{ id, to, note?, replyText? }` seguindo as transições permitidas a cada papel |
+
+Aprovar (`aguardando` → `aprovado`) só o Pedro faz. O Whatsapp não consegue ler nem mover lead fora da sua fila.
 
 ### Prospecção com Gemini
 

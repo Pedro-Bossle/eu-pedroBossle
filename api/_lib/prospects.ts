@@ -23,16 +23,41 @@ export type ProspectLead = {
   repliedAt: string | null;
   created: string;
   updated: string;
+  /** Funil (009) */
+  stage: string;
+  stageChangedAt: string | null;
+  exitReason: string;
+  result: string;
+  score: number | null;
+  scoreBreakdown: { label: string; points: number; max: number }[];
+  phoneSources: string[];
+  siteCheck: string;
+  activity: string;
+  detail: string;
+  projectType: string;
+  followupMessage: string;
+  followupApprovedAt: string | null;
+  followupAt: string | null;
+  replyText: string;
 };
 
 /** Campos que o painel envia ao criar, editar ou importar um lead. */
 export type ProspectInput = Partial<
-  Omit<ProspectLead, "id" | "created" | "updated" | "sentAt" | "repliedAt">
+  Omit<
+    ProspectLead,
+    | "id" | "created" | "updated" | "sentAt" | "repliedAt"
+    | "stage" | "stageChangedAt" | "exitReason" | "result" | "score" | "scoreBreakdown"
+    | "phoneSources" | "siteCheck" | "activity" | "detail" | "projectType"
+    | "followupMessage" | "followupApprovedAt" | "followupAt" | "replyText"
+  >
 > & { id?: string };
 
 export const PROSPECT_COLUMNS = `id, name, niche, city, address, neighborhood, website, email,
   whatsapp, phone, instagram, problems, pitch, message, maps_url, source,
-  sent, sent_at, replied, replied_at, created_at, updated_at`;
+  sent, sent_at, replied, replied_at, created_at, updated_at,
+  stage, stage_changed_at, exit_reason, result, score, score_breakdown, phone_sources,
+  site_check, activity, detail, project_type, followup_message, followup_approved_at,
+  followup_at, reply_text`;
 
 const iso = (v: unknown): string | null =>
   v == null ? null : v instanceof Date ? v.toISOString() : String(v);
@@ -61,6 +86,23 @@ export function mapProspect(row: Record<string, unknown>): ProspectLead {
     repliedAt: iso(row.replied_at),
     created: iso(row.created_at) ?? "",
     updated: iso(row.updated_at) ?? "",
+    stage: String(row.stage ?? "encontrado"),
+    stageChangedAt: iso(row.stage_changed_at),
+    exitReason: String(row.exit_reason ?? ""),
+    result: String(row.result ?? ""),
+    score: row.score == null ? null : Number(row.score),
+    scoreBreakdown: Array.isArray(row.score_breakdown)
+      ? (row.score_breakdown as ProspectLead["scoreBreakdown"])
+      : [],
+    phoneSources: Array.isArray(row.phone_sources) ? (row.phone_sources as string[]) : [],
+    siteCheck: String(row.site_check ?? ""),
+    activity: String(row.activity ?? ""),
+    detail: String(row.detail ?? ""),
+    projectType: String(row.project_type ?? "landing"),
+    followupMessage: String(row.followup_message ?? ""),
+    followupApprovedAt: iso(row.followup_approved_at),
+    followupAt: iso(row.followup_at),
+    replyText: String(row.reply_text ?? ""),
   };
 }
 
@@ -116,7 +158,7 @@ export function sanitizeProspect(input: ProspectInput) {
     pitch: clip(input.pitch, 2000),
     message: clip(input.message, 2000),
     mapsUrl: normalizeMapsUrl(input.mapsUrl),
-    source: ["manual", "import", "gemini"].includes(String(input.source))
+    source: ["manual", "import", "gemini", "bot"].includes(String(input.source))
       ? String(input.source)
       : "manual",
     sent: input.sent === true,
