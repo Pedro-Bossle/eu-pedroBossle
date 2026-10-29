@@ -19,10 +19,8 @@ import {
   type SiteStatus,
 } from "../../lib/orcamentos/prospects";
 import type {
-  GeminiCheck,
   ProspectInput,
   ProspectLead,
-  ProspectSettings,
 } from "../../types/orcamentos";
 import { btn, btnPrimary, cardClass, focusRing } from "./panelStyles";
 
@@ -39,7 +37,6 @@ const selectClass = `${control} min-h-11 px-3 py-2 text-base sm:text-sm`;
 const area = (minH: string) => `${control} w-full ${minH} resize-y px-4 py-3 text-base leading-relaxed`;
 const btnSm = `inline-flex min-h-10 cursor-pointer items-center justify-center gap-2 border border-neutral-200 bg-white px-3 py-2 text-sm font-medium transition-[border-color,opacity] hover:border-neutral-400 disabled:cursor-not-allowed dark:border-neutral-700 dark:bg-[#151515] dark:hover:border-neutral-500 ${focusRing}`;
 const btnDisabled = "inline-flex min-h-11 cursor-not-allowed items-center justify-center gap-2 border border-dashed border-neutral-300 px-4 py-2.5 text-sm font-medium text-neutral-400 dark:border-neutral-700 dark:text-neutral-500";
-const btnSearch = `inline-flex min-h-12 flex-1 cursor-pointer items-center justify-center gap-2 whitespace-nowrap bg-neutral-900 px-4 py-2.5 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-[#f9f9f9] dark:text-neutral-900 ${focusRing}`;
 
 const chip = (active: boolean) =>
   `rounded-full px-3 py-1.5 text-xs font-medium transition ${focusRing} ${
@@ -277,9 +274,6 @@ function LeadCard({
               Enviado {fmtDate(lead.sentAt)}
             </span>
           ) : null}
-          {lead.source === "gemini" ? (
-            <span className={`${badge} bg-neutral-100 text-neutral-500 dark:bg-neutral-800 dark:text-neutral-400`}>Gemini</span>
-          ) : null}
         </div>
         <h3 className="text-lg font-semibold leading-snug tracking-tight break-words">{lead.name}</h3>
         <p className="text-sm text-neutral-500 dark:text-neutral-400">
@@ -491,37 +485,15 @@ function Prospects({ senderName, showToast }: Props) {
   const [leads, setLeads] = useState<ProspectLead[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
-  const [settings, setSettings] = useState<ProspectSettings | null>(null);
 
   const [niche, setNiche] = useState("");
   const [city, setCity] = useState(DEFAULT_CITY);
-  const [limit, setLimit] = useState(10);
-  const [searching, setSearching] = useState(false);
-  const [searchInfo, setSearchInfo] = useState("");
 
   const [siteFilter, setSiteFilter] = useState<"todos" | SiteStatus>("todos");
   const [nicheFilter, setNicheFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState<"" | LeadStatus>("");
 
-  const [panel, setPanel] = useState<"" | "gemini" | "import">("");
-  const [checking, setChecking] = useState(false);
-  const [checkResult, setCheckResult] = useState<GeminiCheck | null>(null);
-
-  const runCheck = async () => {
-    setChecking(true);
-    setCheckResult(null);
-    try {
-      const { check } = await orcamentosApi.testGemini();
-      setCheckResult(check);
-    } catch (e) {
-      setCheckResult({
-        key: { ok: false, message: e instanceof Error ? e.message : "Falha ao testar" },
-        grounding: null,
-      });
-    } finally {
-      setChecking(false);
-    }
-  };
+  const [panel, setPanel] = useState<"" | "import">("");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [creating, setCreating] = useState<ProspectInput | null>(null);
 
@@ -534,13 +506,9 @@ function Prospects({ senderName, showToast }: Props) {
     let cancelled = false;
     (async () => {
       try {
-        const [list, cfg] = await Promise.all([
-          orcamentosApi.listProspects(),
-          orcamentosApi.prospectSettings(),
-        ]);
+        const list = await orcamentosApi.listProspects();
         if (cancelled) return;
         setLeads(list.leads);
-        setSettings(cfg.settings);
       } catch (e) {
         if (!cancelled) setLoadError(e instanceof Error ? e.message : "Falha ao carregar os leads");
       } finally {
@@ -561,14 +529,7 @@ function Prospects({ senderName, showToast }: Props) {
       return next;
     });
 
-  const mergeLeads = (incoming: ProspectLead[]) =>
-    setLeads((prev) => {
-      const map = new Map(prev.map((l) => [l.id, l]));
-      for (const l of incoming) map.set(l.id, l);
-      return [...map.values()].sort((a, b) => b.created.localeCompare(a.created));
-    });
-
-  // Busca (nicho + cidade) também filtra a lista
+  // Nicho + cidade filtram a lista
   const base = useMemo(() => {
     const n = plain(niche);
     const c = plain(city);
@@ -606,36 +567,6 @@ function Prospects({ senderName, showToast }: Props) {
     }),
     [base],
   );
-
-  const runSearch = async () => {
-    if (niche.trim().length < 3 || city.trim().length < 3) {
-      showToast("Preencha o nicho e a cidade");
-      return;
-    }
-    if (!settings?.configured) {
-      setPanel("gemini");
-      showToast("Defina GEMINI_API_KEY no ambiente do servidor");
-      return;
-    }
-    setSearching(true);
-    setSearchInfo("");
-    try {
-      const r = await orcamentosApi.searchProspects({ niche: niche.trim(), city: city.trim(), limit });
-      mergeLeads(r.leads);
-      setSiteFilter("todos");
-      setStatusFilter("");
-      setNicheFilter("");
-      setSearchInfo(
-        r.leads.length
-          ? `${r.added} novo(s) e ${r.updated} atualizado(s) para “${niche.trim()}” em ${city.trim()} (modelo ${r.model}). Confira os telefones antes de chamar.`
-          : "O Gemini não encontrou negócios novos para essa busca. Tente outro nicho ou bairro.",
-      );
-    } catch (e) {
-      setSearchInfo(e instanceof Error ? e.message : "Falha na busca");
-    } finally {
-      setSearching(false);
-    }
-  };
 
   const runImport = async (text: string) => {
     setImportMsg("");
@@ -695,18 +626,6 @@ function Prospects({ senderName, showToast }: Props) {
           </button>
           <button
             type="button"
-            className={btn}
-            onClick={() => setPanel(panel === "gemini" ? "" : "gemini")}
-            aria-expanded={panel === "gemini"}
-          >
-            Gemini
-            <span
-              className={`size-2 rounded-full ${settings?.configured ? "bg-emerald-500" : "bg-neutral-300 dark:bg-neutral-600"}`}
-              aria-label={settings?.configured ? "configurado" : "não configurado"}
-            />
-          </button>
-          <button
-            type="button"
             className={btnPrimary}
             onClick={() => {
               setEditingId(null);
@@ -718,14 +637,8 @@ function Prospects({ senderName, showToast }: Props) {
         </div>
       </div>
 
-      {/* Busca */}
-      <form
-        className={`${cardClass} mb-4 grid gap-4 sm:grid-cols-[1fr_1fr_auto] sm:items-end`}
-        onSubmit={(e) => {
-          e.preventDefault();
-          void runSearch();
-        }}
-      >
+      {/* Filtro por nicho e cidade */}
+      <div className={`${cardClass} mb-4 grid gap-4 sm:grid-cols-2`}>
         <Labeled label="Nicho">
           <input
             className={inputClass}
@@ -737,128 +650,15 @@ function Prospects({ senderName, showToast }: Props) {
         <Labeled label="Cidade">
           <input className={inputClass} value={city} onChange={(e) => setCity(e.target.value)} />
         </Labeled>
-        <div className="flex gap-2">
-          <select
-            className={`${selectClass} w-20 shrink-0`}
-            value={limit}
-            onChange={(e) => setLimit(Number(e.target.value))}
-            aria-label="Quantidade de resultados"
-          >
-            {[5, 10, 15, 20].map((n) => (
-              <option key={n} value={n}>
-                {n}
-              </option>
-            ))}
-          </select>
-          <button type="submit" className={btnSearch} disabled={searching}>
-            {searching ? "Buscando…" : "Buscar com Gemini"}
-          </button>
-        </div>
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-neutral-500 sm:col-span-3 dark:text-neutral-400">
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-neutral-500 sm:col-span-2 dark:text-neutral-400">
           <span>
-            {searching
-              ? "O Gemini está procurando no Google Maps e olhando os sites. Pode levar até um minuto."
-              : searchInfo ||
-                (settings?.configured
-                  ? `${base.length} de ${leads.length} leads salvos nessa busca.`
-                  : "Configure GEMINI_API_KEY no servidor para buscar leads novos. Os campos também filtram a lista.")}
+            {base.length} de {leads.length} leads nessa busca.
           </span>
           <a href={mapsSearch} target="_blank" rel="noopener noreferrer" className={linkClass}>
             Abrir no Google Maps ↗
           </a>
         </div>
-      </form>
-
-      {/* Gemini (somente status — chave/modelo no .env / Vercel) */}
-      {panel === "gemini" ? (
-        <div className={`${cardClass} mb-4 space-y-4`}>
-          <div>
-            <h2 className="text-lg font-semibold tracking-tight">Gemini</h2>
-            <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
-              A chave e o modelo vêm do ambiente do servidor (
-              <span className="font-mono">GEMINI_API_KEY</span> /{" "}
-              <span className="font-mono">GEMINI_MODEL</span>
-              ). Nada é salvo na sessão nem no banco.
-            </p>
-          </div>
-          <p className="text-sm">
-            {settings?.configured ? (
-              <>
-                Chave no env: <span className="font-mono">••••{settings.last4}</span>
-                <span className="text-neutral-500 dark:text-neutral-400">
-                  {" "}
-                  · modelo <span className="font-mono">{settings.model}</span>
-                  {settings.fallbackModels?.length ? (
-                    <>
-                      {" "}
-                      · reserva{" "}
-                      <span className="font-mono">{settings.fallbackModels.join(", ")}</span>
-                    </>
-                  ) : null}
-                </span>
-              </>
-            ) : (
-              <span className="text-amber-700 dark:text-amber-300">
-                GEMINI_API_KEY ausente no ambiente. Defina no .env local e na Vercel (Production).
-              </span>
-            )}
-          </p>
-          {settings?.configured ? (
-            <div className="space-y-3">
-              <button type="button" className={btn} onClick={runCheck} disabled={checking}>
-                {checking ? "Testando…" : "Testar conexão"}
-              </button>
-              {checkResult ? (
-                <ul className="space-y-2 text-sm">
-                  {[
-                    { label: "Chave e modelo", r: checkResult.key },
-                    {
-                      label: "Busca no Google (Maps + Pesquisa)",
-                      r: checkResult.grounding ?? { ok: false, message: "Não testado: a chave falhou antes." },
-                    },
-                  ].map(({ label, r }) => (
-                    <li
-                      key={label}
-                      className={`border px-3 py-2 ${
-                        r.ok
-                          ? "border-emerald-600/40 bg-emerald-500/5 dark:border-emerald-400/30"
-                          : "border-amber-500/40 bg-amber-500/10"
-                      }`}
-                    >
-                      <p className="font-medium">
-                        {r.ok ? "✓" : "✕"} {label}
-                      </p>
-                      <p className="mt-0.5 text-neutral-600 dark:text-neutral-300">{r.message}</p>
-                      {"detail" in r && r.detail ? (
-                        <p className="mt-1 font-mono text-xs break-words text-neutral-500 dark:text-neutral-400">
-                          Google: {r.detail}
-                        </p>
-                      ) : null}
-                    </li>
-                  ))}
-                </ul>
-              ) : null}
-            </div>
-          ) : null}
-          <ul className="list-disc space-y-1 pl-5 text-xs text-neutral-500 dark:text-neutral-400">
-            <li>
-              Modelo padrão:{" "}
-              <span className="font-mono">{settings?.defaultModel ?? "gemini-3.8-flash"}</span>{" "}
-              (chaves novas não acessam mais o 2.5)
-            </li>
-            <li>
-              No plano gratuito, só o <strong>Gemini 2.5 Flash / Flash-Lite</strong> tem busca no Google (até 500
-              pedidos/dia). Os 3.x só buscam com faturamento ativo. Se o modelo principal não tiver busca, o painel
-              tenta os de reserva sozinho.
-            </li>
-            <li>
-              Projetos novos do Google podem não ter acesso ao 2.5. Nesse caso, use a chave de um projeto mais
-              antigo ou ative o faturamento (5.000 buscas grátis por mês nos 3.x, depois pago por consulta).
-            </li>
-            <li>No Google Cloud, restrinja a chave à “Generative Language API”.</li>
-          </ul>
-        </div>
-      ) : null}
+      </div>
 
       {/* Importar / exportar */}
       {panel === "import" ? (
@@ -1048,7 +848,7 @@ function Prospects({ senderName, showToast }: Props) {
         <div className="border border-dashed border-neutral-300 px-4 py-10 text-center text-sm text-neutral-500 dark:border-neutral-700 dark:text-neutral-400">
           {leads.length
             ? "Nenhum lead com esses filtros. Limpe o nicho ou troque os filtros."
-            : "Nenhum lead ainda. Busque com o Gemini, importe uma lista ou adicione um lead."}
+            : "Nenhum lead ainda. Importe uma lista ou adicione um lead."}
         </div>
       ) : null}
       {loading ? (
