@@ -5,6 +5,8 @@ import type {
   OrcamentoPreset,
   OrcamentoProfile,
   OrcamentoProposal,
+  BotToken,
+  ProspectEvent,
   ProspectInput,
   ProspectLead,
   PublicProposalPayload,
@@ -221,6 +223,36 @@ export const orcamentosApi = {
       method: "PATCH",
       body: JSON.stringify({ id, ...patch }),
     }),
+  moveProspect: (
+    id: string,
+    to: string,
+    extra: { note?: string; result?: string; message?: string } = {},
+  ) =>
+    request<{ lead: ProspectLead }>("/api/orcamentos/prospects/stage", {
+      method: "PATCH",
+      body: JSON.stringify({ id, to, ...extra }),
+    }),
+  prospectEvents: (id: string) =>
+    request<{ events: ProspectEvent[] }>(
+      `/api/orcamentos/prospects/stage?id=${encodeURIComponent(id)}`,
+    ),
+  approveFollowup: (id: string, message: string) =>
+    request<{ lead: ProspectLead }>("/api/orcamentos/prospects/followup", {
+      method: "POST",
+      body: JSON.stringify({ id, message }),
+    }),
+  listBotTokens: () =>
+    request<{ tokens: BotToken[] }>("/api/orcamentos/prospects/bot-tokens"),
+  createBotToken: (name: string, role: BotToken["role"]) =>
+    request<{ token: string }>("/api/orcamentos/prospects/bot-tokens", {
+      method: "POST",
+      body: JSON.stringify({ name, role }),
+    }),
+  revokeBotToken: (id: string) =>
+    request<{ ok: boolean }>(
+      `/api/orcamentos/prospects/bot-tokens?id=${encodeURIComponent(id)}`,
+      { method: "DELETE" },
+    ),
   deleteProspect: (id: string) =>
     request<{ ok: boolean }>(
       `/api/orcamentos/prospects?id=${encodeURIComponent(id)}`,

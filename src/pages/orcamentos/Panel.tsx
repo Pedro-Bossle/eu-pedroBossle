@@ -44,7 +44,7 @@ import {
 } from "./downloadProposalPdf";
 import { money, uid } from "./money";
 import ProposalPdfDocument from "./ProposalPdfDocument";
-import Prospects from "./Prospects";
+import Funnel from "./Funnel";
 
 type Tab =
   | "dashboard"
@@ -100,8 +100,7 @@ const inputClass =
 const textareaClass = `${inputClass} min-h-40 resize-y leading-relaxed`;
 const cardClass =
   "border border-neutral-200 bg-white p-5 dark:border-neutral-800 dark:bg-[#151515] xl:p-6";
-const shellClass =
-  "mx-auto w-full max-w-6xl xl:max-w-7xl 2xl:max-w-[1600px]";
+const shellClass = "w-full";
 const btn =
   `inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 border border-neutral-200 bg-white px-4 py-2.5 text-sm font-medium transition-[border-color,opacity] hover:border-neutral-400 disabled:cursor-not-allowed dark:border-neutral-700 dark:bg-[#151515] dark:hover:border-neutral-500 ${focusRing}`;
 const btnPrimary =
@@ -819,7 +818,7 @@ function Panel({
   const nav: { id: Tab; label: string; short: string }[] = [
     { id: "dashboard", label: "Visão geral", short: "Início" },
     { id: "inbox", label: "Inbox", short: "Inbox" },
-    { id: "prospects", label: "Prospecção", short: "Leads" },
+    { id: "prospects", label: "Funil", short: "Funil" },
     { id: "clients", label: "Clientes", short: "Clientes" },
     { id: "proposals", label: "Orçamentos", short: "Orçam." },
     { id: "presets", label: "Presets", short: "Presets" },
@@ -1089,8 +1088,8 @@ function Panel({
         </div>
       </header>
 
-      <div className={`${shellClass} grid md:grid-cols-[220px_1fr] lg:grid-cols-[240px_1fr] xl:grid-cols-[260px_1fr] 2xl:grid-cols-[280px_1fr]`}>
-        <aside className="hidden border-r border-neutral-200 py-6 pr-4 md:sticky md:top-[65px] md:flex md:h-[calc(100dvh-65px)] md:flex-col md:pl-6 xl:pr-5 xl:pl-8 2xl:pl-10 dark:border-neutral-800">
+      <div className={`${shellClass} grid md:grid-cols-[210px_1fr] xl:grid-cols-[230px_1fr]`}>
+        <aside className="hidden border-r border-neutral-200 py-6 pr-4 md:sticky md:top-[65px] md:flex md:h-[calc(100dvh-65px)] md:flex-col md:pl-4 xl:pr-5 xl:pl-5 dark:border-neutral-800">
           <p className="text-xs font-medium uppercase tracking-[0.14em] opacity-50">
             Menu
           </p>
@@ -1959,10 +1958,7 @@ function Panel({
           ) : null}
 
           {!editing && tab === "prospects" ? (
-            <Prospects
-              senderName={profile.name.trim().split(/\s+/)[0] || "Pedro"}
-              showToast={showToast}
-            />
+            <Funnel showToast={showToast} />
           ) : null}
 
           {!editing && tab === "inbox" ? (

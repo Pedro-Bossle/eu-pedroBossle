@@ -138,8 +138,48 @@ export type ProspectLead = {
   repliedAt: string | null;
   created: string;
   updated: string;
+  /** Funil (009) */
+  stage: string;
+  stageChangedAt: string | null;
+  exitReason: string;
+  result: string;
+  score: number | null;
+  scoreBreakdown: { label: string; points: number; max: number }[];
+  phoneSources: string[];
+  siteCheck: string;
+  activity: string;
+  detail: string;
+  projectType: string;
+  followupMessage: string;
+  followupApprovedAt: string | null;
+  followupAt: string | null;
+  replyText: string;
 };
 
 export type ProspectInput = Partial<
-  Omit<ProspectLead, "created" | "updated" | "sentAt" | "repliedAt">
+  Omit<
+    ProspectLead,
+    | "created" | "updated" | "sentAt" | "repliedAt"
+    | "stage" | "stageChangedAt" | "exitReason" | "result" | "score" | "scoreBreakdown"
+    | "phoneSources" | "siteCheck" | "activity" | "detail" | "projectType"
+    | "followupMessage" | "followupApprovedAt" | "followupAt" | "replyText"
+  >
 >;
+
+export type ProspectEvent = {
+  from: string;
+  to: string;
+  actor: string;
+  note: string;
+  at: string;
+};
+
+export type BotToken = {
+  id: string;
+  name: string;
+  role: "prospector" | "executor";
+  last4: string;
+  created_at: string;
+  last_used_at: string | null;
+  revoked_at: string | null;
+};
