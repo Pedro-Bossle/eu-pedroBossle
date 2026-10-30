@@ -1,17 +1,17 @@
 # Graph Report - eu-pedroBossle  (2026-10-30)
 
 ## Corpus Check
-- 152 files · ~106,331 words
+- 152 files · ~107,302 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 9 file(s) not represented in the graph (top: (none) 3, .css 2, .ico 1)
 
 ## Summary
-- 911 nodes · 2115 edges · 49 communities (42 shown, 7 thin omitted)
+- 905 nodes · 2109 edges · 51 communities (44 shown, 7 thin omitted)
 - Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS · INFERRED: 7 edges (avg confidence: 0.85)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `db4d427b`
+- Built from commit: `5066cb76`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -35,9 +35,9 @@
 - downloadProposalPdf.ts
 - API do funil de prospecção — guia para os bots
 - dependencies
-- models.ts
-- useLanguage
-- Resume.tsx
+- Contato.tsx
+- hireStyles.ts
+- ModelPreview.tsx
 - proposalTemplate.ts
 - Lakebase Postgres
 - optimize-logos.mjs
@@ -45,12 +45,14 @@
 - LanguageContext.tsx
 - sharePassword.ts
 - Orçamentos · Neon
+- ContractDocument.tsx
 - Semantic Vector Search
 - contactEmailHtml.ts
 - useLanguage
 - hybrid-search.md
 - vite.config.ts
 - scripts
+- proposalEmailHtml.ts
 - Managing Lakebase Search with Drizzle
 - Claimable Neon
 - Full-Text Search with BM25 Ranking
@@ -78,6 +80,8 @@
 10. `react-router` - 19 edges
 
 ## Surprising Connections (you probably didn't know these)
+- `buildProposalEmailHtml()` --calls--> `maskPhoneBr()`  [EXTRACTED]
+  api/_lib/proposalEmailHtml.ts → src/lib/phoneMask.ts
 - `handler()` --calls--> `maskCpfCnpj()`  [EXTRACTED]
   api/_handlers/clients/index.ts → src/lib/documentMask.ts
 - `handler()` --calls--> `maskPhoneBr()`  [EXTRACTED]
@@ -86,13 +90,11 @@
   api/_handlers/data.ts → api/_lib/mappers.ts
 - `handler()` --calls--> `maskCpfCnpj()`  [EXTRACTED]
   api/_handlers/profile.ts → src/lib/documentMask.ts
-- `handler()` --calls--> `maskPhoneBr()`  [EXTRACTED]
-  api/_handlers/profile.ts → src/lib/phoneMask.ts
 
 ## Import Cycles
 - None detected.
 
-## Communities (49 total, 7 thin omitted)
+## Communities (51 total, 7 thin omitted)
 
 ### Community 0 - "json"
 Cohesion: 0.05
@@ -100,7 +102,7 @@ Nodes (110): handler(), hashToken(), isEmail(), AuthRow, fetchUser(), handler(),
 
 ### Community 1 - "Funnel.tsx"
 Cohesion: 0.06
-Nodes (67): WhatsAppIcon(), ALIASES, buildMessage(), contactInfo(), CSV_COLUMNS, DEFAULT_CITY, downloadText(), firstProblem() (+59 more)
+Nodes (68): InstagramIcon(), WhatsAppIcon(), ALIASES, buildMessage(), contactInfo(), CSV_COLUMNS, DEFAULT_CITY, downloadText() (+60 more)
 
 ### Community 2 - "_lib/prospects.ts"
 Cohesion: 0.16
@@ -120,67 +122,67 @@ Nodes (30): runs-on, steps, concurrency, cancel-in-progress, group, environment,
 
 ### Community 6 - "Panel.tsx"
 Cohesion: 0.14
-Nodes (20): MailIcon(), itemsFromTimeline(), PRESET_SECTIONS, timelineLines(), uid(), blankProposal(), EDIT_STEPS, EditStepId (+12 more)
+Nodes (22): MailIcon(), itemsFromTimeline(), PRESET_SECTIONS, timelineLines(), buildShareClientMessage(), whatsappPhoneE164(), whatsappShareUrl(), uid() (+14 more)
 
 ### Community 7 - "Resume.tsx"
-Cohesion: 0.14
-Nodes (16): resume, resume, splitSkillItems(), Stack(), LocalizedString, LocalizedStringList, headingStyle, livePublic (+8 more)
+Cohesion: 0.17
+Nodes (19): resume, resume, splitSkillItems(), Stack(), tx(), CertificateLink(), CompanyLinks(), CredentialList() (+11 more)
 
 ### Community 8 - "types/orcamentos.ts"
 Cohesion: 0.15
-Nodes (23): react-router, orcamentosApi, Login(), Props, TrafficLights(), OrcamentosApp(), publicTokenFromPath(), resetTokenFromLocation() (+15 more)
+Nodes (22): orcamentosApi, Login(), Props, TrafficLights(), OrcamentosApp(), publicTokenFromPath(), resetTokenFromLocation(), Props (+14 more)
 
 ### Community 9 - "compilerOptions"
 Cohesion: 0.10
 Nodes (19): compilerOptions, allowArbitraryExtensions, allowImportingTsExtensions, erasableSyntaxOnly, jsx, lib, module, moduleDetection (+11 more)
 
 ### Community 10 - "mappers.ts"
-Cohesion: 0.11
-Nodes (32): handler(), handler(), isoOrNull(), mapClient(), mapProfile(), PRESET_SECTIONS, buildProposalEmailHtml(), escapeHtml() (+24 more)
+Cohesion: 0.19
+Nodes (20): handler(), handler(), isoOrNull(), mapClient(), mapProfile(), PRESET_SECTIONS, documentDigits(), isCnpj() (+12 more)
 
 ### Community 11 - "ClientProposal.tsx"
-Cohesion: 0.19
-Nodes (16): proposalValidityEnd(), proposalValidityStart(), ClientProposal(), formatWhen(), Props, statusClass(), downloadProposalPdf(), proposalPdfFilename() (+8 more)
+Cohesion: 0.20
+Nodes (15): proposalValidityEnd(), proposalValidityStart(), ClientProposal(), formatWhen(), Props, statusClass(), proposalPdfFilename(), slugify() (+7 more)
 
 ### Community 12 - "Layout.tsx"
 Cohesion: 0.19
-Nodes (16): lenis, react, Footer(), Layout(), SectionFade, LangButton(), Nav(), NAV_LINKS (+8 more)
+Nodes (15): lenis, Footer(), Layout(), SectionFade, LangButton(), Nav(), NAV_LINKS, SectionLink() (+7 more)
 
 ### Community 13 - "App.tsx"
 Cohesion: 0.20
 Nodes (15): App(), CasesPage, ContatoPage, isOrcamentosHost(), ModelPreview, OrcamentosApp, PrivacyPage, ResumePage (+7 more)
 
 ### Community 14 - "downloadResumePdf.ts"
-Cohesion: 0.23
-Nodes (15): jspdf, addPageLinks(), applyPrintLayout(), BlockRange, downloadResumePdf(), hidePdfExtras(), loadImage(), measureAtomicBlocks() (+7 more)
+Cohesion: 0.18
+Nodes (16): jspdf@^4.2.1, jspdf, addPageLinks(), applyPrintLayout(), BlockRange, downloadResumePdf(), hidePdfExtras(), loadImage() (+8 more)
 
 ### Community 15 - "compilerOptions"
 Cohesion: 0.12
 Nodes (16): compilerOptions, allowImportingTsExtensions, erasableSyntaxOnly, lib, module, moduleDetection, noEmit, noFallthroughCasesInSwitch (+8 more)
 
 ### Community 16 - "downloadProposalPdf.ts"
-Cohesion: 0.21
-Nodes (12): buildProposalPdf(), contentBottomY(), EMAIL_PDF_MAX_BASE64_CHARS, loadImage(), measureRanges(), nextPageEnd(), PdfBuildOptions, proposalPdfBase64() (+4 more)
+Cohesion: 0.24
+Nodes (13): buildProposalPdf(), contentBottomY(), downloadProposalPdf(), EMAIL_PDF_MAX_BASE64_CHARS, loadImage(), measureRanges(), nextPageEnd(), PdfBuildOptions (+5 more)
 
 ### Community 17 - "API do funil de prospecção — guia para os bots"
 Cohesion: 0.13
 Nodes (14): 1. Conexão, 2. O funil, 3.1 Checar duplicado — `GET /bot/leads`, 3.2 Cadastrar ou atualizar — `POST /bot/leads`, 3.3 Descartar um lead — `POST /bot/move`, 3. Bot Dev Bossle (`prospector`), 4.1 Fila de envio — `GET /bot/queue`, 4.2 Registrar o que aconteceu — `POST /bot/move` (+6 more)
 
 ### Community 18 - "dependencies"
+Cohesion: 0.12
+Nodes (17): dependencies, bcryptjs@^3.0.3, cookie@^2.0.1, jose@^6.2.12, lenis@^1.3.26, modern-screenshot@^4.7.0, react@^19.2.8, react-dom@^19.2.8 (+9 more)
+
+### Community 19 - "Contato.tsx"
 Cohesion: 0.11
-Nodes (18): dependencies, bcryptjs@^3.0.3, cookie@^2.0.1, jose@^6.2.12, jspdf@^4.2.1, lenis@^1.3.26, modern-screenshot@^4.7.0, react@^19.2.8 (+10 more)
+Nodes (17): react-router, ContactForm(), isEmail(), Props, HireMe(), HireMeProps, isEmail(), Models() (+9 more)
 
-### Community 19 - "models.ts"
-Cohesion: 0.07
-Nodes (31): HireMe(), HireMeProps, isEmail(), Models(), darkFields, DEFAULT_HIRE_STYLE_ID, fontJobs, getHireStyle() (+23 more)
+### Community 20 - "hireStyles.ts"
+Cohesion: 0.24
+Nodes (11): darkFields, DEFAULT_HIRE_STYLE_ID, fontJobs, getHireStyle(), HIRE_STYLES, HireStyle, HireStyleTokens, lightFields (+3 more)
 
-### Community 20 - "useLanguage"
-Cohesion: 0.20
-Nodes (14): ContactForm(), isEmail(), Props, DeferredMount(), Projects(), ProjectsCarousel(), WhyWebsite(), useLanguage() (+6 more)
-
-### Community 21 - "Resume.tsx"
-Cohesion: 0.33
-Nodes (11): InstagramIcon(), tx(), CertificateLink(), CompanyLinks(), CredentialList(), ExperienceItem(), hostOf(), ProjectCard() (+3 more)
+### Community 21 - "ModelPreview.tsx"
+Cohesion: 0.29
+Nodes (11): Device, DeviceSwitch(), ExternalIcon(), Model, ModelPreview(), MonitorIcon(), PhoneIcon(), Screen() (+3 more)
 
 ### Community 22 - "proposalTemplate.ts"
 Cohesion: 0.21
@@ -195,8 +197,8 @@ Cohesion: 0.13
 Nodes (10): @neondatabase/serverless@^1.2.0, sharp@^0.35.5, @neondatabase/serverless, sharp, pool, sqlFiles, files, logosDir (+2 more)
 
 ### Community 25 - "react"
-Cohesion: 0.27
-Nodes (7): Hero(), TRAVEL_MS, HeroBalloon(), HeroBalloonProps, HeroIcon, BlocksIcon(), PlaneIcon()
+Cohesion: 0.17
+Nodes (15): react, DeferredMount(), Hero(), TRAVEL_MS, HeroBalloon(), HeroBalloonProps, HeroIcon, BlocksIcon() (+7 more)
 
 ### Community 26 - "LanguageContext.tsx"
 Cohesion: 0.29
@@ -210,6 +212,10 @@ Nodes (7): buildPasswordResetEmailHtml(), escapeHtml(), passwordResetUrl(), ALLO
 Cohesion: 0.20
 Nodes (9): 1. Conectar Neon no projeto Vercel, 2. Variáveis de ambiente, 3. Schema + RLS, 4. Bootstrap do usuário, 5. Importar JSON, 6. Domínio, E-mail (Resend), Orçamentos · Neon (+1 more)
 
+### Community 29 - "ContractDocument.tsx"
+Cohesion: 0.48
+Nodes (6): ContractPayload, Clause(), ContractDocument(), moneyBrlInline(), paymentLines(), Row()
+
 ### Community 30 - "Semantic Vector Search"
 Cohesion: 0.22
 Nodes (9): Build the Index, Contents, Create the Extension, Prepare Embeddings, Query, Semantic Vector Search, Tune Search, Tune the Index (+1 more)
@@ -219,8 +225,8 @@ Cohesion: 0.39
 Nodes (8): buildContactAutoReplyHtml(), buildContactNotifyHtml(), EMAIL_THEMES, EmailTheme, escapeHtml(), metaRow(), resolveTheme(), trafficLights()
 
 ### Community 32 - "useLanguage"
-Cohesion: 0.15
-Nodes (9): projects, ProjectSlide(), caseSlug(), projectLogos, txList(), cases, CasesPage(), logoOf() (+1 more)
+Cohesion: 0.12
+Nodes (16): Projects(), projects, ProjectsCarousel(), ProjectSlide(), WhyWebsite(), caseSlug(), projectLogos, useLanguage() (+8 more)
 
 ### Community 33 - "hybrid-search.md"
 Cohesion: 0.43
@@ -233,6 +239,10 @@ Nodes (6): @tailwindcss/vite@^4.3.3, vite@^8.2.0, @vitejs/plugin-react@^6.0.4, @
 ### Community 35 - "scripts"
 Cohesion: 0.25
 Nodes (8): scripts, build, db:migrate, dev, dev:app, lint, optimize:logos, preview
+
+### Community 36 - "proposalEmailHtml.ts"
+Cohesion: 0.70
+Nodes (4): buildProposalEmailHtml(), escapeHtml(), isHttpUrl(), moneyBrl()
 
 ### Community 37 - "Managing Lakebase Search with Drizzle"
 Cohesion: 0.29
@@ -268,16 +278,16 @@ Nodes (7): applySectionFade(), clamp(), clearSectionStyles(), enterAmount(), ler
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `react` connect `Layout.tsx` to `useLanguage`, `Funnel.tsx`, `package.json`, `Panel.tsx`, `types/orcamentos.ts`, `mappers.ts`, `ClientProposal.tsx`, `App.tsx`, `dependencies`, `models.ts`, `useLanguage`, `Resume.tsx`, `SectionFade.tsx`, `react`, `LanguageContext.tsx`?**
-  _High betweenness centrality (0.185) - this node is a cross-community bridge._
+- **Why does `react` connect `react` to `useLanguage`, `Funnel.tsx`, `package.json`, `Panel.tsx`, `Resume.tsx`, `types/orcamentos.ts`, `ClientProposal.tsx`, `Layout.tsx`, `App.tsx`, `dependencies`, `Contato.tsx`, `hireStyles.ts`, `ModelPreview.tsx`, `SectionFade.tsx`, `LanguageContext.tsx`, `ContractDocument.tsx`?**
+  _High betweenness centrality (0.183) - this node is a cross-community bridge._
 - **Should `json` be split into smaller, more focused modules?**
   _Cohesion score 0.05046979865771812 - nodes in this community are weakly interconnected._
 - **Why does `@vercel/node` connect `json` to `mappers.ts`, `package.json`?**
-  _High betweenness centrality (0.089) - this node is a cross-community bridge._
+  _High betweenness centrality (0.088) - this node is a cross-community bridge._
 - **Should `Funnel.tsx` be split into smaller, more focused modules?**
-  _Cohesion score 0.06338028169014084 - nodes in this community are weakly interconnected._
-- **Why does `react-router` connect `types/orcamentos.ts` to `useLanguage`, `package.json`, `Panel.tsx`, `Resume.tsx`, `Layout.tsx`, `App.tsx`, `dependencies`, `models.ts`, `useLanguage`?**
-  _High betweenness centrality (0.064) - this node is a cross-community bridge._
+  _Cohesion score 0.061458718992965566 - nodes in this community are weakly interconnected._
+- **Why does `react-router` connect `Contato.tsx` to `useLanguage`, `package.json`, `Panel.tsx`, `Resume.tsx`, `types/orcamentos.ts`, `Layout.tsx`, `App.tsx`, `dependencies`, `ModelPreview.tsx`?**
+  _High betweenness centrality (0.062) - this node is a cross-community bridge._
 - **Should `Neon` be split into smaller, more focused modules?**
   _Cohesion score 0.05263157894736842 - nodes in this community are weakly interconnected._
 - **Should `package.json` be split into smaller, more focused modules?**

@@ -354,9 +354,9 @@
     "semantic_hash": ""
   },
   "src/components/HireMe.tsx": {
-    "mtime": 1793384504.1197634,
-    "seen": 1793384758.838993,
-    "ast_hash": "a9ec24ac9c57bbcb0ccabb41b946ad6a",
+    "mtime": 1793385381.093732,
+    "seen": 1793385869.8983326,
+    "ast_hash": "01001ac388868b28ccf8733fbcaf79ad",
     "semantic_hash": ""
   },
   "src/components/Layout/Layout.tsx": {
@@ -444,9 +444,9 @@
     "semantic_hash": ""
   },
   "src/data/hireStyles.ts": {
-    "mtime": 1793383442.5715854,
-    "seen": 1793383562.21559,
-    "ast_hash": "4e4f8199e9847f8dbcb7d9502ced97f1",
+    "mtime": 1793385361.1425486,
+    "seen": 1793385869.9001272,
+    "ast_hash": "28a348744b2724f86133c86151ea99bb",
     "semantic_hash": ""
   },
   "src/data/orcamentos-seed.json": {
@@ -462,15 +462,15 @@
     "semantic_hash": ""
   },
   "src/data/projects.json": {
-    "mtime": 1793275675.8634095,
-    "seen": 1793365414.2357783,
-    "ast_hash": "de0acc2bd2c1b044fe5c99b9c0cbc1fd",
+    "mtime": 1793387401.1266272,
+    "seen": 1793387413.32026,
+    "ast_hash": "7e1886e9cb760dc95b9e05441ffc33a1",
     "semantic_hash": ""
   },
   "src/data/resume.json": {
-    "mtime": 1791892525.906139,
-    "seen": 1793365414.2357795,
-    "ast_hash": "aeaeaefcb98d234f667b19bfb4fb713d",
+    "mtime": 1793385837.840635,
+    "seen": 1793385869.9003303,
+    "ast_hash": "a8b4c0990f766b1f46302d0169b18c20",
     "semantic_hash": ""
   },
   "src/i18n/LanguageContext.tsx": {
@@ -480,15 +480,15 @@
     "semantic_hash": ""
   },
   "src/i18n/locales/en.ts": {
-    "mtime": 1793378679.625579,
-    "seen": 1793378737.7780883,
-    "ast_hash": "34e6fc73b43f64c854ffc80884815174",
+    "mtime": 1793387137.7135425,
+    "seen": 1793387172.76511,
+    "ast_hash": "737f1f163cdeb67a1bc05bcb1b0b084c",
     "semantic_hash": ""
   },
   "src/i18n/locales/pt.ts": {
-    "mtime": 1793378679.6245756,
-    "seen": 1793378737.7780924,
-    "ast_hash": "5e35e2bd6eaa128a59be143f043fb507",
+    "mtime": 1793387137.7125423,
+    "seen": 1793387172.7652104,
+    "ast_hash": "59f04f5e369004888f333af5edc5c680",
     "semantic_hash": ""
   },
   "src/i18n/localize.ts": {
@@ -648,9 +648,9 @@
     "semantic_hash": ""
   },
   "src/types/project.ts": {
-    "mtime": 1791398409.6539242,
-    "seen": 1793365414.2358193,
-    "ast_hash": "b40f608f406367aa03b138090b9f99a3",
+    "mtime": 1793387137.7115421,
+    "seen": 1793387172.7703907,
+    "ast_hash": "0559bfceb3e889e33d751a51427bf67c",
     "semantic_hash": ""
   },
   "src/types/resume.ts": {
@@ -1026,9 +1026,9 @@
     "semantic_hash": ""
   },
   "src/components/Models.tsx": {
-    "mtime": 1793385084.4616134,
-    "seen": 1793385097.6937459,
-    "ast_hash": "92dc996155a9321eae1a710253b32ad5",
+    "mtime": 1793385282.7454576,
+    "seen": 1793385869.8984442,
+    "ast_hash": "c5dafcfbd0d6f4655640a3452fcd7719",
     "semantic_hash": ""
   },
   "src/data/caseSlug.ts": {
@@ -1038,15 +1038,15 @@
     "semantic_hash": ""
   },
   "src/data/models.ts": {
-    "mtime": 1793385081.8147383,
-    "seen": 1793385097.6950924,
-    "ast_hash": "5ea0f1f84eaef8b54added8b1f5a0985",
+    "mtime": 1793385282.7317967,
+    "seen": 1793385869.9001296,
+    "ast_hash": "b5f33991d503c84f7e91f9900b704773",
     "semantic_hash": ""
   },
   "src/pages/CasesPage.tsx": {
-    "mtime": 1793369152.461521,
-    "seen": 1793372316.860217,
-    "ast_hash": "dcaf61858d3f456dc2673ae9ef7bb4e4",
+    "mtime": 1793387137.7145424,
+    "seen": 1793387172.7680519,
+    "ast_hash": "a72478834ac0a7eee181fa15ac10e2c5",
     "semantic_hash": ""
   },
   "src/pages/Contato.tsx": {
@@ -1248,8 +1248,8 @@
     "semantic_hash": ""
   },
   "src/lib/useHireStyle.ts": {
-    "mtime": 1793383435.665617,
-    "seen": 1793383562.2181287,
+    "mtime": 1793385271.3943222,
+    "seen": 1793385869.9018135,
     "ast_hash": "dbb74c014f9ac844aaa3b52b16235a5f",
     "semantic_hash": ""
   },
