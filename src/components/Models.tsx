@@ -4,7 +4,7 @@ import { MODELS } from "../data/models";
 import { useLanguage } from "../i18n/LanguageContext";
 
 function Models() {
-  const { t } = useLanguage();
+  const { t, locale } = useLanguage();
   const lenis = useLenis();
   const choose = (id: string) => {
     window.dispatchEvent(new CustomEvent("hire:model", { detail: id }));
@@ -45,7 +45,7 @@ function Models() {
                 aria-label={`${t.models.viewModel}: ${item.name}`}
               >
                 <img
-                  src={m.image}
+                  src={locale === "en" ? m.imageEn : m.image}
                   width={960}
                   height={600}
                   loading="lazy"
