@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Pousada Neblina · Cambará do Sul, Brazil</title>
+<meta name="description" content="An eight-cabin inn in Cambará do Sul, near the canyons. Country breakfast, fireplaces and direct booking on WhatsApp.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&family=Outfit:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0}
+html{scroll-behavior:smooth}
+html,body{overflow-x:clip}
+img{max-width:100%;display:block}
+a{color:inherit}button,input,select{font:inherit;color:inherit}
+
+:root{--ink:#f3efe7;--mut:#b9b3a6;--bg:#11140f;--moss:#2c3424;--amber:#e8b36a;--line:rgba(243,239,231,.18);
+--serif:"Cormorant Garamond",Georgia,serif;--sans:"Outfit",system-ui,sans-serif;--g:clamp(16px,3.4vw,56px)}
+body{background:var(--bg);color:var(--ink);font:300 17px/1.6 var(--sans)}
+.wrap{padding-inline:var(--g);max-width:1440px;margin-inline:auto}
+:focus-visible{outline:2px solid var(--amber);outline-offset:3px}
+h1,h2,h3{font-family:var(--serif);font-weight:400;line-height:.95;letter-spacing:-.01em}
+.k{font:500 12px/1.4 var(--sans);letter-spacing:.2em;text-transform:uppercase;color:var(--mut)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:50px;padding:0 24px;border-radius:999px;background:var(--ink);color:var(--bg);text-decoration:none;font-weight:500;border:0;cursor:pointer;transition:background .25s}
+.btn:hover{background:var(--amber)}
+header{position:fixed;inset:0 0 auto;z-index:20;transition:background .3s}
+header.solid{background:rgba(17,20,15,.92);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+header .wrap{display:flex;justify-content:space-between;align-items:center;padding-block:18px;gap:20px}
+.brand{font:500 24px/1 var(--serif);letter-spacing:.04em;text-decoration:none}
+header nav{display:flex;gap:28px;font-size:15px}header nav a{text-decoration:none;opacity:.8}header nav a:hover{opacity:1}
+header .btn{min-height:42px;padding:0 18px;background:rgba(243,239,231,.14);color:var(--ink);backdrop-filter:blur(8px)}
+@media(max-width:760px){header nav{display:none}}
+.film{position:relative;height:460vh}
+.stage{position:sticky;top:0;height:100vh;height:100svh;overflow:hidden}
+.stage .sc{position:absolute;inset:0;opacity:0;will-change:opacity,transform}
+.stage .sc img{width:100%;height:100%;object-fit:cover}
+.stage .sc:first-child{opacity:1}
+.stage::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(10,12,9,.5),rgba(10,12,9,0) 30%,rgba(10,12,9,.15) 55%,rgba(10,12,9,.85));pointer-events:none}
+.fog{position:absolute;inset:-20% -10%;background:radial-gradient(60% 40% at 30% 60%,rgba(240,240,236,.55),transparent 70%),radial-gradient(50% 35% at 75% 45%,rgba(240,240,236,.45),transparent 70%);filter:blur(30px);z-index:1;pointer-events:none}
+.ov{position:absolute;inset:auto 0 0;z-index:2;padding-bottom:clamp(28px,6vh,64px)}
+.ov .wrap{display:grid;grid-template-columns:1fr auto;gap:30px;align-items:end}
+.title{transition:opacity .5s}
+.title h1{font-size:clamp(54px,9vw,150px);font-style:italic}
+.title h1 span{display:block;font-style:normal}
+.clock{text-align:right;min-width:220px}
+.clock .t{font:300 clamp(56px,7vw,110px)/1 var(--sans);letter-spacing:-.04em;font-variant-numeric:tabular-nums}
+.clock .n{font:italic 400 28px var(--serif);margin-top:4px}
+.clock p{max-width:32ch;margin-left:auto;color:#ddd7cb;font-size:15px;margin-top:8px;min-height:3.2em}
+.bar{position:absolute;left:var(--g);right:var(--g);top:84px;z-index:2;display:flex;gap:8px}
+.bar i{flex:1;height:2px;background:var(--line);position:relative;overflow:hidden}
+.bar i b{position:absolute;inset:0;background:var(--ink);transform-origin:left;transform:scaleX(0)}
+.hint{font-size:13px;color:var(--mut);margin-top:16px}
+@media(max-width:760px){.ov .wrap{grid-template-columns:1fr}.clock{text-align:left}.clock p{margin-left:0}}
+.rooms{padding-block:clamp(70px,9vw,140px)}
+.rooms h2{font-size:clamp(42px,5.4vw,88px);max-width:14ch}
+.rl{margin-top:40px;border-top:1px solid var(--line)}
+.room{display:grid;grid-template-columns:1.2fr 1fr auto;gap:24px;align-items:center;padding:28px 0;border-bottom:1px solid var(--line);transition:padding .35s}
+.room:hover{padding-left:14px}
+.room h3{font-size:clamp(32px,3.4vw,52px)}
+.room p{color:var(--mut)}
+.room .pr{text-align:right;font:400 34px var(--serif)}.room .pr small{display:block;font:300 13px var(--sans);color:var(--mut)}
+@media(max-width:760px){.room{grid-template-columns:1fr;gap:6px}.room .pr{text-align:left}}
+.incl{display:flex;flex-wrap:wrap;gap:10px;margin-top:34px}
+.incl span{border:1px solid var(--line);border-radius:999px;padding:8px 16px;font-size:14px}
+.book{background:var(--moss);padding-block:clamp(70px,9vw,130px)}
+.book .g{display:grid;grid-template-columns:1fr 1fr;gap:clamp(24px,5vw,80px);align-items:start}
+.book h2{font-size:clamp(46px,6vw,100px)}
+.book .sub{color:#d5d1c4;margin-top:18px;max-width:38ch}
+form.bk{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+form.bk label{display:grid;gap:6px;font-size:13px;color:#d5d1c4;letter-spacing:.06em}
+form.bk input,form.bk select{min-height:50px;border-radius:10px;border:1px solid var(--line);background:rgba(0,0,0,.18);padding:0 14px;color:var(--ink);font-size:16px;color-scheme:dark}
+form.bk .full{grid-column:1/-1}
+.est{grid-column:1/-1;display:flex;justify-content:space-between;align-items:baseline;border-top:1px solid var(--line);padding-top:16px;margin-top:4px}
+.est b{font:400 40px var(--serif)}
+@media(max-width:860px){.book .g{grid-template-columns:1fr}}
+footer{padding-block:30px;color:var(--mut);font-size:13px}
+footer .wrap{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap}
+@media (prefers-reduced-motion: reduce){.fog{display:none}}
+
+
+.js .rv{opacity:0;transform:translateY(24px);transition:opacity .7s ease,transform .7s cubic-bezier(.2,.7,.2,1)}
+.js .rv.in{opacity:1;transform:none}
+@media (prefers-reduced-motion: reduce){.js .rv{opacity:1;transform:none;transition:none}*{scroll-behavior:auto!important}}
+
+</style>
+</head>
+<body>
+
+<header><div class="wrap"><a class="brand" href="#">NEBLINA</a>
+<nav><a href="#chales">Cabins</a><a href="#dia">A day here</a><a href="#reservar">Book</a></nav>
+<a class="btn" href="#reservar">Book</a></div></header>
+<main>
+<section class="film" id="dia" aria-label="A day here"><div class="stage"><div class="sc"><img src="img/pous-1.webp" alt="" ></div><div class="sc"><img src="img/pous-2.webp" alt="" loading=lazy></div><div class="sc"><img src="img/pous-3.webp" alt="" loading=lazy></div><div class="sc"><img src="img/pous-4.webp" alt="" loading=lazy></div><div class="fog"></div>
+<div class="bar" aria-hidden="true"><i><b></b></i><i><b></b></i><i><b></b></i><i><b></b></i></div>
+<div class="ov"><div class="wrap"><div class="title"><p class="k">Cambará do Sul · Brazil</p><h1>A whole day<span>inside the fog.</span></h1><p class="hint">↓ Scroll to spend the day</p></div>
+<div class="clock" aria-live="polite"><div class="t" id="ct">05:40</div><div class="n" id="cn">Before sunrise</div><p id="cp">Fog rises from the valley and covers everything. From the porch, only the hilltops show.</p></div></div></div>
+</div></section>
+<section class="wrap rooms" id="chales" aria-labelledby="rh"><h2 id="rh" class="rv">Eight cabins, each with its own window.</h2><div class="rl"><div class="room rv"><h3>Valley Cabin</h3><p>2 guests · fireplace · bathtub</p><div class="pr">R$ 690<small>per night, breakfast included</small></div></div><div class="room rv"><h3>Araucaria Cabin</h3><p>up to 4 guests · loft · kitchen</p><div class="pr">R$ 890<small>per night, breakfast included</small></div></div><div class="room rv"><h3>Canyon Suite</h3><p>2 guests · valley view · hot tub</p><div class="pr">R$ 1090<small>per night, breakfast included</small></div></div></div>
+<p class="k" style="margin-top:44px">Included in every stay</p><div class="incl"><span>Country breakfast</span><span>Firewood</span><span>Heated pool</span><span>In-cabin Wi-Fi</span><span>Parking</span><span>Pet friendly (Valley Cabin)</span></div></section>
+<section class="book" id="reservar" aria-labelledby="bh"><div class="wrap g">
+<div class="rv"><h2 id="bh">Book direct and pay less.</h2><p class="sub">No platform fees. Pick your dates and we confirm availability on WhatsApp.</p><p class="sub">Estrada Exemplo, km 8 · Cambará do Sul, RS, Brazil</p></div>
+<form class="bk" id="bk"><label>Check-in<input type="date" id="ci" required></label><label>Check-out<input type="date" id="co" required></label>
+<label>Guests<select id="gu"><option>1</option><option selected>2</option><option>3</option><option>4</option></select></label>
+<label>Cabin<select id="ro"><option value='0'>Valley Cabin</option><option value='1'>Araucaria Cabin</option><option value='2'>Canyon Suite</option></select></label>
+<div class="est" aria-live="polite"><span id="en"></span><b id="ev"></b></div>
+<button class="btn full" type="submit">Check availability</button></form></div></section>
+</main>
+<footer><div class="wrap"><span>Pousada Neblina</span><span>Demo template by .dev Bossle. Names, prices, phone numbers and address are examples. Photos: Unsplash (Unsplash License).</span></div></footer>
+
+<script>
+
+document.documentElement.classList.add('js');
+var RM=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+(function(){
+  var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}})},{threshold:.15});
+  document.querySelectorAll('.rv').forEach(function(el,k){el.style.transitionDelay=(k%3)*80+'ms';io.observe(el)});
+})();
+function clamp(v,a,b){return Math.max(a,Math.min(b,v))}
+function progress(el){var r=el.getBoundingClientRect(),h=el.offsetHeight-innerHeight;return h>0?clamp(-r.top/h,0,1):0}
+
+
+var S=[["05:40", "Before sunrise", "Fog rises from the valley and covers everything. From the porch, only the hilltops show."], ["09:15", "Trail morning", "Country breakfast until ten. Then Itaimbezinho canyon is a twenty-minute drive away."], ["17:30", "Late afternoon", "A table set on the deck, Serra wine and the lake changing color."], ["21:00", "Fireplace night", "Heated pool lit up, clear sky and real silence."]],R=[["Valley Cabin", "2 guests · fireplace · bathtub", 690], ["Araucaria Cabin", "up to 4 guests · loft · kitchen", 890], ["Canyon Suite", "2 guests · valley view · hot tub", 1090]],T={"nights": "nights", "msg": "Hi! I'd like to check availability", "l": ["Cabin", "Check-in", "Check-out", "Guests", "Estimate"]};
+(function(){
+  var film=document.querySelector('.film'),sc=[].slice.call(document.querySelectorAll('.sc')),bars=[].slice.call(document.querySelectorAll('.bar b'));
+  var fog=document.querySelector('.fog'),title=document.querySelector('.title'),ct=document.getElementById('ct'),cn=document.getElementById('cn'),cp=document.getElementById('cp');
+  var mins=S.map(function(s){var p=s[0].split(':');return +p[0]*60+ +p[1]});var cur=-1;
+  function fmt(m){m=Math.round(m);return ('0'+Math.floor(m/60)).slice(-2)+':'+('0'+m%60).slice(-2)}
+  function tick(){
+    var p=progress(film)*3.999,i=Math.floor(p),f=p-i;
+    sc.forEach(function(el,k){var o=k===i?1:(k===i+1?clamp((f-.55)/.45,0,1):0);el.style.opacity=k<=i?1:o;
+      if(!RM)el.style.transform='scale('+(1.12-.12*(k===i?f:0))+')'});
+    bars.forEach(function(b,k){b.style.transform='scaleX('+clamp(p-k,0,1)+')'});
+    var m=mins[i]+(i<3?(mins[i+1]-mins[i])*clamp(f/.9,0,1):60*f);ct.textContent=fmt(m);
+    var si=f>.75&&i<3?i+1:i;if(si!==cur){cur=si;cn.textContent=S[si][1];cp.textContent=S[si][2]}
+    document.querySelector('header').classList.toggle('solid',scrollY>film.offsetHeight-innerHeight*.6);
+    title.style.opacity=clamp(1-p*2.2,0,1);
+    fog.style.opacity=clamp(1-p*.9,0,1)*.9;if(!RM)fog.style.transform='translateX('+(-p*6)+'%)';
+  }
+  addEventListener('scroll',function(){requestAnimationFrame(tick)},{passive:true});addEventListener('resize',tick);tick();
+  var ci=document.getElementById('ci'),co=document.getElementById('co'),gu=document.getElementById('gu'),ro=document.getElementById('ro');
+  var d=new Date();d.setDate(d.getDate()+14);var iso=function(x){return x.toISOString().slice(0,10)};
+  ci.value=iso(d);var d2=new Date(d);d2.setDate(d2.getDate()+2);co.value=iso(d2);ci.min=iso(new Date());
+  var loc=document.documentElement.lang==='en'?'en-US':'pt-BR';
+  function n(){return Math.max(1,Math.round((new Date(co.value)-new Date(ci.value))/864e5)||1)}
+  function est(){var v=n()*R[+ro.value][2];document.getElementById('en').textContent=n()+' '+T.nights+' · '+R[+ro.value][0];
+    document.getElementById('ev').textContent='R$ '+v.toLocaleString(loc);return v}
+  [ci,co,gu,ro].forEach(function(e){e.addEventListener('change',est)});est();
+  document.getElementById('bk').addEventListener('submit',function(e){e.preventDefault();var v=est(),l=T.l;
+    var txt=T.msg+'\n'+l[0]+': '+R[+ro.value][0]+'\n'+l[1]+': '+ci.value+'\n'+l[2]+': '+co.value+'\n'+l[3]+': '+gu.value+'\n'+l[4]+': R$ '+v.toLocaleString(loc);
+    window.open('https://wa.me/5554999999999?text='+encodeURIComponent(txt),'_blank','noopener')});
+})();
+
+</script>
+</body>
+</html>

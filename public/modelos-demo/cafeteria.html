@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Moenda Torrefação & Café · Caxias do Sul</title>
+<meta name="description" content="Torrefação e cafeteria em Caxias do Sul. Grãos especiais torrados toda semana, assinatura mensal e café no balcão.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0}
+html{scroll-behavior:smooth}
+html,body{overflow-x:clip}
+img{max-width:100%;display:block}
+a{color:inherit}button,input,select{font:inherit;color:inherit}
+
+:root{--bg:#efe6d8;--ink:#2a1a12;--mut:#7b6555;--brown:#5b3420;--orange:#d9682b;--line:rgba(42,26,18,.16);
+--disp:"Bricolage Grotesque",system-ui,sans-serif;--sans:"DM Sans",system-ui,sans-serif;--g:clamp(16px,3.4vw,56px)}
+body{background:var(--bg);color:var(--ink);font:400 17px/1.6 var(--sans)}
+.wrap{padding-inline:var(--g);max-width:1480px;margin-inline:auto}
+:focus-visible{outline:2px solid var(--orange);outline-offset:3px}
+h1,h2,h3{font-family:var(--disp);font-weight:700;line-height:.9;letter-spacing:-.03em}
+.k{font:600 12px/1.4 var(--sans);letter-spacing:.16em;text-transform:uppercase;color:var(--mut)}
+.btn{display:inline-flex;align-items:center;justify-content:center;min-height:50px;padding:0 24px;border-radius:999px;background:var(--ink);color:var(--bg);text-decoration:none;font-weight:600;border:0;cursor:pointer;transition:background .25s,transform .25s}
+.btn:hover{background:var(--orange);transform:translateY(-2px)}
+header .wrap{display:flex;justify-content:space-between;align-items:center;padding-block:18px;gap:20px}
+.brand{font:800 22px var(--disp);letter-spacing:-.02em;text-decoration:none}
+header nav{display:flex;gap:28px}header nav a{text-decoration:none;color:var(--mut)}header nav a:hover{color:var(--ink)}
+@media(max-width:760px){header nav{display:none}}
+.hero{position:relative;min-height:calc(100svh - 86px);display:grid;align-content:center;overflow:hidden;padding-bottom:30px}
+.word{font:800 clamp(90px,23vw,380px)/.8 var(--disp);letter-spacing:-.06em;text-align:center;white-space:nowrap;
+background:url(img/cafe-1.webp) center/cover;-webkit-background-clip:text;background-clip:text;color:transparent;
+-webkit-text-stroke:1px rgba(42,26,18,.12);user-select:none;margin-top:-.04em}
+.wh{position:relative}
+.cup{position:absolute;left:50%;top:50%;width:clamp(180px,21vw,340px);aspect-ratio:1;border-radius:50%;overflow:hidden;
+transform:translate(-50%,-50%);box-shadow:0 40px 80px -20px rgba(42,26,18,.55),0 0 0 10px var(--bg);will-change:transform}
+.cup img{width:100%;height:100%;object-fit:cover;transform:scale(1.15)}
+.steam{position:absolute;left:50%;top:50%;width:clamp(230px,27vw,430px);aspect-ratio:1;transform:translate(-50%,-50%);pointer-events:none;animation:spin 18s linear infinite}
+.steam text{font:600 13px var(--sans);letter-spacing:.32em;text-transform:uppercase;fill:var(--ink)}
+@keyframes spin{to{transform:translate(-50%,-50%) rotate(360deg)}}
+.hb{display:grid;grid-template-columns:1fr 1fr;align-items:end;gap:24px;margin-top:clamp(28px,5vh,60px)}
+.hb p{max-width:34ch;color:var(--mut)}
+.hb .tag{font:700 clamp(22px,2vw,30px)/1.05 var(--disp);color:var(--ink);letter-spacing:-.02em}
+.hb .r{text-align:right;justify-self:end}
+@media(max-width:860px){.hb{grid-template-columns:1fr}.hb .r{text-align:left;justify-self:start}.cup,.steam{position:relative;left:auto;top:auto;margin:-14px auto 0;transform:none}.steam{display:none}.cup{width:220px;margin-top:-18px}}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);border-block:1px solid var(--line)}
+.stats div{padding:26px var(--g);border-right:1px solid var(--line)}.stats div:last-child{border-right:0}
+.stats b{display:block;font:800 clamp(36px,4vw,60px)/1 var(--disp);letter-spacing:-.04em;color:var(--brown)}
+.stats span{color:var(--mut);font-size:14px}
+@media(max-width:620px){.stats{grid-template-columns:1fr}.stats div{border-right:0;border-bottom:1px solid var(--line)}}
+.roast{padding-block:clamp(70px,9vw,130px)}
+.roast .top{display:flex;justify-content:space-between;align-items:end;gap:20px;flex-wrap:wrap}
+.roast h2{font-size:clamp(48px,7vw,120px)}
+.rs{margin-top:36px;display:grid;grid-template-columns:1fr 1.1fr;gap:clamp(24px,5vw,80px);align-items:center}
+.bean{aspect-ratio:1;border-radius:50%;display:grid;place-items:center;transition:background .5s;position:relative;max-width:440px;width:100%;justify-self:center}
+.bean::before{content:"";width:42%;height:66%;border-radius:50%;background:rgba(255,255,255,.12);box-shadow:inset -14px 0 0 rgba(0,0,0,.18);transform:rotate(28deg)}
+.bean::after{content:"";position:absolute;width:3%;height:52%;border-radius:40%;background:rgba(0,0,0,.28);transform:rotate(28deg) translateX(-30%)}
+.rname{font:800 clamp(44px,5vw,80px)/1 var(--disp);letter-spacing:-.04em}
+.rorig{color:var(--mut);margin-top:6px}
+.rgrid{display:grid;grid-template-columns:auto 1fr;gap:10px 18px;margin-top:22px}
+.rgrid dt{color:var(--mut);font-size:14px}.rgrid dd{margin:0;font-weight:500}
+.meter{display:grid;gap:12px;margin-top:22px}
+.meter div{display:grid;grid-template-columns:90px 1fr;gap:12px;align-items:center;font-size:14px}
+.meter i{display:flex;gap:4px}.meter i b{flex:1;height:8px;border-radius:4px;background:var(--line);transition:background .3s}.meter i b.on{background:var(--orange)}
+input[type=range]{width:100%;margin-top:26px;accent-color:var(--brown);height:30px}
+.ticks{display:flex;justify-content:space-between;font-size:13px;color:var(--mut)}
+@media(max-width:860px){.rs{grid-template-columns:1fr}.bean{max-width:260px}}
+.sub{background:var(--brown);color:#f4e9da;padding-block:clamp(70px,9vw,130px)}
+.sub .g{display:grid;grid-template-columns:1fr 1fr;gap:clamp(24px,5vw,80px);align-items:start}
+.sub h2{font-size:clamp(44px,5.6vw,92px)}
+.sub p{color:#dcc9b3;margin-top:18px;max-width:38ch}
+.sub img{margin-top:30px;border-radius:18px;aspect-ratio:4/3;object-fit:cover;width:100%}
+fieldset{border:0;padding:0;margin:0 0 22px}legend{font:600 12px var(--sans);letter-spacing:.16em;text-transform:uppercase;color:#dcc9b3;margin-bottom:10px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chips label{position:relative}.chips input{position:absolute;opacity:0}
+.chips span{display:inline-flex;min-height:46px;align-items:center;padding:0 18px;border-radius:999px;border:1px solid rgba(244,233,218,.35);cursor:pointer;transition:all .2s}
+.chips input:checked+span{background:#f4e9da;color:var(--ink);border-color:#f4e9da}
+.chips input:focus-visible+span{outline:2px solid var(--orange);outline-offset:2px}
+.tot{display:flex;justify-content:space-between;align-items:baseline;border-top:1px solid rgba(244,233,218,.3);padding-top:18px;margin-bottom:18px}
+.tot b{font:800 52px var(--disp);letter-spacing:-.04em}
+.sub .btn{background:var(--orange);color:#fff;width:100%}.sub .btn:hover{background:#f4e9da;color:var(--ink)}
+@media(max-width:860px){.sub .g{grid-template-columns:1fr}}
+.quote{padding-block:clamp(70px,9vw,130px);text-align:center}
+.quote blockquote{font:700 clamp(30px,4.2vw,64px)/1.05 var(--disp);letter-spacing:-.03em;max-width:20ch;margin:0 auto}
+.quote p{color:var(--mut);margin-top:18px}
+.visit{border-top:1px solid var(--line);padding-block:clamp(50px,7vw,100px)}
+.visit .g{display:grid;grid-template-columns:1fr 1fr;gap:30px;align-items:end}
+.visit h2{font-size:clamp(70px,12vw,200px);color:var(--orange)}
+.visit dl{display:grid;grid-template-columns:auto 1fr;gap:12px 24px;border-top:1px solid var(--line);padding-top:16px}
+.visit dt{color:var(--mut)}.visit dd{margin:0;font-weight:500}
+@media(max-width:860px){.visit .g{grid-template-columns:1fr}}
+footer{padding-block:26px;color:var(--mut);font-size:13px;border-top:1px solid var(--line)}
+footer .wrap{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap}
+@media (prefers-reduced-motion: reduce){.steam{animation:none}}
+
+
+.js .rv{opacity:0;transform:translateY(24px);transition:opacity .7s ease,transform .7s cubic-bezier(.2,.7,.2,1)}
+.js .rv.in{opacity:1;transform:none}
+@media (prefers-reduced-motion: reduce){.js .rv{opacity:1;transform:none;transition:none}*{scroll-behavior:auto!important}}
+
+</style>
+</head>
+<body>
+
+<header><div class="wrap"><a class="brand" href="#">moenda.</a>
+<nav><a href="#torras">Torras</a><a href="#assinatura">Assinatura</a><a href="#visite">Visite</a></nav>
+<a class="btn" href="#assinatura">Peça seu café</a></div></header>
+<main>
+<section class="hero" aria-labelledby="hh"><div class="wh"><h1 class="word" id="hh" aria-label="Moenda">MOENDA</h1>
+<div class="cup" id="cup"><img src="img/cafe-2.webp" alt="" fetchpriority="high"></div>
+<svg class="steam" viewBox="0 0 200 200" aria-hidden="true"><defs><path id="ring" d="M100,100 m-92,0 a92,92 0 1,1 184,0 a92,92 0 1,1 -184,0"/></defs>
+<text><textPath href="#ring" textLength="570">Torrado na terça. Na sua xícara na quinta. · Torrado na terça. Na sua xícara na quinta. · </textPath></text></svg></div>
+<div class="wrap hb"><p class="tag">Torrado na terça. Na sua xícara na quinta.</p><p class="r">Café especial de pequenos produtores, torrado em lotes de 5 kg no fundo da loja, na Rua Exemplo.</p></div></section>
+<section class="stats"><div class='rv'><b>5 kg</b><span>por lote de torra</span></div><div class='rv'><b>72 h</b><span>do torrador ao balcão</span></div><div class='rv'><b>4</b><span>origens na casa</span></div></section>
+<section class="wrap roast" id="torras" aria-labelledby="rh"><div class="top"><h2 id="rh" class="rv">Escolha a torra</h2><p class="k">Arraste para comparar</p></div>
+<div class="rs"><div class="bean" id="bean" aria-hidden="true"></div>
+<div aria-live="polite"><div class="rname" id="rn"></div><p class="rorig" id="ro"></p>
+<dl class="rgrid"><dt>Notas</dt><dd id="rno"></dd><dt>Melhor em</dt><dd id="rb"></dd></dl>
+<div class="meter" id="meter"></div>
+<input type="range" id="rr" min="0" max="3" step="1" value="1" aria-label="Escolha a torra"><div class="ticks"><span>Clara</span><span>Média</span><span>Média-escura</span><span>Escura</span></div></div></div></section>
+<section class="sub" id="assinatura" aria-labelledby="sh"><div class="wrap g">
+<div class="rv"><h2 id="sh">Café fresco todo mês, sem sair de casa.</h2><p>Escolha o tamanho, a frequência e se quer em grão ou moído. Pause quando quiser.</p><img src="img/cafe-3.webp" alt="" loading="lazy"></div>
+<form id="sf"><fieldset><legend>Tamanho</legend><div class='chips'><label><input type='radio' name='sz' value='0' ><span>250 g · R$ 54</span></label><label><input type='radio' name='sz' value='1' checked><span>500 g · R$ 98</span></label><label><input type='radio' name='sz' value='2' ><span>1 kg · R$ 182</span></label></div></fieldset>
+<fieldset><legend>Frequência</legend><div class='chips'><label><input type='radio' name='fq' value='0' ><span>A cada 2 semanas</span></label><label><input type='radio' name='fq' value='1' checked><span>Todo mês</span></label></div></fieldset>
+<fieldset><legend>Moagem</legend><div class='chips'><label><input type='radio' name='gr' value='0' checked><span>Em grão</span></label><label><input type='radio' name='gr' value='1' ><span>Moído para coado</span></label><label><input type='radio' name='gr' value='2' ><span>Moído para espresso</span></label></div></fieldset>
+<div class="tot" aria-live="polite"><span id="tl"></span><b id="tv"></b></div>
+<button class="btn" type="submit">Assinar pelo WhatsApp</button></form></div></section>
+<section class="wrap quote"><blockquote class="rv">“O melhor café de Caxias é aquele que você toma sem açúcar e sem pressa.”</blockquote><p>Cartaz pendurado no balcão</p></section>
+<section class="wrap visit" id="visite" aria-labelledby="vh"><div class="g"><h2 id="vh" class="rv">Passa aqui.</h2>
+<div><dl><dt>Seg a sex</dt><dd>7h30 às 19h</dd><dt>Sábado</dt><dd>8h às 17h</dd><dt>Domingo</dt><dd>fechado (a gente torra)</dd></dl><p style="margin-top:18px;color:var(--mut)">Rua Exemplo, 312 · Centro · Caxias do Sul, RS</p></div></div></section>
+</main>
+<footer><div class="wrap"><span>Moenda Torrefação & Café</span><span>Modelo de demonstração da .dev Bossle. Nomes, valores, telefones e endereço são exemplos. Fotos: Unsplash (Unsplash License).</span></div></footer>
+
+<script>
+
+document.documentElement.classList.add('js');
+var RM=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+(function(){
+  var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}})},{threshold:.15});
+  document.querySelectorAll('.rv').forEach(function(el,k){el.style.transitionDelay=(k%3)*80+'ms';io.observe(el)});
+})();
+function clamp(v,a,b){return Math.max(a,Math.min(b,v))}
+function progress(el){var r=el.getBoundingClientRect(),h=el.offsetHeight-innerHeight;return h>0?clamp(-r.top/h,0,1):0}
+
+
+var R=[["Clara", "Mantiqueira de Minas", "Floral, chá preto, limão-siciliano", "Coado, Aeropress", 3, 1, 4], ["Média", "Cerrado Mineiro", "Caramelo, laranja, amêndoa", "Coado, prensa francesa", 3, 3, 3], ["Média-escura", "Sul de Minas", "Chocolate amargo, castanha, rapadura", "Espresso, moka", 2, 4, 2], ["Escura", "Blend da casa", "Cacau, melaço, tostado", "Espresso com leite", 1, 5, 1]],C=["#b98552", "#8a5530", "#5e3820", "#33201a"],T={"attrs": ["Acidez", "Corpo", "Doçura"], "sizes": [["250 g", 54], ["500 g", 98], ["1 kg", 182]], "freq": ["A cada 2 semanas", "Todo mês"], "grind": ["Em grão", "Moído para coado", "Moído para espresso"], "msg": "Olá! Quero assinar a Moenda", "l": ["Tamanho", "Frequência", "Moagem"], "per": "/entrega"};
+(function(){
+  var cup=document.getElementById('cup'),hero=document.querySelector('.hero');
+  if(!RM&&matchMedia('(pointer:fine) and (min-width:861px)').matches){hero.addEventListener('pointermove',function(e){var r=hero.getBoundingClientRect();
+    var x=(e.clientX-r.left)/r.width-.5,y=(e.clientY-r.top)/r.height-.5;
+    cup.style.transform='translate(calc(-50% + '+x*40+'px),calc(-50% + '+y*30+'px)) rotate('+x*8+'deg)'});
+    hero.addEventListener('pointerleave',function(){cup.style.transform=''})}
+  if(!RM)addEventListener('scroll',function(){var y=Math.min(scrollY,innerHeight);document.querySelector('.word').style.transform='translateY('+y*.25+'px)';
+    cup.querySelector('img').style.transform='scale('+(1.15+y/innerHeight*.25)+')'},{passive:true});
+  var rr=document.getElementById('rr'),bean=document.getElementById('bean'),meter=document.getElementById('meter');
+  function roast(){var r=R[+rr.value];bean.style.background=C[+rr.value];
+    document.getElementById('rn').textContent=r[0];document.getElementById('ro').textContent=r[1];
+    document.getElementById('rno').textContent=r[2];document.getElementById('rb').textContent=r[3];
+    meter.innerHTML=T.attrs.map(function(a,k){var v=r[4+k],s='';for(var j=0;j<5;j++)s+='<b class="'+(j<v?'on':'')+'"></b>';return '<div><span>'+a+'</span><i>'+s+'</i></div>'}).join('')}
+  rr.addEventListener('input',roast);roast();
+  var f=document.getElementById('sf');var loc=document.documentElement.lang==='en'?'en-US':'pt-BR';
+  function val(n){return +f.querySelector('input[name='+n+']:checked').value}
+  function tot(){var s=T.sizes[val('sz')],v=s[1];
+    document.getElementById('tl').textContent=s[0]+' · '+T.freq[val('fq')];document.getElementById('tv').textContent='R$ '+v.toLocaleString(loc)+T.per;return v}
+  f.addEventListener('change',tot);tot();
+  f.addEventListener('submit',function(e){e.preventDefault();var l=T.l;
+    var txt=T.msg+'\n'+l[0]+': '+T.sizes[val('sz')][0]+'\n'+l[1]+': '+T.freq[val('fq')]+'\n'+l[2]+': '+T.grind[val('gr')];
+    window.open('https://wa.me/5554999999999?text='+encodeURIComponent(txt),'_blank','noopener')});
+})();
+
+</script>
+</body>
+</html>

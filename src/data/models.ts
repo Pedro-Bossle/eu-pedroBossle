@@ -10,6 +10,18 @@ import veterinaria from "../assets/modelos/veterinaria.webp";
 import veterinariaEn from "../assets/modelos/veterinaria.en.webp";
 import viagens from "../assets/modelos/viagens.webp";
 import viagensEn from "../assets/modelos/viagens.en.webp";
+import hamburgueria from "../assets/modelos/hamburgueria.webp";
+import hamburgueriaEn from "../assets/modelos/hamburgueria.en.webp";
+import advocacia from "../assets/modelos/advocacia.webp";
+import advocaciaEn from "../assets/modelos/advocacia.en.webp";
+import imobiliaria from "../assets/modelos/imobiliaria.webp";
+import imobiliariaEn from "../assets/modelos/imobiliaria.en.webp";
+import pousada from "../assets/modelos/pousada.webp";
+import pousadaEn from "../assets/modelos/pousada.en.webp";
+import cafeteria from "../assets/modelos/cafeteria.webp";
+import cafeteriaEn from "../assets/modelos/cafeteria.en.webp";
+import provedor from "../assets/modelos/provedor.webp";
+import provedorEn from "../assets/modelos/provedor.en.webp";
 
 /** Modelos (whitelabel) do catálogo. O HTML de cada um fica em public/modelos-demo/<id>.html. Textos por idioma ficam em `t.models.items[id]`; a miniatura também tem versão em inglês (`imageEn`). */
 export const MODELS = [
@@ -48,6 +60,42 @@ export const MODELS = [
     domain: "suaagencia.com.br",
     image: viagens,
     imageEn: viagensEn,
+  },
+  {
+    id: "hamburgueria",
+    domain: "suahamburgueria.com.br",
+    image: hamburgueria,
+    imageEn: hamburgueriaEn,
+  },
+  {
+    id: "advocacia",
+    domain: "suaadvocacia.com.br",
+    image: advocacia,
+    imageEn: advocaciaEn,
+  },
+  {
+    id: "imobiliaria",
+    domain: "suaimobiliaria.com.br",
+    image: imobiliaria,
+    imageEn: imobiliariaEn,
+  },
+  {
+    id: "pousada",
+    domain: "suapousada.com.br",
+    image: pousada,
+    imageEn: pousadaEn,
+  },
+  {
+    id: "cafeteria",
+    domain: "suacafeteria.com.br",
+    image: cafeteria,
+    imageEn: cafeteriaEn,
+  },
+  {
+    id: "provedor",
+    domain: "seuprovedor.com.br",
+    image: provedor,
+    imageEn: provedorEn,
   },
 ] as const;
 
