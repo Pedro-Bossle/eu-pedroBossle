@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type MouseEvent, type ReactNode } from "react";
 import WhatsAppIcon from "../../components/icons/WhatsAppIcon";
 import { orcamentosApi } from "../../lib/orcamentos/api";
 import {
@@ -815,12 +815,230 @@ function ImportExport({
 
 // ---------- Tela ----------
 
+type Owner = "db" | "wa" | "pd";
+
+/** Quem conduz cada etapa: Dev Bossle (db), bot do WhatsApp (wa) ou Pedro (pd). */
+const OWNER: Record<string, Owner> = {
+  encontrado: "db",
+  aguardando: "pd",
+  aprovado: "wa",
+  enviado: "wa",
+  followup: "wa",
+  respondeu: "pd",
+  proposta: "pd",
+  resultado: "pd",
+};
+
+const OWNER_LABEL: Record<Owner, string> = { db: "Dev Bossle", wa: "WhatsApp", pd: "Você" };
+
+const OWNER_BADGE: Record<Owner, string> = {
+  db: "bg-blue-500/10 text-blue-700 dark:text-blue-300",
+  wa: "bg-emerald-500/10 text-emerald-800 dark:text-emerald-300",
+  pd: "bg-neutral-900 text-white dark:bg-[#f9f9f9] dark:text-neutral-900",
+};
+
+const OWNER_BAR: Record<Owner, { track: string; fill: string }> = {
+  db: { track: "border-blue-600 bg-blue-500/10", fill: "bg-blue-600/80" },
+  wa: { track: "border-emerald-600 bg-emerald-500/10", fill: "bg-emerald-600/85" },
+  pd: {
+    track: "border-neutral-900 bg-neutral-500/10 dark:border-neutral-200",
+    fill: "bg-neutral-900/80 dark:bg-neutral-200/80",
+  },
+};
+
+/** Etapas que esperam uma ação sua. */
+const ATTENTION = ["aguardando", "respondeu"] as const;
+const needsYou = (stage: string) => (ATTENTION as readonly string[]).includes(stage);
+
+const DAY = 864e5;
+const ageDays = (iso: string | null) =>
+  iso ? Math.max(0, Math.floor((Date.now() - new Date(iso).getTime()) / DAY)) : 0;
+const ageText = (iso: string | null) => {
+  const d = ageDays(iso);
+  return d === 0 ? "hoje" : d === 1 ? "há 1 dia" : `há ${d} dias`;
+};
+
+/**
+ * Até que etapa o lead chegou. Quem saiu do funil não guarda a etapa de origem,
+ * então estimamos pelos registros de envio e resposta.
+ */
+function reachedIndex(l: ProspectLead): number {
+  const i = (FUNNEL as readonly string[]).indexOf(l.stage);
+  if (i >= 0) return i;
+  if (l.stage === "sem_resposta") return 4;
+  if (l.repliedAt) return 5;
+  return l.sentAt ? 3 : 0;
+}
+
+const isLate = (l: ProspectLead) =>
+  (l.stage === "aguardando" && ageDays(l.stageChangedAt ?? l.created) >= 2) ||
+  (l.stage === "respondeu" && ageDays(l.stageChangedAt ?? l.created) >= 1);
+
+const neutralBadge = `${badge} bg-neutral-100 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-300`;
+
+function BoardCard({
+  lead,
+  busy,
+  onOpen,
+  onApprove,
+  onReject,
+}: {
+  lead: ProspectLead;
+  busy: boolean;
+  onOpen: () => void;
+  onApprove: () => void;
+  onReject: () => void;
+}) {
+  const { onlyLandline } = contactInfo(lead);
+  const since = lead.stageChangedAt ?? lead.created;
+  const place = [lead.niche, [lead.neighborhood, lead.city].filter(Boolean).join(", ")].filter(Boolean).join(" · ");
+  const sources = Math.max(1, lead.phoneSources.length);
+  const stop = (fn: () => void) => (e: MouseEvent<HTMLButtonElement>) => {
+    e.stopPropagation();
+    fn();
+  };
+
+  return (
+    <div
+      role="button"
+      tabIndex={0}
+      aria-label={`Abrir ${lead.name}`}
+      onClick={onOpen}
+      onKeyDown={(e) => {
+        if (e.target === e.currentTarget && (e.key === "Enter" || e.key === " ")) {
+          e.preventDefault();
+          onOpen();
+        }
+      }}
+      className={`grid w-full min-w-0 cursor-pointer gap-2 border border-neutral-200 bg-white p-3 text-left transition-colors hover:border-neutral-400 dark:border-neutral-800 dark:bg-[#151515] dark:hover:border-neutral-500 ${focusRing}`}
+    >
+      <div className="flex items-start justify-between gap-2">
+        <h4 className="min-w-0 text-sm leading-snug font-bold break-words">{lead.name}</h4>
+        {lead.score != null ? (
+          <span className={`${badge} shrink-0 ${scoreBadge(lead.score)}`}>{lead.score}</span>
+        ) : null}
+      </div>
+      <p className="text-xs break-words text-neutral-500 dark:text-neutral-400">{place || "Sem nicho ou cidade"}</p>
+
+      {lead.stage === "aguardando" && lead.message ? (
+        <p className="line-clamp-4 border-l-2 border-emerald-600 bg-[#f9f9f9] px-2.5 py-2 text-xs leading-relaxed dark:bg-[#121212]">
+          {lead.message}
+        </p>
+      ) : null}
+      {lead.stage === "respondeu" ? (
+        <p className="line-clamp-3 border-l-2 border-neutral-900 bg-[#f9f9f9] px-2.5 py-2 text-xs leading-relaxed dark:border-neutral-200 dark:bg-[#121212]">
+          {lead.replyText || "Respondeu"}
+        </p>
+      ) : null}
+      {lead.stage === "resultado" && lead.result ? (
+        <div>
+          <span
+            className={`${badge} ${
+              lead.result === "fechado"
+                ? "bg-emerald-500/15 text-emerald-800 dark:text-emerald-300"
+                : "bg-red-500/10 text-red-700 dark:text-red-300"
+            }`}
+          >
+            {lead.result}
+          </span>
+        </div>
+      ) : null}
+      {!needsYou(lead.stage) && lead.stage !== "resultado" ? (
+        <div className="flex flex-wrap gap-1">
+          <span
+            className={
+              lead.website ? neutralBadge : `${badge} bg-emerald-500/10 text-emerald-800 dark:text-emerald-300`
+            }
+          >
+            {lead.website ? "com site" : "sem site"}
+          </span>
+          <span className={neutralBadge}>
+            {lead.whatsapp.trim() || lead.phone.trim()
+              ? `tel. ${sources} fonte${sources > 1 ? "s" : ""}`
+              : "sem telefone"}
+          </span>
+          {onlyLandline ? (
+            <span className={`${badge} bg-amber-500/10 text-amber-800 dark:text-amber-300`}>só fixo</span>
+          ) : null}
+        </div>
+      ) : null}
+
+      <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] text-neutral-500 dark:text-neutral-400">
+        <span className={isLate(lead) ? "font-bold text-red-600 dark:text-red-400" : ""}>
+          {ageText(since)} nesta etapa
+        </span>
+        {lead.stage === "aguardando" ? (
+          <span className="flex gap-1.5">
+            <button
+              type="button"
+              className={`${btnDanger} !min-h-8 !px-2.5 !py-1 text-xs`}
+              disabled={busy}
+              onClick={stop(onReject)}
+            >
+              Recusar
+            </button>
+            <button
+              type="button"
+              className="inline-flex min-h-8 cursor-pointer items-center bg-emerald-700 px-2.5 py-1 text-xs font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-50 dark:bg-emerald-500 dark:text-neutral-950"
+              disabled={busy}
+              onClick={stop(onApprove)}
+            >
+              Aprovar
+            </button>
+          </span>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
+function LeadDrawer({ lead, onClose, children }: { lead: ProspectLead; onClose: () => void; children: ReactNode }) {
+  const closeRef = useRef<HTMLButtonElement>(null);
+  const out = isExit(lead.stage);
+
+  useEffect(() => {
+    closeRef.current?.focus();
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
+  return (
+    <>
+      <div className="fixed inset-0 z-40 bg-black/35" onClick={onClose} aria-hidden="true" />
+      <aside
+        role="dialog"
+        aria-modal="true"
+        aria-label={lead.name}
+        className="fixed inset-y-0 right-0 z-50 flex w-full max-w-xl flex-col border-l border-neutral-200 bg-[#f6f6f6] dark:border-neutral-800 dark:bg-[#0e0e0e]"
+      >
+        <div className="flex items-center justify-between gap-3 border-b border-neutral-200 bg-white px-4 py-3 dark:border-neutral-800 dark:bg-[#151515]">
+          <span className="flex min-w-0 items-center gap-2">
+            <span className={out ? neutralBadge : `${badge} ${OWNER_BADGE[OWNER[lead.stage]]}`}>
+              {out ? "Fora do funil" : OWNER_LABEL[OWNER[lead.stage]]}
+            </span>
+            <span className="truncate text-sm font-semibold">{STAGE_LABEL[lead.stage] ?? lead.stage}</span>
+          </span>
+          <button ref={closeRef} type="button" className={btnSm} onClick={onClose}>
+            Fechar
+          </button>
+        </div>
+        <div className="flex-1 overflow-y-auto p-3 sm:p-4">{children}</div>
+      </aside>
+    </>
+  );
+}
+
 function Funnel({ showToast }: Props) {
   const [leads, setLeads] = useState<ProspectLead[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
-  const [stage, setStage] = useState<string>("aguardando");
+  const [city, setCity] = useState("");
+  const [niche, setNiche] = useState("");
   const [query, setQuery] = useState("");
+  const [exitStage, setExitStage] = useState("");
+  const [openId, setOpenId] = useState("");
+  const [busyId, setBusyId] = useState("");
   const [showTokens, setShowTokens] = useState(false);
   const [panel, setPanel] = useState<"" | "import" | "new">("");
 
@@ -850,33 +1068,66 @@ function Funnel({ showToast }: Props) {
       return next;
     });
 
-  const counts = useMemo(() => {
-    const map: Record<string, number> = {};
-    for (const l of leads) map[l.stage] = (map[l.stage] ?? 0) + 1;
-    return map;
-  }, [leads]);
+  const cities = useMemo(() => [...new Set(leads.map((l) => l.city).filter(Boolean))].sort(), [leads]);
+  const niches = useMemo(() => [...new Set(leads.map((l) => l.niche).filter(Boolean))].sort(), [leads]);
 
-  const visible = useMemo(() => {
+  /** Leads depois dos filtros de cidade, nicho e busca (inclui as saídas). */
+  const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return leads
-      .filter((l) => l.stage === stage)
-      .filter((l) => !q || `${l.name} ${l.niche} ${l.city}`.toLowerCase().includes(q))
-      .sort(
+    return leads.filter(
+      (l) =>
+        (!city || l.city === city) &&
+        (!niche || l.niche === niche) &&
+        (!q || `${l.name} ${l.niche} ${l.city} ${l.neighborhood}`.toLowerCase().includes(q)),
+    );
+  }, [leads, city, niche, query]);
+
+  const byStage = useMemo(() => {
+    const map: Record<string, ProspectLead[]> = {};
+    for (const l of filtered) (map[l.stage] ??= []).push(l);
+    for (const list of Object.values(map)) {
+      list.sort(
         (a, b) =>
           (b.score ?? -1) - (a.score ?? -1) ||
           (b.stageChangedAt ?? b.created).localeCompare(a.stageChangedAt ?? a.created),
       );
-  }, [leads, stage, query]);
+    }
+    return map;
+  }, [filtered]);
 
-  const tab = (s: string) => (
-    <button key={s} type="button" className={chip(stage === s)} onClick={() => setStage(s)}>
-      {STAGE_LABEL[s]} · {counts[s] ?? 0}
-    </button>
-  );
+  const reached = useMemo(() => FUNNEL.map((_, i) => filtered.filter((l) => reachedIndex(l) >= i).length), [filtered]);
+
+  const waiting = byStage.aguardando?.length ?? 0;
+  const replied = byStage.respondeu?.length ?? 0;
+  const won = (byStage.resultado ?? []).filter((l) => l.result === "fechado").length;
+  const openLead = leads.find((l) => l.id === openId);
+  const exitLeads = exitStage ? (byStage[exitStage] ?? []) : [];
+  const closeDrawer = useCallback(() => setOpenId(""), []);
+
+  const jump = (stageId: string) =>
+    document.getElementById(`col-${stageId}`)?.scrollIntoView({ behavior: "smooth", inline: "start", block: "nearest" });
+
+  const quickMove = async (lead: ProspectLead, to: string, extra: { note?: string; message?: string }, done: string) => {
+    setBusyId(lead.id);
+    try {
+      const { lead: saved } = await orcamentosApi.moveProspect(lead.id, to, extra);
+      replaceLead(saved);
+      showToast(done);
+    } catch (e) {
+      showToast(e instanceof Error ? e.message : "Não foi possível mover o lead");
+    } finally {
+      setBusyId("");
+    }
+  };
+
+  const reject = (lead: ProspectLead) => {
+    const note = window.prompt(`Motivo para recusar "${lead.name}":`)?.trim();
+    if (note) void quickMove(lead, "descartado", { note }, "Recusado e movido para Descartado");
+  };
 
   return (
-    <section>
-      <div className="mb-6 flex flex-wrap items-start justify-between gap-3">
+    <section className="grid gap-5">
+      <header className="flex flex-wrap items-end justify-between gap-x-5 gap-y-3">
         <div>
           <p className="text-sm font-medium uppercase tracking-widest opacity-60">Vendas</p>
           <h1 className="mt-1 text-2xl font-semibold tracking-tight sm:text-3xl">Funil de prospecção</h1>
@@ -893,19 +1144,14 @@ function Funnel({ showToast }: Props) {
           >
             Importar / exportar
           </button>
-          <button
-            type="button"
-            className={btn}
-            onClick={() => setShowTokens((v) => !v)}
-            aria-expanded={showTokens}
-          >
+          <button type="button" className={btn} onClick={() => setShowTokens((v) => !v)} aria-expanded={showTokens}>
             Tokens dos bots
           </button>
           <button type="button" className={btnPrimary} onClick={() => setPanel("new")}>
             + Novo lead
           </button>
         </div>
-      </div>
+      </header>
 
       {panel === "new" ? (
         <NewLeadForm
@@ -913,31 +1159,42 @@ function Funnel({ showToast }: Props) {
           onCancel={() => setPanel("")}
           onSaved={(lead) => {
             replaceLead(lead);
-            setStage(lead.stage);
             setPanel("");
           }}
         />
       ) : null}
       {panel === "import" ? <ImportExport leads={leads} onImported={setLeads} /> : null}
-
       {showTokens ? <BotTokens showToast={showToast} /> : null}
 
-      <div className="mb-2 flex gap-2 overflow-x-auto pb-1">{FUNNEL.map(tab)}</div>
-      <div className="mb-4 flex gap-2 overflow-x-auto pb-1">
-        <span className="shrink-0 self-center text-xs font-medium uppercase tracking-widest text-neutral-500">
-          Saídas
-        </span>
-        {EXITS.map(tab)}
-      </div>
-
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <p className="text-sm text-neutral-500 dark:text-neutral-400">{STAGE_HINT[stage]}</p>
+      <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Filtros">
+        <button type="button" className={chip(!city)} aria-pressed={!city} onClick={() => setCity("")}>
+          Todas as cidades
+        </button>
+        {cities.map((c) => (
+          <button key={c} type="button" className={chip(city === c)} aria-pressed={city === c} onClick={() => setCity(c)}>
+            {c}
+          </button>
+        ))}
+        <select
+          className={`${inputClass} !min-h-9 !w-auto !py-1.5`}
+          value={niche}
+          onChange={(e) => setNiche(e.target.value)}
+          aria-label="Nicho"
+        >
+          <option value="">Todos os nichos</option>
+          {niches.map((n) => (
+            <option key={n} value={n}>
+              {n}
+            </option>
+          ))}
+        </select>
         <input
-          className={`${inputClass} sm:w-64`}
+          className={`${inputClass} !min-h-9 !py-1.5 sm:!w-60`}
+          type="search"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Buscar nome, nicho ou cidade"
-          aria-label="Buscar leads"
+          placeholder="Buscar negócio"
+          aria-label="Buscar negócio"
         />
       </div>
 
@@ -953,19 +1210,219 @@ function Funnel({ showToast }: Props) {
         </div>
       ) : null}
 
-      <div className="grid gap-3 lg:grid-cols-2 2xl:grid-cols-3">
-        {visible.map((lead) => (
-          <LeadCard key={`${lead.id}-${lead.updated}`} lead={lead} onChange={replaceLead} showToast={showToast} />
-        ))}
-      </div>
+      {/* Funil: quantos chegaram a cada etapa e a conversão da anterior */}
+      <section className={`${cardClass} grid gap-3 !p-4`} aria-labelledby="funnel-title">
+        <div className="flex flex-wrap items-baseline justify-between gap-2">
+          <h2 id="funnel-title" className="text-base font-bold">
+            Funil
+          </h2>
+          <span className="text-xs text-neutral-500 dark:text-neutral-400">
+            Leads que chegaram a cada etapa · {won} fechado{won === 1 ? "" : "s"}
+          </span>
+        </div>
+        <div className="grid grid-cols-4 gap-x-1 gap-y-4 md:grid-cols-8">
+          {FUNNEL.map((s, i) => {
+            const n = reached[i];
+            const pct = i ? (reached[i - 1] ? Math.round((n / reached[i - 1]) * 100) : 0) : null;
+            const now = byStage[s]?.length ?? 0;
+            const h = Math.max(6, Math.round((n / (reached[0] || 1)) * 100));
+            const bar = OWNER_BAR[OWNER[s]];
+            return (
+              <button
+                key={s}
+                type="button"
+                onClick={() => jump(s)}
+                aria-label={`${STAGE_LABEL[s]}: ${n} no total, ${now} agora`}
+                className={`grid min-w-0 cursor-pointer content-start gap-1.5 text-left ${focusRing}`}
+              >
+                <div
+                  className={`relative h-12 overflow-hidden border-b-[3px] ${bar.track} ${needsYou(s) && now > 0 ? "outline-2 -outline-offset-2 outline-amber-500" : ""}`}
+                >
+                  <i className={`absolute inset-x-0 bottom-0 ${bar.fill}`} style={{ height: `${h}%` }} />
+                </div>
+                <span className="text-xl leading-none font-bold tabular-nums">{n}</span>
+                <span className="text-[11px] leading-tight font-semibold break-words text-neutral-500 dark:text-neutral-400">
+                  {STAGE_LABEL[s]}
+                </span>
+                <span className="text-[11px] text-neutral-500 tabular-nums dark:text-neutral-400">
+                  {pct === null ? (
+                    "base"
+                  ) : (
+                    <>
+                      <b className="font-semibold text-neutral-900 dark:text-neutral-100">{pct}%</b> da anterior
+                    </>
+                  )}{" "}
+                  · {now} agora
+                </span>
+              </button>
+            );
+          })}
+        </div>
+        <div className="flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-neutral-500 dark:text-neutral-400">
+          {(Object.keys(OWNER_LABEL) as Owner[]).map((o) => (
+            <span key={o} className="inline-flex items-center gap-1.5">
+              <i className={`inline-block size-2.5 ${OWNER_BAR[o].fill}`} />
+              {OWNER_LABEL[o]}
+            </span>
+          ))}
+          <span>% = quantos passaram da etapa anterior para esta</span>
+        </div>
+      </section>
 
-      {!loading && !loadError && !visible.length ? (
-        <div className="border border-dashed border-neutral-300 px-4 py-10 text-center text-sm text-neutral-500 dark:border-neutral-700 dark:text-neutral-400">
-          Nenhum lead em {STAGE_LABEL[stage]}.
+      {waiting || replied ? (
+        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm">
+          <p>
+            {[
+              waiting ? `${waiting} mensage${waiting > 1 ? "ns" : "m"} esperando sua aprovação` : "",
+              replied ? `${replied} lead${replied > 1 ? "s" : ""} respondeu e espera você` : "",
+            ]
+              .filter(Boolean)
+              .join(" · ")}
+          </p>
+          <button type="button" className={btnPrimary} onClick={() => jump(waiting ? "aguardando" : "respondeu")}>
+            {waiting ? "Revisar mensagens" : "Ver respostas"}
+          </button>
         </div>
       ) : null}
-      {loading ? (
-        <div className="py-10 text-center text-sm text-neutral-500 dark:text-neutral-400">Carregando…</div>
+
+      {/* Quadro por etapa */}
+      <div className="overflow-x-auto pb-1.5">
+        <div className="grid min-w-min auto-cols-[minmax(260px,1fr)] grid-flow-col gap-2.5">
+          {FUNNEL.map((s) => {
+            const items = byStage[s] ?? [];
+            const owner = OWNER[s];
+            const attn = needsYou(s) && items.length > 0;
+            return (
+              <section
+                key={s}
+                id={`col-${s}`}
+                aria-label={STAGE_LABEL[s]}
+                className={`flex min-h-60 min-w-0 flex-col border bg-[#f9f9f9] dark:bg-[#121212] ${attn ? "border-amber-500/55" : "border-neutral-200 dark:border-neutral-800"}`}
+              >
+                <header
+                  className={`flex items-center justify-between gap-2 border-b px-3 py-2.5 ${attn ? "border-amber-500/55 bg-amber-500/10" : "border-neutral-200 bg-white dark:border-neutral-800 dark:bg-[#151515]"}`}
+                >
+                  <h3 className="text-xs font-bold tracking-wide uppercase">{STAGE_LABEL[s]}</h3>
+                  <span className="flex items-center gap-1.5">
+                    <span className={`px-1.5 py-0.5 text-[10px] font-bold tracking-wide uppercase ${OWNER_BADGE[owner]}`}>
+                      {OWNER_LABEL[owner]}
+                    </span>
+                    <span className="text-xs font-bold text-neutral-500 tabular-nums dark:text-neutral-400">
+                      {items.length}
+                    </span>
+                  </span>
+                </header>
+                <div className="grid max-h-[70vh] content-start gap-2 overflow-y-auto p-2.5">
+                  {items.length ? (
+                    items.map((lead) => (
+                      <BoardCard
+                        key={lead.id}
+                        lead={lead}
+                        busy={busyId === lead.id}
+                        onOpen={() => setOpenId(lead.id)}
+                        onApprove={() =>
+                          quickMove(
+                            lead,
+                            "aprovado",
+                            { message: lead.message },
+                            "Aprovado. O bot do WhatsApp envia na próxima janela.",
+                          )
+                        }
+                        onReject={() => reject(lead)}
+                      />
+                    ))
+                  ) : (
+                    <p className="px-1 py-2.5 text-xs text-neutral-500 dark:text-neutral-400">
+                      {loading ? "Carregando…" : "Nada aqui agora."}
+                    </p>
+                  )}
+                </div>
+              </section>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Saídas do funil */}
+      <section className="grid gap-2.5" aria-labelledby="exits-title">
+        <h2 id="exits-title" className="text-base font-bold">
+          Saídas do funil
+        </h2>
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
+          {EXITS.map((e) => (
+            <button
+              key={e}
+              type="button"
+              aria-pressed={exitStage === e}
+              onClick={() => setExitStage(exitStage === e ? "" : e)}
+              className={`grid cursor-pointer content-start gap-0.5 border bg-white p-3 text-left transition-colors hover:border-neutral-400 dark:bg-[#151515] dark:hover:border-neutral-500 ${focusRing} ${
+                exitStage === e ? "border-neutral-900 dark:border-neutral-200" : "border-neutral-200 dark:border-neutral-800"
+              }`}
+            >
+              <b className="text-xl tabular-nums">{byStage[e]?.length ?? 0}</b>
+              <span className="text-xs font-semibold">{STAGE_LABEL[e]}</span>
+              <small className="text-[11px] text-neutral-500 dark:text-neutral-400">{STAGE_HINT[e]}</small>
+            </button>
+          ))}
+        </div>
+        {exitStage ? (
+          <div className="overflow-x-auto border border-neutral-200 bg-white dark:border-neutral-800 dark:bg-[#151515]">
+            <table className="w-full border-collapse text-sm">
+              <thead>
+                <tr className="text-left text-[11px] tracking-wider text-neutral-500 uppercase dark:text-neutral-400">
+                  {["Negócio", "Cidade", "Motivo", "Quando"].map((h) => (
+                    <th key={h} className="border-b border-neutral-200 px-3 py-2 font-semibold dark:border-neutral-800">
+                      {h}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {exitLeads.length ? (
+                  exitLeads.map((l) => (
+                    <tr
+                      key={l.id}
+                      tabIndex={0}
+                      onClick={() => setOpenId(l.id)}
+                      onKeyDown={(e) => e.key === "Enter" && setOpenId(l.id)}
+                      className={`cursor-pointer hover:bg-neutral-50 dark:hover:bg-neutral-900 ${focusRing}`}
+                    >
+                      <td className="border-b border-neutral-100 px-3 py-2 font-medium whitespace-nowrap dark:border-neutral-800">
+                        {l.name}
+                      </td>
+                      <td className="border-b border-neutral-100 px-3 py-2 whitespace-nowrap dark:border-neutral-800">
+                        {l.city}
+                      </td>
+                      <td className="min-w-56 border-b border-neutral-100 px-3 py-2 dark:border-neutral-800">
+                        {l.exitReason || "—"}
+                      </td>
+                      <td className="border-b border-neutral-100 px-3 py-2 whitespace-nowrap text-neutral-500 dark:border-neutral-800">
+                        {fmtWhen(l.stageChangedAt)}
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={4} className="px-3 py-3 text-neutral-500 dark:text-neutral-400">
+                      Nenhum lead em {STAGE_LABEL[exitStage]} com estes filtros.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        ) : null}
+      </section>
+
+      {openLead ? (
+        <LeadDrawer lead={openLead} onClose={closeDrawer}>
+          <LeadCard
+            key={`${openLead.id}-${openLead.updated}`}
+            lead={openLead}
+            onChange={replaceLead}
+            showToast={showToast}
+          />
+        </LeadDrawer>
       ) : null}
     </section>
   );
