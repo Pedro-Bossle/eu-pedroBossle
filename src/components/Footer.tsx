@@ -5,7 +5,7 @@ import { useLanguage } from "../i18n/LanguageContext";
 
 const resume = resumeData as Resume;
 
-const INSTAGRAM_URL = "https://www.instagram.com/pedro_bossle/";
+const INSTAGRAM_URL = "https://www.instagram.com/dev.bossle/";
 const GITHUB_URL = "https://github.com/Pedro-Bossle";
 
 function Footer() {
@@ -27,7 +27,7 @@ function Footer() {
     {
       href: INSTAGRAM_URL,
       label: t.contact.instagram,
-      value: "@pedro_bossle",
+      value: "@dev.bossle",
       external: true,
     },
     {
@@ -108,9 +108,27 @@ function Footer() {
           </li>
         </ul>
 
+        <nav
+          aria-label="Links legais"
+          className="mt-10 flex flex-wrap gap-x-6 gap-y-2 text-sm font-light"
+        >
+          <Link to="/estudos-de-caso" className="underline-offset-4 hover:underline">
+            {t.cases.title}
+          </Link>
+          <Link to="/contato" className="underline-offset-4 hover:underline">
+            {t.nav.contactPage}
+          </Link>
+          <Link to="/termos-de-uso" className="underline-offset-4 hover:underline">
+            {t.legal.terms}
+          </Link>
+          <Link to="/politica-de-privacidade" className="underline-offset-4 hover:underline">
+            {t.legal.privacy}
+          </Link>
+        </nav>
+
         <div
           className="
-            mt-14 flex flex-col gap-3 border-t border-neutral-200/80 pt-6
+            mt-8 flex flex-col gap-3 border-t border-neutral-200/80 pt-6
             text-sm text-neutral-500
             dark:border-neutral-800 dark:text-neutral-400
             sm:flex-row sm:items-end sm:justify-between

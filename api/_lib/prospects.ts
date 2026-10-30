@@ -1,4 +1,5 @@
 import type { PoolClient } from "@neondatabase/serverless";
+import { computeScore, hasScoreData } from "./prospectScore.js";
 
 export type ProspectLead = {
   id: string;
@@ -39,6 +40,13 @@ export type ProspectLead = {
   followupApprovedAt: string | null;
   followupAt: string | null;
   replyText: string;
+  /** Dados da nota (010) */
+  reviewsCount: number | null;
+  lastReviewAt: string | null;
+  followers: number | null;
+  lastPostAt: string | null;
+  investLevel: number;
+  competitorSite: boolean;
 };
 
 /** Campos que o painel envia ao criar, editar ou importar um lead. */
@@ -50,14 +58,21 @@ export type ProspectInput = Partial<
     | "phoneSources" | "siteCheck" | "activity" | "detail" | "projectType"
     | "followupMessage" | "followupApprovedAt" | "followupAt" | "replyText"
   >
-> & { id?: string };
+> & {
+  id?: string;
+  /** Campos editáveis pelo painel (não vêm de importação). */
+  siteCheck?: string;
+  activity?: string;
+  detail?: string;
+};
 
 export const PROSPECT_COLUMNS = `id, name, niche, city, address, neighborhood, website, email,
   whatsapp, phone, instagram, problems, pitch, message, maps_url, source,
   sent, sent_at, replied, replied_at, created_at, updated_at,
   stage, stage_changed_at, exit_reason, result, score, score_breakdown, phone_sources,
   site_check, activity, detail, project_type, followup_message, followup_approved_at,
-  followup_at, reply_text`;
+  followup_at, reply_text, reviews_count, last_review_at::text AS last_review_at, followers,
+  last_post_at::text AS last_post_at, invest_level, competitor_site`;
 
 const iso = (v: unknown): string | null =>
   v == null ? null : v instanceof Date ? v.toISOString() : String(v);
@@ -103,8 +118,25 @@ export function mapProspect(row: Record<string, unknown>): ProspectLead {
     followupApprovedAt: iso(row.followup_approved_at),
     followupAt: iso(row.followup_at),
     replyText: String(row.reply_text ?? ""),
+    reviewsCount: row.reviews_count == null ? null : Number(row.reviews_count),
+    lastReviewAt: row.last_review_at == null ? null : String(row.last_review_at),
+    followers: row.followers == null ? null : Number(row.followers),
+    lastPostAt: row.last_post_at == null ? null : String(row.last_post_at),
+    investLevel: Number(row.invest_level ?? 0),
+    competitorSite: Boolean(row.competitor_site),
   };
 }
+
+const count = (v: unknown): number | null => {
+  if (v == null || v === "") return null;
+  const n = Math.round(Number(v));
+  return Number.isFinite(n) && n >= 0 ? Math.min(n, 100_000_000) : null;
+};
+
+const isoDate = (v: unknown): string | null => {
+  const s = String(v ?? "").trim();
+  return /^\d{4}-\d{2}-\d{2}$/.test(s) && !Number.isNaN(Date.parse(s)) ? s : null;
+};
 
 const clip = (v: unknown, max: number) =>
   String(v ?? "")
@@ -163,6 +195,15 @@ export function sanitizeProspect(input: ProspectInput) {
       : "manual",
     sent: input.sent === true,
     replied: input.replied === true,
+    siteCheck: clip(input.siteCheck, 500),
+    activity: clip(input.activity, 500),
+    detail: clip(input.detail, 2000),
+    reviewsCount: count(input.reviewsCount),
+    lastReviewAt: isoDate(input.lastReviewAt),
+    followers: count(input.followers),
+    lastPostAt: isoDate(input.lastPostAt),
+    investLevel: Math.max(0, Math.min(3, Math.round(Number(input.investLevel) || 0))),
+    competitorSite: input.competitorSite === true,
   };
 }
 
@@ -212,4 +253,38 @@ export async function upsertProspect(
   );
   const row = rows[0] as Record<string, unknown>;
   return { lead: mapProspect(row), inserted: Boolean(row.inserted) };
+}
+
+/**
+ * Grava a edição do card e recalcula a nota com os dados informados.
+ * Sem nenhum dado de nota, a nota atual (ex.: vinda dos bots) é mantida.
+ */
+export async function updateProspect(
+  db: PoolClient,
+  id: string,
+  p: CleanProspect,
+): Promise<ProspectLead | null> {
+  const scored = hasScoreData(p) ? computeScore(p) : null;
+  const { rows } = await db.query(
+    `UPDATE prospect_leads SET
+       name = $2, niche = $3, city = $4, address = $5, neighborhood = $6,
+       website = $7, email = $8, whatsapp = $9, phone = $10, instagram = $11,
+       problems = $12, pitch = $13, message = $14,
+       site_check = $15, activity = $16, detail = $17,
+       reviews_count = $18, last_review_at = $19, followers = $20, last_post_at = $21,
+       invest_level = $22, competitor_site = $23,
+       score = CASE WHEN $24::boolean THEN $25::integer ELSE score END,
+       score_breakdown = CASE WHEN $24::boolean THEN $26::jsonb ELSE score_breakdown END,
+       updated_at = now()
+     WHERE id = $1
+     RETURNING ${PROSPECT_COLUMNS}`,
+    [
+      id, p.name, p.niche, p.city, p.address, p.neighborhood, p.website, p.email,
+      p.whatsapp, p.phone, p.instagram, p.problems, p.pitch, p.message,
+      p.siteCheck, p.activity, p.detail,
+      p.reviewsCount, p.lastReviewAt, p.followers, p.lastPostAt, p.investLevel, p.competitorSite,
+      scored != null, scored?.score ?? null, JSON.stringify(scored?.breakdown ?? []),
+    ],
+  );
+  return rows[0] ? mapProspect(rows[0] as Record<string, unknown>) : null;
 }

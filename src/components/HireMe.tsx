@@ -1,16 +1,14 @@
 import {
   useEffect,
-  useMemo,
   useState,
   type CSSProperties,
   type FormEvent,
+  type ReactNode,
 } from "react";
-import {
-  DEFAULT_HIRE_STYLE_ID,
-  ensureHireFont,
-  getHireStyle,
-  HIRE_STYLES,
-} from "../data/hireStyles";
+import { HIRE_STYLES } from "../data/hireStyles";
+import { hireCssVars, useHireStyle } from "../lib/useHireStyle";
+import { Link } from "react-router";
+import { MODELS, isModelId } from "../data/models";
 import { useLanguage } from "../i18n/LanguageContext";
 
 /** Tipografia fixa da UI de seleção — não herda o estilo ativo. */
@@ -21,45 +19,41 @@ function isEmail(value: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 }
 
-function HireMe() {
+type HireMeProps = {
+  id?: string;
+  /** Tag do título principal (a página de contato usa h1). */
+  heading?: "h1" | "h2";
+  initialModel?: string;
+  /** Conteúdo extra, exibido abaixo do formulário e já dentro do estilo ativo. */
+  children?: ReactNode;
+};
+
+function HireMe({ id = "contratar", heading = "h2", initialModel = "", children }: HireMeProps) {
+  const Heading = heading;
   const { t } = useLanguage();
-  const [styleId, setStyleId] = useState(DEFAULT_HIRE_STYLE_ID);
-  const style = useMemo(() => getHireStyle(styleId), [styleId]);
+  const { styleId, style, select: setStyleId } = useHireStyle();
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [idea, setIdea] = useState("");
+  const [model, setModel] = useState(isModelId(initialModel) ? initialModel : "");
   const [honeypot, setHoneypot] = useState("");
   const [status, setStatus] = useState<
     "idle" | "loading" | "success" | "error" | "rate"
   >("idle");
   const [errorMsg, setErrorMsg] = useState("");
 
+  // O catálogo de modelos pré-seleciona o modelo e rola até aqui
   useEffect(() => {
-    ensureHireFont(style);
-  }, [style]);
+    const onModel = (event: Event) => {
+      const id = (event as CustomEvent<string>).detail;
+      if (isModelId(id)) setModel(id);
+    };
+    window.addEventListener("hire:model", onModel);
+    return () => window.removeEventListener("hire:model", onModel);
+  }, []);
 
-  const cssVars = {
-    ["--hire-bg" as string]: style.tokens.bg,
-    ["--hire-ink" as string]: style.tokens.ink,
-    ["--hire-muted" as string]: style.tokens.muted,
-    ["--hire-accent" as string]: style.tokens.accent,
-    ["--hire-accent-ink" as string]: style.tokens.accentInk,
-    ["--hire-surface" as string]: style.tokens.surface,
-    ["--hire-border" as string]: style.tokens.border,
-    ["--hire-field" as string]: style.tokens.field,
-    ["--hire-field-ink" as string]: style.tokens.fieldInk,
-    ["--hire-radius" as string]: style.tokens.radius,
-    ["--hire-control-radius" as string]: style.tokens.controlRadius,
-    ["--hire-border-width" as string]: style.tokens.borderWidth,
-    ["--hire-font" as string]: style.tokens.font,
-    ["--hire-shadow" as string]: style.tokens.shadow,
-    ["--hire-pattern" as string]: style.tokens.pattern,
-    ["--hire-pattern-size" as string]: style.tokens.patternSize,
-    ["--hire-motif" as string]: style.tokens.motif,
-    ["--hire-motif-size" as string]: style.tokens.motifSize,
-    ["--hire-tracking" as string]: style.tokens.letterSpacing,
-  } as CSSProperties;
+  const cssVars = hireCssVars(style);
 
   const submit = async (event: FormEvent) => {
     event.preventDefault();
@@ -85,6 +79,9 @@ function HireMe() {
       return;
     }
 
+    const picked = MODELS.find((m) => m.id === model);
+    const pickedName = picked ? t.models.items[picked.id].name : "";
+
     setStatus("loading");
     try {
       const res = await fetch("/api/orcamentos/public/contact", {
@@ -93,9 +90,11 @@ function HireMe() {
         body: JSON.stringify({
           name: trimmedName,
           email: trimmedEmail,
-          idea: trimmedIdea,
+          idea: pickedName
+            ? `${t.form.modelPrefix}: ${pickedName}\n\n${trimmedIdea}`
+            : trimmedIdea,
           style: style.label,
-          styleId: style.id,
+          styleId: picked ? `${style.id}|modelo:${picked.id}` : style.id,
           website: honeypot,
         }),
       });
@@ -118,6 +117,7 @@ function HireMe() {
       setName("");
       setEmail("");
       setIdea("");
+      setModel("");
     } catch {
       setStatus("error");
       setErrorMsg(t.hire.error);
@@ -161,7 +161,7 @@ function HireMe() {
 
   return (
     <section
-      id="contratar"
+      id={id}
       style={{
         ...cssVars,
         background: "var(--hire-bg)",
@@ -208,23 +208,24 @@ function HireMe() {
       />
 
       <div className="relative mx-auto w-full max-w-6xl px-4 py-16 sm:px-6 sm:py-20 md:px-8">
-        <div className="max-w-2xl" style={{ fontFamily: UI_FONT }}>
+        <div style={{ fontFamily: UI_FONT }}>
           <p
             className="text-sm font-medium uppercase tracking-widest"
             style={{ color: "var(--hire-muted)" }}
           >
             {t.hire.eyebrow}
           </p>
-          <h2
-            className="mt-2 text-2xl font-semibold tracking-tight sm:text-3xl md:text-4xl"
+          <Heading
+            className="mt-2 min-h-[3.75em] text-2xl font-semibold tracking-tight sm:min-h-[2.5em] sm:text-3xl md:min-h-[1.25em] md:text-4xl"
             style={{
+              lineHeight: 1.25,
               fontFamily: "var(--hire-font)",
               letterSpacing: "var(--hire-tracking)",
               color: "var(--hire-ink)",
             }}
           >
             {t.hire.title}
-          </h2>
+          </Heading>
           <p
             className="mt-3 max-w-xl text-base leading-relaxed"
             style={{ color: "var(--hire-muted)" }}
@@ -323,7 +324,7 @@ function HireMe() {
           </div>
 
           <div
-            className="flex min-w-0 flex-col p-4 transition-[border-radius,box-shadow,background,border-color] duration-500 sm:p-6 lg:h-full lg:min-h-0 lg:overflow-hidden lg:p-8"
+            className="hire-card flex min-w-0 flex-col transition-[border-radius,box-shadow,background,border-color] duration-500 lg:h-full lg:min-h-0 lg:overflow-hidden"
             style={{
               background:
                 "color-mix(in srgb, var(--hire-surface) 92%, var(--hire-field))",
@@ -344,7 +345,7 @@ function HireMe() {
                 {t.hire.step2}
               </p>
               <p
-                className="mt-1.5 text-base font-semibold sm:mt-2 sm:text-lg md:text-xl"
+                className="mt-1.5 truncate text-base font-semibold sm:mt-2 sm:text-lg md:text-xl"
                 style={{
                   fontFamily: "var(--hire-font)",
                   letterSpacing: "var(--hire-tracking)",
@@ -354,7 +355,7 @@ function HireMe() {
                 {style.label}
               </p>
               <p
-                className="mt-1 text-sm leading-relaxed"
+                className="mt-1 line-clamp-3 min-h-[4.25rem] text-sm leading-relaxed sm:line-clamp-2 sm:min-h-[2.85rem]"
                 style={{
                   color:
                     "color-mix(in srgb, var(--hire-ink) 72%, var(--hire-muted))",
@@ -380,7 +381,7 @@ function HireMe() {
                     maxLength={120}
                     autoComplete="name"
                     enterKeyHint="next"
-                    className="hire-field mt-1.5 w-full px-3.5 py-3 text-base outline-none sm:px-3 sm:py-2.5 sm:text-sm"
+                    className="hire-field mt-1.5 box-border h-12 w-full px-3.5 text-base outline-none sm:h-11 sm:px-3 sm:text-sm"
                     style={fieldStyle}
                   />
                 </label>
@@ -396,11 +397,28 @@ function HireMe() {
                     autoComplete="email"
                     enterKeyHint="next"
                     inputMode="email"
-                    className="hire-field mt-1.5 w-full px-3.5 py-3 text-base outline-none sm:px-3 sm:py-2.5 sm:text-sm"
+                    className="hire-field mt-1.5 box-border h-12 w-full px-3.5 text-base outline-none sm:h-11 sm:px-3 sm:text-sm"
                     style={fieldStyle}
                   />
                 </label>
               </div>
+
+              <label className="block shrink-0 text-xs font-medium" style={labelStyle}>
+                {t.form.model}
+                <select
+                  value={model}
+                  onChange={(e) => setModel(e.target.value)}
+                  className="hire-field mt-1.5 box-border h-12 w-full px-3.5 text-base outline-none sm:h-11 sm:px-3 sm:text-sm"
+                  style={fieldStyle}
+                >
+                  <option value="">{t.form.modelNone}</option>
+                  {MODELS.map((m) => (
+                    <option key={m.id} value={m.id}>
+                      {t.models.items[m.id].name}
+                    </option>
+                  ))}
+                </select>
+              </label>
 
               <label
                 className="flex flex-col text-xs font-medium lg:min-h-0 lg:flex-1"
@@ -414,7 +432,7 @@ function HireMe() {
                   maxLength={4000}
                   placeholder={t.hire.ideaPlaceholder}
                   rows={5}
-                  className="hire-field mt-1.5 min-h-32 w-full resize-y px-3.5 py-3 text-base outline-none sm:min-h-36 sm:resize-none sm:px-3 sm:py-2.5 sm:text-sm lg:min-h-0 lg:flex-1"
+                  className="hire-field mt-1.5 box-border h-40 w-full resize-y px-3.5 py-3 text-base outline-none sm:h-36 sm:resize-none sm:px-3 sm:py-2.5 sm:text-sm lg:h-auto lg:min-h-0 lg:flex-1"
                   style={areaStyle}
                 />
               </label>
@@ -440,7 +458,7 @@ function HireMe() {
                 <button
                   type="submit"
                   disabled={status === "loading"}
-                  className="w-full px-5 py-3.5 text-sm font-bold transition hover:opacity-90 disabled:opacity-50 sm:w-auto sm:min-w-[180px] sm:py-3"
+                  className="box-border h-12 w-full px-5 text-sm font-bold transition hover:opacity-90 disabled:opacity-50 sm:h-11 sm:w-auto sm:min-w-[180px]"
                   style={{
                     background: "var(--hire-accent)",
                     color: "var(--hire-accent-ink)",
@@ -454,6 +472,22 @@ function HireMe() {
                   {status === "loading" ? t.hire.submitting : t.hire.submit}
                 </button>
               </div>
+
+              <p
+                className="shrink-0 text-xs"
+                style={{ color: "var(--hire-muted)" }}
+              >
+                {t.form.noticePre}{" "}
+                <Link
+                  to="/politica-de-privacidade"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline underline-offset-2"
+                >
+                  {t.form.consentLink}
+                </Link>{" "}
+                {t.form.noticePost}
+              </p>
 
               {status === "success" ? (
                 <p
@@ -477,6 +511,8 @@ function HireMe() {
             </form>
           </div>
         </div>
+
+        {children ? <div className="mt-10 sm:mt-12">{children}</div> : null}
       </div>
     </section>
   );

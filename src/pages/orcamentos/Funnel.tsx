@@ -624,33 +624,105 @@ function BotTokens({ showToast }: { showToast: (msg: string) => void }) {
   );
 }
 
-// ---------- Cadastro manual ----------
+// ---------- Cadastro e edição ----------
 
-function NewLeadForm({
+const INVEST_LEVELS = ["Não avaliado", "Baixa (5 pts)", "Média (10 pts)", "Alta (15 pts)"];
+
+function LeadForm({
+  initial,
   onCancel,
   onSaved,
   showToast,
 }: {
+  initial?: ProspectLead;
   onCancel: () => void;
   onSaved: (lead: ProspectLead) => void;
   showToast: (msg: string) => void;
 }) {
-  const [form, setForm] = useState<ProspectInput>({ city: DEFAULT_CITY });
+  const [form, setForm] = useState<ProspectInput>(() =>
+    initial
+      ? {
+          id: initial.id,
+          name: initial.name,
+          niche: initial.niche,
+          city: initial.city,
+          neighborhood: initial.neighborhood,
+          address: initial.address,
+          website: initial.website,
+          whatsapp: initial.whatsapp,
+          phone: initial.phone,
+          email: initial.email,
+          instagram: initial.instagram,
+          problems: initial.problems,
+          pitch: initial.pitch,
+          message: initial.message,
+          detail: initial.detail,
+          siteCheck: initial.siteCheck,
+          activity: initial.activity,
+          reviewsCount: initial.reviewsCount,
+          lastReviewAt: initial.lastReviewAt,
+          followers: initial.followers,
+          lastPostAt: initial.lastPostAt,
+          investLevel: initial.investLevel,
+          competitorSite: initial.competitorSite,
+        }
+      : { city: DEFAULT_CITY },
+  );
   const [busy, setBusy] = useState(false);
-  const field = (k: keyof ProspectInput, label: string, placeholder = "", full = false) => (
+  const set = (patch: ProspectInput) => setForm((f) => ({ ...f, ...patch }));
+  const label = "text-sm font-medium text-neutral-700 dark:text-neutral-300";
+
+  const field = (k: keyof ProspectInput, text: string, placeholder = "", full = false) => (
     <label className={`block ${full ? "sm:col-span-2" : ""}`}>
-      <span className="text-sm font-medium text-neutral-700 dark:text-neutral-300">{label}</span>
+      <span className={label}>{text}</span>
       <input
         className={`${inputClass} mt-1`}
         value={String(form[k] ?? "")}
         placeholder={placeholder}
-        onChange={(e) => setForm((f) => ({ ...f, [k]: e.target.value }))}
+        onChange={(e) => set({ [k]: e.target.value })}
       />
     </label>
   );
+  const area = (k: keyof ProspectInput, text: string, placeholder = "", rows = 3) => (
+    <label className="block sm:col-span-2">
+      <span className={label}>{text}</span>
+      <textarea
+        className={`${areaClass} mt-1 min-h-0`}
+        rows={rows}
+        value={String(form[k] ?? "")}
+        placeholder={placeholder}
+        onChange={(e) => set({ [k]: e.target.value })}
+      />
+    </label>
+  );
+  const num = (k: "reviewsCount" | "followers", text: string) => (
+    <label className="block">
+      <span className={label}>{text}</span>
+      <input
+        className={`${inputClass} mt-1`}
+        type="number"
+        min={0}
+        inputMode="numeric"
+        value={form[k] ?? ""}
+        onChange={(e) => set({ [k]: e.target.value === "" ? null : Number(e.target.value) })}
+      />
+    </label>
+  );
+  const date = (k: "lastReviewAt" | "lastPostAt", text: string) => (
+    <label className="block">
+      <span className={label}>{text}</span>
+      <input
+        className={`${inputClass} mt-1`}
+        type="date"
+        value={form[k] ?? ""}
+        onChange={(e) => set({ [k]: e.target.value || null })}
+      />
+    </label>
+  );
+
   return (
     <form
-      className={`${cardClass} mb-4 space-y-4`}
+      className={initial ? "space-y-5" : `${cardClass} mb-4 space-y-5`}
       onSubmit={async (e) => {
         e.preventDefault();
         if (!String(form.name ?? "").trim()) {
@@ -661,7 +733,8 @@ function NewLeadForm({
         try {
           const { lead } = await orcamentosApi.saveProspect(form);
           onSaved(lead);
-          showToast("Lead salvo");
+          const nota = lead.score == null ? "" : ` Nota ${lead.score}.`;
+          showToast(initial ? `Lead atualizado.${nota}` : "Lead salvo");
         } catch (err) {
           showToast(err instanceof Error ? err.message : "Erro ao salvar");
         } finally {
@@ -669,7 +742,7 @@ function NewLeadForm({
         }
       }}
     >
-      <h2 className="text-lg font-semibold tracking-tight">Novo lead</h2>
+      <h2 className="text-lg font-semibold tracking-tight">{initial ? "Editar lead" : "Novo lead"}</h2>
       <div className="grid gap-3 sm:grid-cols-2">
         {field("name", "Nome do negócio", "Ex.: Mecânica Zanella")}
         {field("niche", "Nicho", "Ex.: oficina mecânica")}
@@ -681,15 +754,60 @@ function NewLeadForm({
         {field("phone", "Telefone fixo", "(54) 3000-0000")}
         {field("email", "E-mail")}
         {field("instagram", "Instagram", "@perfil")}
-        {field("problems", "Problemas encontrados", "Separe com ;", true)}
-        {field("pitch", "Argumento", "", true)}
+        {area("problems", "Problemas encontrados", "Separe com ; ou uma linha por problema")}
+        {area("pitch", "Argumento", "", 2)}
+        {initial ? (
+          <>
+            {area("detail", "Detalhe real do negócio", "Ex.: hotelzinho além de banho e tosa", 2)}
+            {field("siteCheck", "Checagem do site", "", true)}
+            {field("activity", "Atividade", "", true)}
+            {area("message", "Mensagem", "", 4)}
+          </>
+        ) : null}
       </div>
+
+      <fieldset className="space-y-3 border-t border-neutral-200 pt-4 dark:border-neutral-800">
+        <legend className={smallLabel}>Dados da nota</legend>
+        <p className="text-sm text-neutral-500 dark:text-neutral-400">
+          Ao salvar, a nota é recalculada com estes dados. Sem nenhum deles, a nota atual é mantida.
+        </p>
+        <div className="grid gap-3 sm:grid-cols-2">
+          {num("reviewsCount", "Avaliações no Google")}
+          {date("lastReviewAt", "Última avaliação")}
+          {num("followers", "Seguidores no Instagram")}
+          {date("lastPostAt", "Último post")}
+          <label className="block">
+            <span className={label}>Capacidade de investir</span>
+            <select
+              className={`${inputClass} mt-1`}
+              value={form.investLevel ?? 0}
+              onChange={(e) => set({ investLevel: Number(e.target.value) })}
+            >
+              {INVEST_LEVELS.map((t, i) => (
+                <option key={t} value={i}>
+                  {t}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="flex min-h-11 items-center gap-2 self-end text-sm">
+            <input
+              type="checkbox"
+              className="size-4 accent-emerald-700"
+              checked={form.competitorSite === true}
+              onChange={(e) => set({ competitorSite: e.target.checked })}
+            />
+            Concorrente direto tem site (10 pts)
+          </label>
+        </div>
+      </fieldset>
+
       <div className="flex flex-wrap justify-end gap-2">
         <button type="button" className={btn} onClick={onCancel}>
           Cancelar
         </button>
         <button type="submit" className={btnPrimary} disabled={busy}>
-          {busy ? "Salvando…" : "Salvar lead"}
+          {busy ? "Salvando…" : initial ? "Salvar e recalcular nota" : "Salvar lead"}
         </button>
       </div>
     </form>
@@ -992,7 +1110,19 @@ function BoardCard({
   );
 }
 
-function LeadDrawer({ lead, onClose, children }: { lead: ProspectLead; onClose: () => void; children: ReactNode }) {
+function LeadDrawer({
+  lead,
+  editing,
+  onEdit,
+  onClose,
+  children,
+}: {
+  lead: ProspectLead;
+  editing: boolean;
+  onEdit: () => void;
+  onClose: () => void;
+  children: ReactNode;
+}) {
   const closeRef = useRef<HTMLButtonElement>(null);
   const out = isExit(lead.stage);
 
@@ -1019,9 +1149,16 @@ function LeadDrawer({ lead, onClose, children }: { lead: ProspectLead; onClose: 
             </span>
             <span className="truncate text-sm font-semibold">{STAGE_LABEL[lead.stage] ?? lead.stage}</span>
           </span>
-          <button ref={closeRef} type="button" className={btnSm} onClick={onClose}>
-            Fechar
-          </button>
+          <span className="flex gap-2">
+            {editing ? null : (
+              <button type="button" className={btnSm} onClick={onEdit}>
+                Editar
+              </button>
+            )}
+            <button ref={closeRef} type="button" className={btnSm} onClick={onClose}>
+              Fechar
+            </button>
+          </span>
         </div>
         <div className="flex-1 overflow-y-auto p-3 sm:p-4">{children}</div>
       </aside>
@@ -1038,6 +1175,7 @@ function Funnel({ showToast }: Props) {
   const [query, setQuery] = useState("");
   const [exitStage, setExitStage] = useState("");
   const [openId, setOpenId] = useState("");
+  const [editing, setEditing] = useState(false);
   const [busyId, setBusyId] = useState("");
   const [showTokens, setShowTokens] = useState(false);
   const [panel, setPanel] = useState<"" | "import" | "new">("");
@@ -1102,7 +1240,14 @@ function Funnel({ showToast }: Props) {
   const won = (byStage.resultado ?? []).filter((l) => l.result === "fechado").length;
   const openLead = leads.find((l) => l.id === openId);
   const exitLeads = exitStage ? (byStage[exitStage] ?? []) : [];
-  const closeDrawer = useCallback(() => setOpenId(""), []);
+  const closeDrawer = useCallback(() => {
+    setOpenId("");
+    setEditing(false);
+  }, []);
+  const open = (id: string) => {
+    setOpenId(id);
+    setEditing(false);
+  };
 
   const jump = (stageId: string) =>
     document.getElementById(`col-${stageId}`)?.scrollIntoView({ behavior: "smooth", inline: "start", block: "nearest" });
@@ -1154,7 +1299,7 @@ function Funnel({ showToast }: Props) {
       </header>
 
       {panel === "new" ? (
-        <NewLeadForm
+        <LeadForm
           showToast={showToast}
           onCancel={() => setPanel("")}
           onSaved={(lead) => {
@@ -1319,7 +1464,7 @@ function Funnel({ showToast }: Props) {
                         key={lead.id}
                         lead={lead}
                         busy={busyId === lead.id}
-                        onOpen={() => setOpenId(lead.id)}
+                        onOpen={() => open(lead.id)}
                         onApprove={() =>
                           quickMove(
                             lead,
@@ -1383,8 +1528,8 @@ function Funnel({ showToast }: Props) {
                     <tr
                       key={l.id}
                       tabIndex={0}
-                      onClick={() => setOpenId(l.id)}
-                      onKeyDown={(e) => e.key === "Enter" && setOpenId(l.id)}
+                      onClick={() => open(l.id)}
+                      onKeyDown={(e) => e.key === "Enter" && open(l.id)}
                       className={`cursor-pointer hover:bg-neutral-50 dark:hover:bg-neutral-900 ${focusRing}`}
                     >
                       <td className="border-b border-neutral-100 px-3 py-2 font-medium whitespace-nowrap dark:border-neutral-800">
@@ -1415,13 +1560,26 @@ function Funnel({ showToast }: Props) {
       </section>
 
       {openLead ? (
-        <LeadDrawer lead={openLead} onClose={closeDrawer}>
-          <LeadCard
-            key={`${openLead.id}-${openLead.updated}`}
-            lead={openLead}
-            onChange={replaceLead}
-            showToast={showToast}
-          />
+        <LeadDrawer lead={openLead} editing={editing} onEdit={() => setEditing(true)} onClose={closeDrawer}>
+          {editing ? (
+            <LeadForm
+              key={openLead.id}
+              initial={openLead}
+              showToast={showToast}
+              onCancel={() => setEditing(false)}
+              onSaved={(lead) => {
+                replaceLead(lead);
+                setEditing(false);
+              }}
+            />
+          ) : (
+            <LeadCard
+              key={`${openLead.id}-${openLead.updated}`}
+              lead={openLead}
+              onChange={replaceLead}
+              showToast={showToast}
+            />
+          )}
         </LeadDrawer>
       ) : null}
     </section>

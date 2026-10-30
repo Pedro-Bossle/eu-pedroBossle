@@ -1,0 +1,315 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Bancada 54 · Assistência técnica em Caxias do Sul</title>
+<meta name="description" content="Conserto de celular, notebook e tablet com preço antes de autorizar e 90 dias de garantia.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ground:#dfe2dc; --ink:#0e1311; --white:#f7f8f5; --mid:#c3c8c0; --dark:#0e1311; --lime:#c9f23b; --on-lime:#0e1311; --soft:#4b534e;
+  --font:"Space Grotesk",system-ui,sans-serif; --gap:8px; --pad:clamp(20px,2.4vw,36px);
+}
+*{box-sizing:border-box;margin:0}
+html{scroll-behavior:smooth}
+body{background:var(--ground);color:var(--ink);font:400 18px/1.5 var(--font);-webkit-font-smoothing:antialiased}
+a{color:inherit}
+button,select{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+.on-dark :focus-visible{outline-color:var(--lime)}
+h1,h2,h3{font-weight:700;letter-spacing:-.035em;line-height:.96}
+.board{display:grid;grid-template-columns:repeat(12,1fr);gap:var(--gap);padding:var(--gap);max-width:1700px;margin-inline:auto}
+.t{padding:var(--pad);position:relative;overflow:hidden}
+.t h2{font-size:clamp(30px,3.6vw,56px)}
+.dark{background:var(--dark);color:var(--white)}
+.lime{background:var(--lime);color:var(--on-lime)}
+.white{background:var(--white)}
+.mid{background:var(--mid)}
+.soft{color:var(--soft)}
+.dark .soft{color:#a9b1ac}
+.btn{display:inline-flex;align-items:center;justify-content:center;min-height:54px;padding:0 26px;background:var(--lime);color:var(--on-lime);font-weight:700;text-decoration:none;border:0;cursor:pointer;transition:transform .2s}
+.btn:hover{transform:translateY(-2px)}
+.btn.dk{background:var(--dark);color:var(--lime)}
+/* nav tile */
+.nav{grid-column:span 12;display:flex;align-items:center;justify-content:space-between;gap:16px;background:var(--dark);color:var(--white);padding:16px var(--pad)}
+.nav .brand{font-weight:700;font-size:24px;letter-spacing:-.04em;text-decoration:none;white-space:nowrap}
+.nav .btn{white-space:nowrap}@media(max-width:520px){.nav .btn{min-height:44px;padding:0 14px;font-size:15px}.nav .brand{font-size:21px}}
+.nav .brand b{color:var(--lime)}
+.nav nav{display:flex;gap:26px}
+.nav nav a{text-decoration:none;color:#c8cfca}
+.nav nav a:hover{color:var(--lime)}
+@media(max-width:820px){.nav nav{display:none}}
+/* stage: celular que desmonta no scroll */
+.stage{grid-column:span 12;background:var(--dark);color:var(--white);position:relative}
+.js .stage{height:430vh}
+.stage .sticky{position:relative;height:100vh;height:100svh;overflow:hidden;display:grid}
+.js .stage .sticky{position:sticky;top:0}
+.stage h1{position:absolute;left:var(--pad);top:clamp(20px,5vh,56px);font-size:clamp(54px,11.5vw,190px);line-height:.88;letter-spacing:-.055em;color:var(--white);z-index:1;max-width:11ch}
+.stage h1 em{font-style:normal;color:var(--lime)}
+.scene{position:absolute;inset:0;display:grid;place-items:center;perspective:1500px;z-index:2;pointer-events:none}
+.rig{--w:clamp(128px,23vh,236px);position:relative;width:var(--w);height:calc(var(--w)*2.05);transform-style:preserve-3d;transform:rotateX(var(--rx,58deg)) rotateZ(var(--rz,-32deg))}
+.ly{position:absolute;inset:0;border-radius:calc(var(--w)*.17);transform:translateZ(calc(var(--b)*1px + var(--e,0)*var(--k)*var(--w)*.62));box-shadow:0 0 0 1px #ffffff14}
+.ly.back{--b:-5;--k:-2.6;background:linear-gradient(160deg,#262e2b,#131816)}
+.ly.back::after{content:"";position:absolute;left:12%;top:5%;width:34%;height:15%;border-radius:calc(var(--w)*.07);background:#0a0e0c;box-shadow:inset 0 0 0 calc(var(--w)*.014) #3a4540}
+.ly.back::before{content:"54";position:absolute;left:50%;top:56%;transform:translate(-50%,-50%);font:700 calc(var(--w)*.26)/1 var(--font);color:#c9f23b22;letter-spacing:-.06em}
+.ly.bat{--b:-2.5;--k:-1.25;inset:19% 9% 8% 9%;border-radius:calc(var(--w)*.05);background:linear-gradient(#cfd5cc,#a8b0a6);color:var(--ink);font:700 calc(var(--w)*.075)/1.2 var(--font);padding:calc(var(--w)*.06);overflow:hidden}
+.ly.bat i{display:block;font-style:normal;font-weight:500;font-size:.75em;opacity:.7}
+.ly.pcb{--b:0;--k:0;inset:3% 6% 30% 6%;border-radius:calc(var(--w)*.09);background:#12372f;box-shadow:0 0 0 1px #2f6b5c,inset 0 0 0 calc(var(--w)*.012) #1d5a4b}
+.ly.pcb s{position:absolute;display:block;background:#0b1512;box-shadow:inset 0 0 0 1px #3a8a76;border-radius:2px}
+.ly.pcb s:nth-child(1){left:10%;top:10%;width:38%;height:22%;background:#caa84b;box-shadow:none}
+.ly.pcb s:nth-child(2){right:10%;top:12%;width:30%;height:16%}
+.ly.pcb s:nth-child(3){left:12%;top:44%;width:30%;height:20%}
+.ly.pcb s:nth-child(4){right:12%;top:40%;width:40%;height:34%}
+.ly.pcb s:nth-child(5){left:14%;bottom:8%;width:50%;height:7%;background:#d8dbd4;box-shadow:none}
+.ly.frm{--b:3;--k:1.3;background:none;box-shadow:0 0 0 calc(var(--w)*.028) #8a928c,inset 0 0 0 calc(var(--w)*.012) #3a4540}
+.ly.scr{--b:6;--k:2.7;background:linear-gradient(150deg,#101614 0%,#0c110f 55%,#1b2420 100%);box-shadow:0 0 0 calc(var(--w)*.02) #050807,0 0 0 calc(var(--w)*.03) #4a534e;overflow:hidden}
+.ly.scr::before{content:"";position:absolute;left:50%;top:2.6%;width:26%;height:3.6%;transform:translateX(-50%);background:#000;border-radius:99px}
+.ly.scr .ui{position:absolute;inset:14% 10% auto 10%;color:var(--white)}
+.ly.scr .ui b{display:block;font:700 calc(var(--w)*.3)/1 var(--font);letter-spacing:-.06em}
+.ly.scr .ui span{display:block;margin-top:calc(var(--w)*.04);font:500 calc(var(--w)*.075)/1.2 var(--font);color:var(--lime)}
+.ly.scr .crack{position:absolute;inset:0;background:linear-gradient(115deg,transparent 48%,#ffffff40 48.4%,transparent 49%),linear-gradient(63deg,transparent 60%,#ffffff33 60.4%,transparent 61%),linear-gradient(170deg,transparent 30%,#ffffff2a 30.4%,transparent 31%);opacity:var(--ck,1)}
+.ly.scr::after{content:"";position:absolute;inset:0;background:linear-gradient(120deg,#ffffff1f 0,transparent 38%)}
+.screw{--b:8;--k:4.2;position:absolute;width:calc(var(--w)*.05);height:calc(var(--w)*.05);border-radius:50%;background:#c3c8c0;box-shadow:inset 0 0 0 calc(var(--w)*.012) #5d665f;transform:translateZ(calc(var(--b)*1px + var(--es,0)*var(--k)*var(--w)*.62))}
+.screw:nth-of-type(1){left:7%;top:3%}.screw:nth-of-type(2){right:7%;top:3%}.screw:nth-of-type(3){left:7%;bottom:3%}.screw:nth-of-type(4){right:7%;bottom:3%}
+.hud-sub{position:absolute;left:var(--pad);bottom:var(--pad);z-index:3;max-width:34ch}
+.hud-sub p{font-size:clamp(17px,1.4vw,21px);color:#c8cfca}
+.hud-sub .cta{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
+.cap{position:absolute;right:var(--pad);top:50%;transform:translateY(-50%);z-index:3;width:min(340px,34vw);background:var(--lime);color:var(--on-lime);padding:20px 22px}
+.cap small{display:block;font-weight:700;font-size:13px;letter-spacing:.04em;opacity:.7}
+.cap b{display:block;font-size:clamp(28px,3vw,44px);letter-spacing:-.04em;line-height:1;margin:6px 0 8px}
+.cap span{display:block;font-size:16px;line-height:1.35}
+.ticks{position:absolute;right:calc(var(--pad)*.4);top:50%;transform:translateY(-50%);z-index:3;display:grid;gap:8px}
+.ticks i{display:block;width:4px;height:26px;background:#39413d;transition:background .2s}
+.ticks i.on{background:var(--lime)}
+.scrollhint{position:absolute;left:50%;bottom:calc(var(--pad)*.6);transform:translateX(-50%);z-index:3;font-size:13px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#a9b1ac;transition:opacity .3s;white-space:nowrap}
+@media(max-width:900px){
+  .stage h1{font-size:clamp(46px,15vw,100px)}
+  .cap{right:var(--pad);left:var(--pad);width:auto;top:auto;bottom:calc(var(--pad) + 62px);transform:none;padding:12px 14px}
+  .cap b{font-size:26px}.cap span{font-size:15px}
+  .ticks{display:none}
+  .hud-sub{right:var(--pad);max-width:none}
+  .hud-sub p{display:none}
+  .hud-sub .cta{margin:0;flex-wrap:nowrap}.hud-sub .cta .btn{min-height:46px;padding:0 16px;font-size:16px;white-space:nowrap}
+  .scrollhint{display:none}
+  .scene{padding-top:18vh;padding-bottom:26vh}.rig{--w:clamp(80px,12.5vh,130px)}
+}
+@media(prefers-reduced-motion:reduce){.js .stage{height:auto}.js .stage .sticky{position:relative}}
+.quote{grid-column:span 7}
+/* estimator */
+.est label{display:block;font-size:14px;font-weight:600;margin:14px 0 6px;color:#a9b1ac}
+.est select{width:100%;min-height:52px;padding:0 14px;background:#1b2220;border:0;color:var(--white);font-size:17px;appearance:none;background-image:none}
+.est .out{margin-top:18px;background:var(--lime);color:var(--on-lime);padding:18px 20px}
+.est .out b{display:block;font-size:clamp(30px,3.2vw,46px);letter-spacing:-.04em;line-height:1}
+.est .out span{display:block;margin-top:6px;font-size:16px}
+.est .btn{width:100%;margin-top:10px;background:var(--white);color:var(--ink)}
+/* guarantee */
+.gar{grid-column:span 5;display:flex;flex-direction:column;justify-content:space-between;min-height:260px}
+.gar .big{font-size:clamp(90px,10vw,170px);font-weight:700;letter-spacing:-.07em;line-height:.8}
+/* what we fix */
+.fix{grid-column:span 12;display:grid;grid-template-columns:repeat(4,1fr);gap:var(--gap);padding:0;background:none}
+.fix>div{padding:var(--pad);min-height:240px;display:flex;flex-direction:column;justify-content:space-between}
+.fix h3{font-size:clamp(26px,2.6vw,40px)}
+.fix p{font-size:16px;margin-top:10px}
+.fix .f1{background:var(--dark);color:var(--white)}
+.fix .f2{background:var(--white)}
+.fix .f3{background:var(--lime)}
+.fix .f4{background:var(--mid)}
+.fix-title{grid-column:span 12;padding:clamp(40px,6vw,90px) var(--pad) 12px;background:none}
+@media(max-width:900px){.fix{grid-template-columns:1fr 1fr}}
+/* how */
+.how{grid-column:span 7;background:var(--dark);color:var(--white);min-height:420px;display:flex;flex-direction:column;justify-content:space-between}
+.how ol{list-style:none;padding:0;display:grid;gap:0;margin-top:28px}
+.how li{font-size:clamp(26px,3.4vw,52px);font-weight:700;letter-spacing:-.035em;line-height:1.08;padding:10px 0;color:#59625d;transition:color .3s}
+.how li.on{color:var(--lime)}
+.how li small{display:block;font-size:17px;font-weight:400;letter-spacing:0;color:#a9b1ac;margin-top:4px}
+/* tracker */
+.trk{grid-column:span 5;background:var(--white)}
+.trk .os{margin-top:20px;display:grid;gap:6px}
+.trk .st{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:var(--mid);font-weight:600;transition:background .3s,color .3s}
+.trk .st.on{background:var(--dark);color:var(--lime)}
+.trk .st.done{background:var(--lime)}
+.trk .st small{font-weight:500;opacity:.7}
+/* brands */
+.brands{grid-column:span 6;background:var(--lime)}
+.brands p{font-size:clamp(34px,5vw,80px);font-weight:700;letter-spacing:-.045em;line-height:1}
+.brands p span{opacity:.35}
+/* faq */
+.faq{grid-column:span 6;background:var(--white)}
+.faq details{background:var(--ground);margin-top:8px}
+.faq summary{list-style:none;cursor:pointer;padding:18px 20px;font-weight:700;font-size:19px;display:flex;justify-content:space-between;gap:16px}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary::after{content:"+";font-size:26px;line-height:1}
+.faq details[open] summary::after{content:"–"}
+.faq details p{padding:0 20px 18px;color:var(--soft)}
+/* where */
+.where{grid-column:span 12;display:grid;grid-template-columns:1.4fr 1fr;gap:var(--pad);align-items:end;background:var(--dark);color:var(--white);padding:clamp(40px,6vw,90px) var(--pad)}
+.where h2{font-size:clamp(44px,8vw,130px)}
+.where .info{display:grid;gap:18px;font-size:20px}
+.where b{display:block;font-size:13px;color:#a9b1ac;font-weight:600}
+@media(max-width:900px){.where{grid-template-columns:1fr}}
+footer{grid-column:span 12;padding:12px var(--pad) 22px;font-size:14px;color:var(--soft)}
+/* responsive */
+@media(max-width:900px){.quote,.gar,.how,.trk,.brands,.faq{grid-column:span 12}}
+.js .rv{opacity:0;transform:translateY(22px);transition:opacity .6s,transform .6s cubic-bezier(.22,1,.36,1)}
+.js .rv.in{opacity:1;transform:none}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto!important}.js .rv{opacity:1;transform:none}}
+</style>
+</head>
+<body>
+<div class="board">
+  <header class="nav on-dark">
+    <a class="brand" href="#">Bancada <b>54</b></a>
+    <nav aria-label="Principal"><a href="#orcar">Orçamento</a><a href="#consertamos">O que consertamos</a><a href="#como">Como funciona</a><a href="#loja">Passe na loja</a></nav>
+    <a class="btn" href="#orcar">Pedir orçamento</a>
+  </header>
+
+  <section class="stage on-dark" id="top" aria-label="Celular desmontando conforme você rola a página">
+    <div class="sticky">
+      <h1 id="h1">Conserto com <em>preço antes.</em></h1>
+      <div class="scene" aria-hidden="true">
+        <div class="rig" id="rig">
+          <div class="ly back"></div>
+          <div class="ly bat">Bateria<i>4.000 mAh</i></div>
+          <div class="ly pcb"><s></s><s></s><s></s><s></s><s></s></div>
+          <div class="ly frm"></div>
+          <div class="ly scr"><div class="ui"><b>9:41</b><span>Bancada 54</span></div><div class="crack"></div></div>
+          <i class="screw"></i><i class="screw"></i><i class="screw"></i><i class="screw"></i>
+        </div>
+      </div>
+      <div class="cap" id="cap" aria-live="polite"><small id="capn">00</small><b id="capt">Aparelho inteiro</b><span id="capd">Nada é aberto antes de você ver o valor e autorizar.</span></div>
+      <div class="ticks" id="ticks" aria-hidden="true"><i class="on"></i><i></i><i></i><i></i><i></i><i></i></div>
+      <div class="hud-sub">
+        <p>Celular, notebook e tablet. Você vê o valor, autoriza e só então a gente abre o aparelho.</p>
+        <div class="cta"><a class="btn" href="#orcar">Ver quanto custa</a><a class="btn" style="background:var(--mid);color:var(--ink)" href="#loja">Passe na loja</a></div>
+      </div>
+      <div class="scrollhint" id="hint">Role para desmontar</div>
+    </div>
+  </section>
+
+  <section class="t dark quote est on-dark" id="orcar" aria-labelledby="oq">
+    <h2 id="oq">Quanto custa o seu conserto?</h2>
+    <label for="dev">Aparelho</label>
+    <select id="dev"><option>Celular</option><option>Notebook</option><option>Tablet</option><option>Console</option></select>
+    <label for="prob">Problema</label>
+    <select id="prob"><option>Tela quebrada</option><option>Bateria</option><option>Não liga</option><option>Caiu na água</option><option>Lento ou travando</option></select>
+    <div class="out" aria-live="polite"><b id="preco">R$ 180 a 420</b><span id="prazo">Pronto em 1 a 2 dias</span></div>
+    <a class="btn" id="zap" href="#" target="_blank" rel="noopener">Mandar foto do problema</a>
+  </section>
+
+  <section class="t lime gar rv" aria-labelledby="gq">
+    <h2 id="gq">Dias de garantia, por escrito.</h2>
+    <div class="big" aria-hidden="true">90</div>
+  </section>
+
+
+  <h2 class="t fix-title" id="consertamos" style="font-size:clamp(44px,7vw,112px)">O que consertamos.</h2>
+  <div class="fix">
+    <div class="f1 rv on-dark"><h3>Celulares</h3><p>Tela, bateria, conector de carga, câmera e placa. iPhone, Samsung, Motorola e Xiaomi.</p></div>
+    <div class="f2 rv"><h3>Notebooks</h3><p>Troca de SSD, memória, tela, teclado e limpeza interna com pasta térmica nova.</p></div>
+    <div class="f3 rv"><h3>Tablets</h3><p>Vidro, bateria e carregador. Também recuperamos aparelhos que não ligam.</p></div>
+    <div class="f4 rv"><h3>Consoles</h3><p>Limpeza, troca de pasta térmica e reparo de HDMI e controles.</p></div>
+  </div>
+
+  <section class="t how rv on-dark" id="como" aria-labelledby="hq">
+    <h2 id="hq">Como funciona.</h2>
+    <ol id="steps">
+      <li class="on">Manda a foto.<small>Pelo WhatsApp ou na loja, com o problema descrito.</small></li>
+      <li>Recebe o orçamento.<small>Valor e prazo antes de qualquer coisa ser aberta.</small></li>
+      <li>Deixa na bancada.<small>Você acompanha cada etapa pelo celular.</small></li>
+      <li>Retira funcionando.<small>Com garantia escrita e o aparelho testado na sua frente.</small></li>
+    </ol>
+  </section>
+
+  <section class="t trk rv" aria-labelledby="tq">
+    <h2 id="tq">Acompanhe pelo WhatsApp.</h2>
+    <div class="os" id="os">
+      <div class="st done">Recebido<small>seg, 9h12</small></div>
+      <div class="st done">Em análise<small>seg, 10h40</small></div>
+      <div class="st on">Na bancada<small>agora</small></div>
+      <div class="st">Pronto para retirar<small>previsto amanhã</small></div>
+    </div>
+  </section>
+
+  <section class="t brands rv" aria-labelledby="bq">
+    <h2 id="bq" style="font-size:clamp(26px,2.6vw,40px);margin-bottom:18px">Marcas que atendemos.</h2>
+    <p>Apple <span>/</span> Samsung <span>/</span> Motorola <span>/</span> Xiaomi <span>/</span> Dell <span>/</span> Lenovo <span>/</span> Acer</p>
+  </section>
+
+  <section class="t faq rv" aria-labelledby="fq">
+    <h2 id="fq">Dúvidas.</h2>
+    <details><summary>E se não tiver conserto?</summary><p>Você não paga nada, só o diagnóstico quando ele foi pedido à parte.</p></details>
+    <details><summary>Vocês perdem meus dados?</summary><p>Evitamos qualquer procedimento que apague dados. Quando for necessário, avisamos antes e você decide.</p></details>
+    <details><summary>As peças são originais?</summary><p>Oferecemos peça original e compatível de linha premium. O orçamento mostra as duas opções.</p></details>
+  </section>
+
+  <section class="t where on-dark" id="loja" aria-labelledby="lq">
+    <h2 id="lq">Passe na loja.</h2>
+    <div class="info">
+      <div><b>Endereço</b>Rua Exemplo, 000, Centro<br>Caxias do Sul, RS</div>
+      <div><b>Horário</b>Seg a sex, 9h às 18h30 · Sábado, 9h às 13h</div>
+      <a class="btn" href="https://wa.me/5554999999999" target="_blank" rel="noopener">Chamar no WhatsApp</a>
+    </div>
+  </section>
+  <footer>Modelo de demonstração da .dev Bossle. Nomes, preços e endereço são exemplos.</footer>
+</div>
+
+<script>
+document.documentElement.classList.add('js');
+(function(){
+  var $=function(s){return document.querySelector(s)};
+  var base={Celular:[120,350],Notebook:[150,480],Tablet:[140,380],Console:[160,420]};
+  var mult={'Tela quebrada':1.3,'Bateria':.7,'Não liga':1.5,'Caiu na água':1.6,'Lento ou travando':.55};
+  var dias={'Tela quebrada':'1 a 2 dias','Bateria':'no mesmo dia','Não liga':'2 a 4 dias','Caiu na água':'3 a 5 dias','Lento ou travando':'no mesmo dia'};
+  function r5(n){return Math.round(n/10)*10}
+  function calc(){
+    var d=$('#dev').value,p=$('#prob').value,b=base[d],m=mult[p];
+    $('#preco').textContent='R$ '+r5(b[0]*m)+' a '+r5(b[1]*m);
+    $('#prazo').textContent='Pronto '+(dias[p].indexOf('no ')===0?dias[p]:'em '+dias[p]);
+    var msg='Oi! Quero um orçamento: '+d+', '+p.toLowerCase()+'. Vou mandar uma foto.';
+    $('#zap').href='https://wa.me/5554999999999?text='+encodeURIComponent(msg);
+  }
+  $('#dev').addEventListener('change',calc);$('#prob').addEventListener('change',calc);calc();
+  var stage=$('#top'),rig=$('#rig'),ticks=document.querySelectorAll('#ticks i'),hint=$('#hint');
+  var ly=[].slice.call(rig.querySelectorAll('.ly')).reverse(); /* tela, moldura, placa, bateria, tampa */
+  var screws=[].slice.call(rig.querySelectorAll('.screw'));
+  var caps=[
+    [0,.12,'00','Aparelho inteiro','Nada é aberto antes de você ver o valor e autorizar.'],
+    [.12,.34,'01 · Tela','Tela e vidro','Troca a partir de R$ 180, com película nova de brinde.'],
+    [.34,.5,'02 · Placa','Placa e conector','Diagnóstico com microscópio. Só trocamos o que realmente falhou.'],
+    [.5,.64,'03 · Bateria','Bateria','Troca no mesmo dia, a partir de R$ 120.'],
+    [.64,.78,'04 · Tampa','Carcaça e vedação','Cola nova e teste de estanqueidade antes de fechar.'],
+    [.78,1.01,'Pronto','Montado e testado','Testado na sua frente, com 90 dias de garantia por escrito.']
+  ];
+  var cs=-1;
+  function cl(x){return x<0?0:x>1?1:x}
+  function ss(x){x=cl(x);return x*x*(3-2*x)}
+  function draw(p){
+    ly.forEach(function(el,i){
+      var e=ss((p-.08-i*.07)/.16)-ss((p-.62-(4-i)*.05)/.16);
+      el.style.setProperty('--e',e.toFixed(3));
+    });
+    var es=(ss((p-.05)/.14)-ss((p-.8)/.14)).toFixed(3);
+    screws.forEach(function(sw){sw.style.setProperty('--es',es)});
+    rig.style.setProperty('--rz',(-32+p*70).toFixed(1)+'deg');
+    rig.style.setProperty('--rx',(60-Math.sin(p*Math.PI)*14).toFixed(1)+'deg');
+    rig.style.setProperty('--ck',p>=.8?'0':'1');
+    hint.style.opacity=p>.03?0:1;
+    var k=0;for(var n=0;n<caps.length;n++){if(p>=caps[n][0]&&p<caps[n][1]){k=n;break}}
+    if(k!==cs){cs=k;var c=caps[k];$('#capn').textContent=c[2];$('#capt').textContent=c[3];$('#capd').textContent=c[4];
+      ticks.forEach(function(t,m){t.classList.toggle('on',m===k)})}
+  }
+  var reduce=matchMedia('(prefers-reduced-motion:reduce)').matches,tick=false;
+  function onScroll(){if(tick)return;tick=true;requestAnimationFrame(function(){tick=false;var r=stage.getBoundingClientRect(),h=stage.offsetHeight-innerHeight;draw(h>0?cl(-r.top/h):0)})}
+  if(!reduce){addEventListener('scroll',onScroll,{passive:true});addEventListener('resize',onScroll);onScroll()}else{draw(.45)}
+  var li=document.querySelectorAll('#steps li'),i=0;
+  if(!matchMedia('(prefers-reduced-motion:reduce)').matches)setInterval(function(){li[i].classList.remove('on');i=(i+1)%li.length;li[i].classList.add('on')},2600);
+  var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}})},{threshold:.12});
+  document.querySelectorAll('.rv').forEach(function(el,k){el.style.transitionDelay=(k%4)*60+'ms';io.observe(el)});
+})();
+</script>
+</body>
+</html>

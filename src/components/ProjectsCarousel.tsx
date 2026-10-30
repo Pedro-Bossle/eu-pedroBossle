@@ -6,6 +6,8 @@ import {
   type TouchEvent,
   type TransitionEvent,
 } from "react";
+import { Link } from "react-router";
+import { caseSlug } from "../data/caseSlug";
 import projectsData from "../data/projects.json";
 import type { Project } from "../types/project";
 import { projectLogos } from "../data/projectLogos";
@@ -165,6 +167,22 @@ function ProjectSlide({
             </span>
           ))}
         </div>
+
+        {project.case ? (
+          <Link
+            to={`/estudos-de-caso?caso=${caseSlug(project.title)}`}
+            className="
+              inline-flex w-fit items-center gap-1
+              text-sm font-medium text-neutral-900
+              underline decoration-black/25 underline-offset-4
+              transition-opacity duration-200 hover:opacity-60
+              dark:text-neutral-100 dark:decoration-white/30
+            "
+          >
+            {t.projects.readCase}
+            <span aria-hidden>→</span>
+          </Link>
+        ) : null}
 
         {project.visibility !== "private" && (
           <a

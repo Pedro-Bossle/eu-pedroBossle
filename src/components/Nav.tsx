@@ -16,9 +16,10 @@ const DESKTOP_MQ = "(min-width: 1024px)";
 
 const NAV_LINKS = [
   { hash: "projetos", key: "highlights" },
-  { hash: "cases", key: "cases" },
+  { hash: "modelos", key: "models" },
   { hash: "contratar", key: "hire" },
   { hash: "stack", key: "stack" },
+  { hash: "contato", key: "contactPage" },
 ] as const;
 
 function LangButton({

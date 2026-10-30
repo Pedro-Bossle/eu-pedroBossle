@@ -5,6 +5,7 @@ Allow: /curriculo-virtual
 
 # Painel interno — não indexar
 Disallow: /orcamentos
+Disallow: /modelos-demo/
 Disallow: /api/
 
 # Sitemap — somente a URL canônica (www); a do apex redireciona e o Google a marca como "Página com redirecionamento"

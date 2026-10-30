@@ -5,6 +5,7 @@ import {
   PROSPECT_COLUMNS,
   mapProspect,
   sanitizeProspect,
+  updateProspect,
   upsertProspect,
   type ProspectInput,
 } from "../../_lib/prospects.js";
@@ -77,26 +78,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       const id = String(body.id ?? "").trim();
       const lead = await withAuth(async (db) => {
-        if (id && UUID.test(id)) {
-          // Edição: sobrescreve os campos com o que está no formulário
-          const { rows } = await db.query(
-            `UPDATE prospect_leads SET
-               name = $2, niche = $3, city = $4, address = $5, neighborhood = $6,
-               website = $7, email = $8, whatsapp = $9, phone = $10, instagram = $11,
-               problems = $12, pitch = $13, message = $14, updated_at = now()
-             WHERE id = $1
-             RETURNING ${PROSPECT_COLUMNS}`,
-            [
-              id, clean.name, clean.niche, clean.city, clean.address,
-              clean.neighborhood, clean.website, clean.email, clean.whatsapp,
-              clean.phone, clean.instagram, clean.problems, clean.pitch,
-              clean.message,
-            ],
-          );
-          if (rows[0]) return mapProspect(rows[0] as Record<string, unknown>);
-        }
-        return (await upsertProspect(db, clean)).lead;
+        // Edição (ou cadastro): grava os campos do formulário e recalcula a nota
+        const target = id && UUID.test(id) ? id : (await upsertProspect(db, clean)).lead.id;
+        return updateProspect(db, target, clean);
       });
+      if (!lead) return json(res, 404, { error: "Lead não encontrado" });
       return json(res, 200, { lead });
     }
 

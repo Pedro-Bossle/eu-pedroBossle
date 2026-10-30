@@ -107,7 +107,13 @@ export const whatsappUrl = (wa: string, text: string) =>
 
 // ---------- Importação ----------
 
-const ALIASES: Record<keyof Omit<ProspectInput, "id" | "source" | "mapsUrl">, string[]> = {
+const ALIASES: Record<
+  keyof Omit<
+    ProspectInput,
+    "id" | "source" | "mapsUrl" | "siteCheck" | "activity" | "detail" | "reviewsCount" | "lastReviewAt" | "followers" | "lastPostAt" | "investLevel" | "competitorSite"
+  >,
+  string[]
+> = {
   name: ["nome", "name", "empresa", "negocio", "nome do negocio", "razao social", "title"],
   niche: ["nicho", "niche", "segmento", "categoria", "category", "ramo", "tipo"],
   city: ["cidade", "city", "municipio"],

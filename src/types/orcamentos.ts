@@ -154,6 +154,14 @@ export type ProspectLead = {
   followupApprovedAt: string | null;
   followupAt: string | null;
   replyText: string;
+  /** Dados da nota (010): a nota é recalculada ao salvar a edição. */
+  reviewsCount: number | null;
+  lastReviewAt: string | null;
+  followers: number | null;
+  lastPostAt: string | null;
+  /** 0 a 3 (cada nível vale 5 pontos). */
+  investLevel: number;
+  competitorSite: boolean;
 };
 
 export type ProspectInput = Partial<
@@ -161,7 +169,7 @@ export type ProspectInput = Partial<
     ProspectLead,
     | "created" | "updated" | "sentAt" | "repliedAt"
     | "stage" | "stageChangedAt" | "exitReason" | "result" | "score" | "scoreBreakdown"
-    | "phoneSources" | "siteCheck" | "activity" | "detail" | "projectType"
+    | "phoneSources" | "projectType"
     | "followupMessage" | "followupApprovedAt" | "followupAt" | "replyText"
   >
 >;

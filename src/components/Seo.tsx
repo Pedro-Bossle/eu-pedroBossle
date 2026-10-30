@@ -17,6 +17,29 @@ const PAGES: Record<string, PageSeo> = {
       "Programador e desenvolvedor web em Caxias do Sul (RS): criação de sites, landing pages e sistemas sob medida para empresas da Serra Gaúcha. Peça seu orçamento.",
     path: "/",
   },
+  "/estudos-de-caso": {
+    title: "Estudos de caso | Pedro Bossle — Desenvolvedor Web em Caxias do Sul",
+    description:
+      "Estudos de caso de sites e sistemas criados por Pedro Bossle: desafio, solução e resultado de cada projeto.",
+    path: "/estudos-de-caso",
+  },
+  "/contato": {
+    title: "Contato e orçamento de site | Pedro Bossle — Caxias do Sul",
+    description:
+      "Peça seu orçamento de site, landing page ou sistema. Veja por que ter um site, projetos no ar e fale com Pedro Bossle, desenvolvedor web em Caxias do Sul (RS).",
+    path: "/contato",
+  },
+  "/termos-de-uso": {
+    title: "Termos de Uso | Pedro Bossle — .dev Bossle",
+    description: "Termos de uso do site devbossle.com.br.",
+    path: "/termos-de-uso",
+  },
+  "/politica-de-privacidade": {
+    title: "Política de Privacidade | Pedro Bossle — .dev Bossle",
+    description:
+      "Como o devbossle.com.br coleta, usa e protege seus dados pessoais, conforme a LGPD.",
+    path: "/politica-de-privacidade",
+  },
   "/curriculo-virtual": {
     title: "Currículo | Pedro Bossle — Programador e Desenvolvedor Web em Caxias do Sul",
     description:

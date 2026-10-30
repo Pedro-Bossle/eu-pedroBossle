@@ -3,7 +3,7 @@ import DeferredMount from "../components/DeferredMount";
 import Hero from "../components/Hero";
 
 const Projects = lazy(() => import("../components/Projects"));
-const Cases = lazy(() => import("../components/Cases"));
+const Models = lazy(() => import("../components/Models"));
 const WhyWebsite = lazy(() => import("../components/WhyWebsite"));
 const HireMe = lazy(() => import("../components/HireMe"));
 const Stack = lazy(() => import("../components/Stack"));
@@ -15,8 +15,8 @@ function Home() {
       <DeferredMount rootMargin="120px 0px">
         <Suspense fallback={null}>
           <Projects />
-          <Cases />
           <WhyWebsite />
+          <Models />
           <HireMe />
           <Stack />
         </Suspense>

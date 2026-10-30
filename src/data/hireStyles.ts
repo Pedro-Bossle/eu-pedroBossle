@@ -775,19 +775,41 @@ export function getHireStyle(id: string): HireStyle {
   );
 }
 
-const loadedFonts = new Set<string>();
+const fontJobs = new Map<string, Promise<void>>();
 
-export function ensureHireFont(style: HireStyle) {
-  if (!style.tokens.fontUrl || loadedFonts.has(style.tokens.fontUrl)) return;
-  if (typeof document === "undefined") return;
-  const link = document.createElement("link");
-  link.rel = "stylesheet";
-  link.href = style.tokens.fontUrl;
-  // Evita render-blocking ao trocar estilo no formulário
-  link.media = "print";
-  link.onload = () => {
-    link.media = "all";
-  };
-  document.head.appendChild(link);
-  loadedFonts.add(style.tokens.fontUrl);
+/**
+ * Carrega a fonte do estilo e só resolve quando ela está pronta (ou após um
+ * tempo limite), para o estilo ser aplicado já com a fonte final, sem o
+ * "pisca" de trocar a tipografia depois.
+ */
+export function preloadHireFont(style: HireStyle): Promise<void> {
+  const url = style.tokens.fontUrl;
+  if (!url || typeof document === "undefined") return Promise.resolve();
+  const cached = fontJobs.get(url);
+  if (cached) return cached;
+
+  const family = /"([^"]+)"/.exec(style.tokens.font)?.[1];
+  const job = new Promise<void>((resolve) => {
+    const done = () => resolve();
+    const link = document.createElement("link");
+    link.rel = "stylesheet";
+    link.href = url;
+    link.onload = () => {
+      if (!family || !document.fonts) return done();
+      Promise.all([
+        document.fonts.load(`400 1em "${family}"`),
+        document.fonts.load(`700 1em "${family}"`),
+      ]).then(done, done);
+    };
+    link.onerror = done;
+    document.head.appendChild(link);
+    window.setTimeout(done, 2500);
+  });
+  fontJobs.set(url, job);
+  return job;
+}
+
+/** Baixa as fontes de todos os estilos em segundo plano, para a troca ser instantânea. */
+export function preloadAllHireFonts() {
+  HIRE_STYLES.forEach((s) => void preloadHireFont(s));
 }

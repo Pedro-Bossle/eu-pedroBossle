@@ -4,8 +4,8 @@ import { useLenis } from "lenis/react";
 const SECTION_IDS = [
   "inicio",
   "projetos",
-  "cases",
   "por-que",
+  "modelos",
   "contratar",
   "stack",
 ] as const;

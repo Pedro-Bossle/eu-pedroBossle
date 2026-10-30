@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Bicho de Casa · Veterinary clinic and pet shop</title>
+<meta name="description" content="Veterinary clinic, emergency care and grooming. Pick-up and drop-off for your pet.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --coral:#ff6a4a; --mint:#86dcb9; --sun:#ffd24a; --sky:#93cfff; --navy:#1b2142; --white:#fff9ef; --pink:#ffb3c1;
+  --font:"Bricolage Grotesque",system-ui,sans-serif; --gutter:clamp(18px,4vw,64px);
+}
+*{box-sizing:border-box;margin:0}
+html{scroll-behavior:smooth}
+body{background:var(--white);color:var(--navy);font:500 19px/1.5 var(--font);-webkit-font-smoothing:antialiased}
+a{color:inherit}button,input{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--navy);outline-offset:3px}
+.wrap{padding-inline:var(--gutter);max-width:1560px;margin-inline:auto}
+h1,h2,h3{font-weight:800;letter-spacing:-.04em;line-height:.94}
+.ch{padding-block:clamp(70px,9vw,140px)}
+.btn{display:inline-flex;align-items:center;justify-content:center;min-height:56px;padding:0 30px;background:var(--navy);color:var(--white);font-weight:700;text-decoration:none;border:0;border-radius:999px;cursor:pointer;transition:transform .25s cubic-bezier(.3,1.6,.5,1)}
+.btn:hover{transform:scale(1.05) rotate(-1deg)}
+.btn.w{background:var(--white);color:var(--navy)}
+/* hero */
+.hero{background:var(--coral)}
+.nav{display:flex;justify-content:space-between;align-items:center;gap:16px;padding-block:22px}
+.brand{font-weight:800;font-size:26px;letter-spacing:-.04em;text-decoration:none;display:flex;align-items:center;gap:10px}
+.brand svg{width:34px;height:34px}
+.nav nav{display:flex;gap:28px;font-weight:600}.nav nav a{text-decoration:none}.nav nav a:hover{text-decoration:underline;text-underline-offset:6px}
+@media(max-width:820px){.nav nav{display:none}}
+.hg{display:grid;grid-template-columns:1.1fr .9fr;gap:clamp(24px,5vw,90px);align-items:center;padding-block:clamp(20px,4vw,50px) clamp(70px,9vw,130px)}
+.hero h1{font-size:clamp(52px,8.2vw,140px)}
+.hero .lead{margin-top:24px;max-width:30ch;font-size:clamp(19px,1.6vw,24px)}
+.hero .cta{margin-top:30px;display:flex;gap:12px;flex-wrap:wrap}
+@media(max-width:940px){.hg{grid-template-columns:1fr}}
+/* carteirinha */
+.duo{position:relative}.pet{display:block;width:84%;height:auto;margin-left:auto;aspect-ratio:4/3;object-fit:cover;border-radius:32px}
+.maker{position:relative;margin-top:-110px;width:min(100%,430px);background:var(--white);border-radius:28px;padding:clamp(20px,2.6vw,32px)}
+.tag .av{width:92px;height:92px;border-radius:50%;margin:0 auto;display:grid;place-items:center;font-size:54px;font-weight:800;letter-spacing:-.05em;background:var(--coral);color:var(--navy)}
+@media(max-width:940px){.pet{width:100%}.maker{margin-top:-60px}}
+.maker h2{font-size:clamp(28px,2.6vw,38px);margin-bottom:4px}
+.maker .sub{font-size:16px;opacity:.75;margin-bottom:16px}
+.maker input[type=text]{width:100%;min-height:54px;border:0;background:#ffe9d2;border-radius:16px;padding:0 18px;font-size:20px;font-weight:700}
+.maker input::placeholder{color:#b58a6a}
+.pick{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.pk{border:0;background:#ffe9d2;border-radius:99px;padding:10px 18px;font-weight:700;font-size:16px;transition:transform .2s cubic-bezier(.3,1.6,.5,1)}
+.pk:hover{transform:scale(1.06)}
+.pk[aria-pressed=true]{background:var(--navy);color:var(--white)}
+.tag{position:relative;margin:24px auto 0;width:min(100%,320px);background:var(--sun);border-radius:28px;padding:44px 22px 22px;text-align:center}
+.tag::before{content:"";position:absolute;top:14px;left:50%;width:26px;height:26px;margin-left:-13px;border-radius:50%;background:var(--white)}
+.tag svg{width:118px;height:118px;display:block;margin:0 auto}
+.tag b{display:block;font-size:clamp(34px,4vw,46px);letter-spacing:-.04em;line-height:1;margin-top:8px;word-break:break-word}
+.tag span{display:block;font-size:15px;font-weight:600;margin-top:4px;opacity:.8}
+.maker .btn{width:100%;margin-top:18px}
+/* serviços */
+.serv{background:var(--mint)}
+.serv h2,.plan h2,.van h2,.crew h2,.faq h2{font-size:clamp(46px,7vw,116px);max-width:14ch}
+.stickers{margin-top:clamp(28px,4vw,56px);display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(12px,1.6vw,22px)}
+.st{border-radius:22px;padding:clamp(20px,2.4vw,32px);min-height:250px;display:flex;flex-direction:column;justify-content:space-between;transition:transform .35s cubic-bezier(.22,1,.36,1)}
+.st:hover{transform:translateY(-4px)}
+.st h3{font-size:clamp(30px,3vw,46px)}
+.st p{margin-top:10px;font-size:18px;max-width:30ch}
+.st .pr{font-weight:800;font-size:20px;margin-top:16px}
+.s1{background:var(--coral)}.s2{background:var(--sun)}.s3{background:var(--white)}.s4{background:var(--sky)}.s5{background:var(--pink)}.s6{background:var(--navy);color:var(--white)}
+@media(max-width:900px){.stickers{grid-template-columns:1fr 1fr}}@media(max-width:560px){.stickers{grid-template-columns:1fr}}
+/* plantão */
+.plan{background:var(--navy);color:var(--white)}
+.pg{display:grid;grid-template-columns:1.1fr 1fr;gap:clamp(24px,5vw,90px);align-items:end;margin-top:clamp(24px,3vw,44px)}
+.plan h2{color:var(--sun)}
+.plan p{font-size:21px;max-width:36ch}
+.plan .big{display:inline-flex;align-items:center;min-height:76px;padding:0 38px;margin-top:26px;background:var(--sun);color:var(--navy);font-size:clamp(24px,3vw,38px);font-weight:800;letter-spacing:-.03em;text-decoration:none;border-radius:999px}
+.signs{list-style:none;padding:0;display:grid;gap:10px}
+.signs li{background:#2a3160;border-radius:20px;padding:16px 22px;font-size:19px}
+@media(max-width:860px){.pg{grid-template-columns:1fr}}
+/* leva e traz */
+.van{background:var(--sun)}
+.vg{display:grid;grid-template-columns:1.1fr .9fr;gap:clamp(24px,5vw,90px);align-items:center;margin-top:clamp(20px,3vw,40px)}
+.van p{font-size:21px;max-width:34ch}
+.vphoto{margin:0}.vphoto img{display:block;width:100%;height:auto;max-width:520px;margin-inline:auto;aspect-ratio:4/3;object-fit:cover;border-radius:24px}
+@media(max-width:860px){.vg{grid-template-columns:1fr}}
+/* equipe */
+.crew{background:var(--sky)}
+.vets{margin-top:clamp(28px,4vw,56px);display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(12px,1.6vw,22px)}
+.vet{background:var(--white);border-radius:36px;padding:clamp(22px,2.6vw,34px);display:flex;flex-direction:column;gap:18px}
+.vet .av{width:104px;height:104px;border-radius:50%;display:grid;place-items:center;font-size:56px;font-weight:800;letter-spacing:-.05em}
+.vet:nth-child(1) .av{background:var(--coral)}.vet:nth-child(2) .av{background:var(--mint)}.vet:nth-child(3) .av{background:var(--sun)}
+.vet h3{font-size:34px}.vet p{font-size:18px}
+@media(max-width:860px){.vets{grid-template-columns:1fr}}
+/* faq */
+.faq{background:var(--white)}
+.fl{margin-top:clamp(24px,3.4vw,44px);display:grid;gap:10px;max-width:940px}
+details{background:#ffe9d2;border-radius:28px}
+summary{list-style:none;cursor:pointer;padding:22px 28px;font-weight:700;font-size:clamp(20px,2vw,26px);display:flex;justify-content:space-between;gap:20px;letter-spacing:-.02em}
+summary::-webkit-details-marker{display:none}summary::after{content:"+";font-size:30px;line-height:1;transition:transform .25s}
+details[open] summary::after{transform:rotate(45deg)}
+details p{padding:0 28px 24px;max-width:60ch}
+/* contato */
+.contact{background:var(--coral)}
+.cg{display:grid;grid-template-columns:1.2fr 1fr;gap:clamp(24px,5vw,80px);align-items:end}
+.contact h2{font-size:clamp(50px,8vw,130px)}
+.info{display:grid;gap:20px;font-size:21px}.info b{display:block;font-size:13px;font-weight:700;opacity:.75}
+@media(max-width:820px){.cg{grid-template-columns:1fr}}
+footer{background:var(--coral);overflow:hidden;padding:30px 0 22px}
+footer .big{font-weight:800;font-size:clamp(30px,13vw,250px);line-height:.82;letter-spacing:-.06em;white-space:nowrap;color:#ff8a70}
+footer small{display:block;margin-top:14px;font-size:14px;max-width:70ch}
+.nav .btn{white-space:nowrap}@media(max-width:520px){.nav .btn{min-height:44px;padding:0 16px;font-size:15px}.brand{font-size:22px}}
+.js .rv{opacity:0;transform:translateY(26px) scale(.97);transition:opacity .6s,transform .7s cubic-bezier(.3,1.4,.5,1)}
+.js .rv.in{opacity:1;transform:none}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important;scroll-behavior:auto!important}.js .rv{opacity:1;transform:none}}
+
+/* hero recomposto: título centrado, foto larga e carteirinha sobreposta */
+.hg{grid-template-columns:1fr;text-align:center;gap:clamp(28px,4vw,56px)}
+.hero h1{font-size:clamp(56px,12vw,210px);line-height:.86;margin-inline:auto;max-width:9ch}
+.hero .lead{margin:24px auto 0;max-width:44ch}
+.hero .cta{justify-content:center}
+.duo{position:relative;text-align:left;padding-bottom:clamp(0px,6vw,90px)}
+.duo .pet{display:block;width:100%;aspect-ratio:21/9;object-fit:cover;object-position:center 30%;border-radius:clamp(28px,4vw,56px)}
+.duo .maker{position:relative;margin:clamp(-60px,-4vw,-24px) auto 0;width:min(100%,520px)}
+@media(min-width:941px){.duo .maker{position:absolute;right:clamp(18px,4vw,64px);bottom:0;margin:0;width:min(46%,460px)}}
+@media(max-width:940px){.duo .pet{aspect-ratio:4/3}.hero h1{font-size:clamp(46px,15vw,100px)}}
+.hero h1{text-wrap:balance}
+</style>
+</head>
+<body>
+<main>
+<section class="hero" id="carteirinha">
+  <div class="wrap">
+    <header class="nav">
+      <a class="brand" href="#"><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="26" r="9" fill="#1b2142"/><circle cx="8" cy="16" r="4.5" fill="#1b2142"/><circle cx="16" cy="8" r="4.5" fill="#1b2142"/><circle cx="26" cy="8" r="4.5" fill="#1b2142"/><circle cx="33" cy="16" r="4.5" fill="#1b2142"/></svg>Bicho de Casa</a>
+      <nav aria-label="Main"><a href="#servicos">Services</a><a href="#plantao">Emergency</a><a href="#leva">Pick-up</a><a href="#contato">Find us</a></nav>
+      <a class="btn" href="#carteirinha">Book a visit</a>
+    </header>
+    <div class="hg">
+      <div>
+        <h1>Pets, well looked after.</h1>
+        <p class="lead">Check-ups, vaccines, grooming and emergency care at one address, with people who truly love animals.</p>
+        <div class="cta"><a class="btn" href="#servicos">See services</a><a class="btn w" href="#plantao">Emergency</a></div>
+      </div>
+      <div class="duo">
+      <img class="pet" src="img/dog-1.webp" alt="Long-haired dog looking at the camera" width="1600" height="1067">
+      <form class="maker" onsubmit="return false" aria-label="Pet ID card">
+        <h2>Make your pet's ID card</h2>
+        <p class="sub">Type the name and book the visit with it.</p>
+        <label for="nm" style="position:absolute;left:-9999px">Pet's name</label>
+        <input type="text" id="nm" placeholder="Pet's name" maxlength="18" autocomplete="off">
+        <div class="pick" role="group" aria-label="Species" id="sp">
+          <button type="button" class="pk" data-s="Dog" aria-pressed="true">Dog</button>
+          <button type="button" class="pk" data-s="Cat" aria-pressed="false">Cat</button>
+          <button type="button" class="pk" data-s="Other" aria-pressed="false">Other</button>
+        </div>
+        <div class="tag" aria-live="polite">
+          <div class="av" id="art" aria-hidden="true">T</div>
+          <b id="tn">Thor</b><span id="ts">Dog · Bicho de Casa</span>
+        </div>
+        <a class="btn" id="zap" href="#" target="_blank" rel="noopener">Book a visit</a>
+      </form>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="ch serv" id="servicos" aria-labelledby="sh">
+  <div class="wrap">
+    <h2 id="sh" class="rv">Everything for your pet.</h2>
+    <div class="stickers">
+      <article class="st s1 rv"><div><h3>Check-ups</h3><p>General practice and specialists, with time to listen to you.</p></div><div class="pr">from R$ 120</div></article>
+      <article class="st s2 rv"><div><h3>Vaccines</h3><p>Full protocol for dogs and cats, with a WhatsApp reminder.</p></div><div class="pr">from R$ 90</div></article>
+      <article class="st s3 rv"><div><h3>Tests</h3><p>Blood work, ultrasound and X-ray with same-day results.</p></div><div class="pr">from R$ 80</div></article>
+      <article class="st s4 rv"><div><h3>Surgery</h3><p>Neutering and routine surgery with monitored anaesthesia.</p></div><div class="pr">after assessment</div></article>
+      <article class="st s5 rv"><div><h3>Grooming</h3><p>Hygienic, scissor or clipper cuts, with stress-free drying.</p></div><div class="pr">from R$ 60</div></article>
+      <article class="st s6 rv"><div><h3>Pet hotel</h3><p>Boarding with walks and a daily photo update.</p></div><div class="pr">R$ 90 per night</div></article>
+    </div>
+  </div>
+</section>
+
+<section class="ch plan" id="plantao" aria-labelledby="ph">
+  <div class="wrap">
+    <h2 id="ph" class="rv">If it's urgent, don't wait for us to open.</h2>
+    <div class="pg">
+      <div class="rv"><p>Emergency care covers out-of-hours, holidays and weekends. Call before you leave and we'll get the team ready.</p><a class="big" href="tel:+555400000000">(54) 0000-0000</a></div>
+      <ul class="signs rv" aria-label="When to call emergency care">
+        <li>Trouble breathing</li><li>Seizure or fainting</li><li>Hit by a car or a fall</li><li>Vomiting or diarrhoea with blood</li><li>Swollen, hard belly</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section class="ch van" id="leva" aria-labelledby="vh">
+  <div class="wrap">
+    <h2 id="vh" class="rv">No time to come? We'll pick up.</h2>
+    <div class="vg">
+      <div class="rv"><p>We pick up and drop off for grooming and routine check-ups. We cover downtown and the surrounding neighbourhoods.</p><p style="margin-top:14px;font-weight:800">Fee from R$ 15.</p></div>
+      <figure class="vphoto rv"><img src="img/dog-2.webp" alt="Close-up of a dog" width="1600" height="1313"></figure>
+    </div>
+  </div>
+</section>
+
+<section class="ch crew" aria-labelledby="eh">
+  <div class="wrap">
+    <h2 id="eh" class="rv">Who looks after your pet.</h2>
+    <div class="vets">
+      <article class="vet rv"><div class="av" aria-hidden="true">C</div><div><h3>Dr. Camila</h3><p>General practice. Brings Nina, a caramel mutt who comes to work too.</p></div></article>
+      <article class="vet rv"><div class="av" aria-hidden="true">R</div><div><h3>Dr. Rodrigo</h3><p>Surgery and orthopaedics. Lives with three cats and a tortoise.</p></div></article>
+      <article class="vet rv"><div class="av" aria-hidden="true">B</div><div><h3>Bia</h3><p>Grooming. Sends every pet home looking brand new and tail wagging.</p></div></article>
+    </div>
+  </div>
+</section>
+
+<section class="ch faq" aria-labelledby="fh">
+  <div class="wrap">
+    <h2 id="fh" class="rv">Before you come.</h2>
+    <div class="fl">
+      <details><summary>Do I need an appointment?</summary><p>We recommend it, so you wait less. Urgent cases are seen right away, no appointment needed.</p></details>
+      <details><summary>Do you see cats and exotic animals?</summary><p>Cats yes, in a space separate from dogs. For exotic animals, check with the team.</p></details>
+      <details><summary>Can I stay for the groom?</summary><p>You're welcome to stay. We send a photo at the start and the end so you see everything.</p></details>
+    </div>
+  </div>
+</section>
+
+<section class="ch contact" id="contato" aria-labelledby="ch">
+  <div class="wrap cg">
+    <h2 id="ch" class="rv">Come say hi.</h2>
+    <div class="info rv">
+      <div><b>Address</b>000 Example Street<br>Caxias do Sul, RS, Brazil</div>
+      <div><b>Hours</b>Mon to Sat, 8am to 7pm · Emergency care 24 hours</div>
+      <a class="btn" href="https://wa.me/5554999999999" target="_blank" rel="noopener">Message us on WhatsApp</a>
+    </div>
+  </div>
+</section>
+</main>
+<footer><div class="wrap"><div class="big" aria-hidden="true">Bicho de Casa</div><small>Demo template by .dev Bossle. Names, prices and address are examples. Fotos: “Dog portrait Budapest” (CONTRERAS Roberto), CC BY 4.0, e “Close-up portrait of dog” (Pittigrilli), CC BY-SA 4.0, via Wikimedia Commons.</small></div></footer>
+
+<script>
+document.documentElement.classList.add('js');
+(function(){
+  var $=function(s){return document.querySelector(s)};
+  var col={Dog:'#ff6a4a',Cat:'#93cfff',Other:'#86dcb9'};
+  var st={s:'Dog',n:''};
+  function render(){
+    var n=st.n.trim()||'Thor';
+    $('#art').textContent=n.charAt(0).toUpperCase();$('#art').style.background=col[st.s];$('#tn').textContent=n;$('#ts').textContent=st.s+' · Bicho de Casa';
+    var msg='Hi! I would like to book a visit for '+n+' ('+st.s.toLowerCase()+').';
+    $('#zap').href='https://wa.me/5554999999999?text='+encodeURIComponent(msg);
+    $('#zap').textContent='Book a visit for '+n;
+  }
+  $('#nm').addEventListener('input',function(e){st.n=e.target.value;render()});
+  $('#sp').addEventListener('click',function(e){var b=e.target.closest('.pk');if(!b)return;document.querySelectorAll('.pk').forEach(function(x){x.setAttribute('aria-pressed',x===b)});st.s=b.dataset.s;render()});
+  render();
+  var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}})},{threshold:.12});
+  document.querySelectorAll('.rv').forEach(function(el,k){el.style.transitionDelay=(k%3)*80+'ms';io.observe(el)});
+})();
+</script>
+</body>
+</html>

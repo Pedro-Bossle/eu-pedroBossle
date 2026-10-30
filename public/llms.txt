@@ -33,7 +33,7 @@ Pedro Bossle Sandi — desenvolvedor web, estudante de Análise e Desenvolviment
 - E-mail: pedro.bossle.s@gmail.com
 - LinkedIn: https://www.linkedin.com/in/pedro-bossle-sandi-685625277/
 - GitHub: https://github.com/Pedro-Bossle
-- Instagram: https://www.instagram.com/pedro_bossle/
+- Instagram: https://www.instagram.com/dev.bossle/
 
 ## Localização
 Caxias do Sul, Rio Grande do Sul, Brasil (Serra Gaúcha). Atende clientes locais e remotos.

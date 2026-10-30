@@ -2,6 +2,8 @@ import type { TranslationKeys } from "./pt";
 
 const en: TranslationKeys = {
   nav: {
+    models: "Templates",
+    contactPage: "Contact",
     highlights: "Highlights",
     cases: "Cases",
     hire: "Hire me",
@@ -44,6 +46,7 @@ const en: TranslationKeys = {
     nextAria: "Next project",
     goTo: "Go to",
     logoAlt: "Project logo",
+    readCase: "Read case study",
   },
   cases: {
     eyebrow: "Stories related to the projects",
@@ -52,6 +55,8 @@ const en: TranslationKeys = {
     challenge: "Challenge",
     solution: "Solution",
     result: "Result",
+    back: "Back to projects",
+    allCases: "All cases",
   },
   stack: {
     eyebrow: "Skills",
@@ -150,6 +155,131 @@ const en: TranslationKeys = {
     promptProjects: "cat projects/featured",
     promptEducation: "cat education.txt",
     promptCourses: "cat courses.txt",
+  },
+  models: {
+    eyebrow: "Templates",
+    title: "No idea for a site? Start from a template",
+    subtitle:
+      "Ready-made templates for local businesses. See how each one works, pick the closest fit and I adapt it with your colors, photos and information.",
+    viewModel: "See live template",
+    wantModel: "I want one like this",
+    sampleNote: "Templates use sample data. Nothing here belongs to a real client.",
+    ctaTitle: "No idea for a site? Grab one of these templates as inspiration",
+    ctaText:
+      "Pick the template closest to your business, tell me what you need and I reply with a proposal.",
+    ctaButton: "Choose a style and send",
+    notFound: "Template not found.",
+    backToModels: "Back to templates",
+    deviceLabel: "Screen type",
+    desktop: "Desktop",
+    mobile: "Mobile",
+    fullscreen: "Open full screen",
+    items: {
+      barbearia: {
+        name: "Barbershop & Salon",
+        niche: "Beauty",
+        pitch: "The appointment card becomes the booking: service, barber and time straight to WhatsApp.",
+        features: ["Appointment card", "Price board", "Team"],
+      },
+      assistencia: {
+        name: "Repair Shop",
+        niche: "Phones and electronics",
+        pitch: "A tile bench with instant quotes and repair progress tracked step by step.",
+        features: ["Instant quote", "Repair status", "Warranty"],
+      },
+      odonto: {
+        name: "Dental & Aesthetics Clinic",
+        niche: "Health and aesthetics",
+        pitch: "The tooth shade guide becomes a whitening and treatment plan simulator.",
+        features: ["Shade simulator", "Before and after", "Treatments"],
+      },
+      oficina: {
+        name: "Auto Repair Shop",
+        niche: "Automotive",
+        pitch: "The inspection report becomes the page: tap the car and see what is checked at each point.",
+        features: ["Interactive car", "24-item report", "Clear pricing"],
+      },
+      veterinaria: {
+        name: "Veterinary Clinic",
+        niche: "Pets",
+        pitch: "Color chapters and a pet ID card made on the spot, with emergency care and pick-up.",
+        features: ["Pet ID card", "Emergency care", "Pick-up and drop-off"],
+      },
+      viagens: {
+        name: "Travel Agency",
+        niche: "Tourism",
+        pitch: "Destination posters that change as you scroll and a boarding pass built on the spot.",
+        features: ["Destinations", "Build your pass", "Tailored itinerary"],
+      },
+    },
+  },
+  form: {
+    name: "Name",
+    email: "Email",
+    idea: "Your idea",
+    ideaPlaceholder: "Tell me what you do and what you need: website, landing page, system…",
+    model: "Template of interest",
+    modelNone: "Not sure yet / other",
+    consentPre: "I have read and agree to the",
+    consentLink: "Privacy Policy",
+    consentPost: "and allow contact about this request.",
+    consentError: "Tick the consent box to send.",
+    submit: "Send message",
+    submitting: "Sending…",
+    success: "Message sent. I will get back to you soon.",
+    error: "Could not send. Try again or use the email directly.",
+    rateLimit: "Too many attempts. Please wait a bit and try again.",
+    modelPrefix: "Template of interest",
+    noticePre: "By sending, you agree to the",
+    noticePost: "and to being contacted about this request.",
+  },
+  contactPage: {
+    eyebrow: "Contact",
+    title: "Let's get your website off the ground",
+    subtitle:
+      "Fill in the form and I will reply by email. The more you tell me about your business, the sharper the proposal.",
+    formTitle: "Request a quote",
+    formSubtitle: "Takes under a minute. No commitment.",
+    directTitle: "Prefer to talk directly?",
+    whyTitle: "Why have a website",
+    whySubtitle:
+      "Social media helps, but it does not replace an address of your own on the internet. These are the most common reasons.",
+    reasons: [
+      {
+        title: "Get found on Google",
+        text: "People searching for your service in your city find you, not only those who already follow you.",
+      },
+      {
+        title: "Build trust",
+        text: "A website shows the business is serious and gives customers a place to check services, photos and reviews.",
+      },
+      {
+        title: "Fewer repeated questions",
+        text: "Prices, hours, address and how it works are visible, so WhatsApp only gets people who already decided.",
+      },
+      {
+        title: "Sell and book on autopilot",
+        text: "A direct button for orders, bookings or quotes, working 24 hours a day.",
+      },
+      {
+        title: "A channel you own",
+        text: "A social profile can change, go down or lose reach. Your website stays under your name and control.",
+      },
+      {
+        title: "Always up-to-date information",
+        text: "Price or hours changed? Update one place instead of redoing graphics and posts.",
+      },
+    ],
+    projectsTitle: "Live projects",
+    projectsSubtitle: "A few published works, so you can see how they turn out in practice.",
+    visit: "Visit",
+    modelsLink: "See the templates",
+    skinTitle: "Page style",
+    skinDefault: "Default",
+  },
+  legal: {
+    terms: "Terms of Use",
+    privacy: "Privacy Policy",
   },
 };
 
