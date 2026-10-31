@@ -211,6 +211,42 @@ const en: TranslationKeys = {
         pitch: "Destination posters that change as you scroll and a boarding pass built on the spot.",
         features: ["Destinations", "Build your pass", "Tailored itinerary"],
       },
+      hamburgueria: {
+        name: "Burger Joint",
+        niche: "Food",
+        pitch: "The word SMASH drops and squashes the brand as you scroll, with a tabbed menu and a build-your-burger order on WhatsApp.",
+        features: ["Tabbed menu", "Build your burger", "WhatsApp orders"],
+      },
+      advocacia: {
+        name: "Law Firm",
+        niche: "Legal",
+        pitch: "Dark editorial look with a contract reviewed live as the visitor scrolls the page.",
+        features: ["Live review", "Practice areas", "Direct contact"],
+      },
+      imobiliaria: {
+        name: "Real Estate Agency",
+        niche: "Real estate",
+        pitch: "Magazine style, with search by type, neighborhood and bedrooms, a featured home and a mortgage simulator.",
+        features: ["Filtered search", "Featured property", "Mortgage simulator"],
+      },
+      pousada: {
+        name: "Country Inn",
+        niche: "Hospitality",
+        pitch: "A whole day passing on screen: photos change and the clock moves forward as the visitor scrolls.",
+        features: ["Day on scroll", "Cabins and rates", "WhatsApp booking"],
+      },
+      cafeteria: {
+        name: "Coffee Shop",
+        niche: "Coffee",
+        pitch: "A giant name filled with coffee beans and the cup on top, a roast picker and a monthly subscription.",
+        features: ["Roast picker", "Subscription", "Hours and address"],
+      },
+      provedor: {
+        name: "Internet Provider",
+        niche: "Telecom",
+        pitch: "A 3D terrain you can rotate with the mouse, plans for city and countryside and a coverage check by postal code.",
+        features: ["Interactive 3D terrain", "City and rural plans", "Coverage check"],
+      },
     },
   },
   form: {
