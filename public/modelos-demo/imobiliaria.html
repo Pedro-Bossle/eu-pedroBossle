@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Casa Serra Imóveis · Casas e apartamentos em Caxias do Sul</title>
+<meta name="description" content="Imobiliária em Caxias do Sul: casas e apartamentos selecionados, visita marcada no WhatsApp e simulação de financiamento.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;1,6..72,400&family=Manrope:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0}
+html{scroll-behavior:smooth}
+html,body{overflow-x:clip}
+img{max-width:100%;display:block}
+a{color:inherit}button,input,select{font:inherit;color:inherit}
+
+:root{--paper:#f4efe6;--card:#fbf8f2;--ink:#1d1a16;--mut:#6f675c;--line:#d9cfbf;--accent:#8a4b2a;--olive:#55603f;
+--serif:"Newsreader","Georgia",serif;--sans:"Manrope",system-ui,sans-serif;--g:clamp(16px,3.4vw,56px)}
+body{background:var(--paper);color:var(--ink);font:400 17px/1.6 var(--sans);-webkit-font-smoothing:antialiased}
+.wrap{padding-inline:var(--g);max-width:1480px;margin-inline:auto}
+:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+h1,h2,h3{font-family:var(--serif);font-weight:400;letter-spacing:-.015em;line-height:1}
+.k{font:600 12px/1.4 var(--sans);letter-spacing:.16em;text-transform:uppercase;color:var(--mut)}
+.btn{display:inline-flex;align-items:center;gap:10px;min-height:50px;padding:0 22px;border-radius:999px;background:var(--ink);color:var(--paper);text-decoration:none;font-weight:600;border:0;cursor:pointer;transition:background .25s}
+.btn:hover{background:var(--accent)}
+.btn.line{background:transparent;color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
+header .wrap{display:flex;justify-content:space-between;align-items:center;padding-block:20px;gap:20px;border-bottom:1px solid var(--line)}
+.brand{font:400 26px/1 var(--serif);text-decoration:none}.brand i{color:var(--accent)}
+header nav{display:flex;gap:28px;font-size:15px}header nav a{text-decoration:none;color:var(--mut)}header nav a:hover{color:var(--ink)}
+@media(max-width:900px){header nav{display:none}}
+.hero{display:grid;grid-template-columns:1fr 1fr;gap:clamp(24px,5vw,80px);padding-block:clamp(28px,4vw,56px);align-items:center}
+.hero h1{font-size:clamp(52px,6.6vw,116px);margin-top:20px}
+.hero h1 i{color:var(--accent)}
+.hero .lead{max-width:40ch;color:var(--mut);margin-top:26px;font-size:18px}
+.hero figure{position:relative}
+.hero figure img{width:100%;height:min(66vh,600px);min-height:280px;object-fit:cover;border-radius:4px}
+.hero figcaption{position:absolute;left:-1px;bottom:-1px;background:var(--paper);padding:12px 18px 0 0;font:italic 400 18px var(--serif)}
+@media(max-width:900px){.hero{grid-template-columns:1fr}}
+.search{display:grid;grid-template-columns:repeat(3,1fr) auto;gap:0;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:6px;margin-top:10px}
+.search label{display:grid;padding:6px 20px;border-right:1px solid var(--line);font:600 11px var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--mut)}
+.search select{border:0;background:transparent;font:500 16px var(--sans);color:var(--ink);padding:2px 0;cursor:pointer;letter-spacing:0;text-transform:none}
+.search select:focus{outline:none}
+@media(max-width:800px){.search{grid-template-columns:1fr;border-radius:18px}.search label{border-right:0;border-bottom:1px solid var(--line);padding:10px 14px}.search .btn{margin-top:6px}}
+.listings{padding-block:clamp(60px,8vw,110px)}
+.lh{display:flex;justify-content:space-between;align-items:baseline;gap:20px;flex-wrap:wrap}
+.lh h2{font-size:clamp(40px,5vw,80px)}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(18px,2.4vw,34px);margin-top:36px}
+.card{display:flex;flex-direction:column;gap:12px}
+.card .ph{position:relative;overflow:hidden;border-radius:4px;aspect-ratio:4/3}
+.card img{width:100%;height:100%;object-fit:cover;transition:transform .8s cubic-bezier(.2,.7,.2,1)}
+.card:hover img{transform:scale(1.05)}
+.card .code{position:absolute;top:12px;left:12px;background:var(--paper);font:600 11px var(--sans);letter-spacing:.12em;padding:5px 9px;border-radius:999px}
+.card h3{font-size:26px}
+.card .meta{display:flex;gap:14px;color:var(--mut);font-size:14px;flex-wrap:wrap}
+.card .row{display:flex;justify-content:space-between;align-items:center;gap:10px;border-top:1px solid var(--line);padding-top:12px}
+.card .price{font:400 24px var(--serif)}
+.card a{font-weight:600;font-size:14px;text-decoration:none;border-bottom:1px solid var(--ink)}
+.empty{grid-column:1/-1;padding:40px;text-align:center;border:1px dashed var(--line);color:var(--mut)}
+@media(max-width:1000px){.grid{grid-template-columns:1fr 1fr}}@media(max-width:620px){.grid{grid-template-columns:1fr}}
+.feature{background:var(--card);border-block:1px solid var(--line);padding-block:clamp(60px,8vw,120px)}
+.fg{display:grid;grid-template-columns:1.15fr .85fr;gap:clamp(24px,5vw,90px);align-items:start}
+.fg .pics{display:grid;grid-template-columns:1.4fr 1fr;gap:14px}
+.fg .pics img{width:100%;height:100%;object-fit:cover;border-radius:4px}
+.fg .pics img:first-child{grid-row:span 2;aspect-ratio:3/4}
+.fg h2{font-size:clamp(40px,4.6vw,72px);margin:14px 0 22px}
+.fg p{margin-bottom:16px;color:#3d372f;font:400 20px/1.55 var(--serif)}
+.fg p.dc::first-letter{float:left;font:400 80px/.8 var(--serif);margin:8px 10px 0 0;color:var(--accent)}
+.facts{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid var(--line);margin-top:26px}
+.facts div{padding:16px 0;border-bottom:1px solid var(--line)}
+.facts b{display:block;font:400 32px var(--serif)}.facts span{color:var(--mut);font-size:14px}
+@media(max-width:900px){.fg{grid-template-columns:1fr}}
+.fin{padding-block:clamp(60px,8vw,120px)}
+.fin .g{display:grid;grid-template-columns:1fr 1fr;gap:clamp(24px,5vw,80px);align-items:start}
+.fin h2{font-size:clamp(40px,5vw,80px)}.fin .sub{color:var(--mut);margin-top:16px;max-width:42ch}
+.sl{display:grid;gap:22px}
+.sl label{display:grid;gap:8px;font-weight:600;font-size:14px}
+.sl .v{display:flex;justify-content:space-between}.sl .v b{font:400 22px var(--serif)}
+input[type=range]{width:100%;accent-color:var(--accent);height:28px}
+.res{margin-top:10px;background:var(--ink);color:var(--paper);border-radius:6px;padding:22px;display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.res div:first-child{grid-column:1/-1}
+.res span{display:block;font-size:13px;color:#b8afa2}.res b{font:400 28px var(--serif)}.res div:first-child b{font-size:52px}
+@media(max-width:860px){.fin .g{grid-template-columns:1fr}}
+.contact{background:var(--olive);color:#f1ede3;padding-block:clamp(60px,8vw,120px)}
+.contact .g{display:grid;grid-template-columns:1.1fr .9fr;gap:clamp(24px,5vw,80px);align-items:end}
+.contact h2{font-size:clamp(48px,7vw,120px)}
+.contact p{max-width:40ch;margin-top:18px;color:#dcd7c9}
+.team{display:grid;gap:14px}
+.team div{display:flex;align-items:center;gap:14px;border-top:1px solid rgba(241,237,227,.25);padding-top:14px}
+.team i{width:44px;height:44px;border-radius:50%;background:#f1ede3;color:var(--olive);display:grid;place-items:center;font:400 20px var(--serif);font-style:normal}
+.team span{display:block;font-size:13px;color:#cfc9b8}
+.contact .btn{background:#f1ede3;color:var(--ink);margin-top:18px}
+@media(max-width:860px){.contact .g{grid-template-columns:1fr}}
+footer{padding-block:30px;color:var(--mut);font-size:13px}
+footer .wrap{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap}
+
+
+.js .rv{opacity:0;transform:translateY(24px);transition:opacity .7s ease,transform .7s cubic-bezier(.2,.7,.2,1)}
+.js .rv.in{opacity:1;transform:none}
+@media (prefers-reduced-motion: reduce){.js .rv{opacity:1;transform:none;transition:none}*{scroll-behavior:auto!important}}
+
+</style>
+</head>
+<body>
+
+<header><div class="wrap"><a class="brand" href="#">Casa <i>Serra</i></a>
+<nav><a href="#imoveis">Imóveis</a><a href="#destaque">Em destaque</a><a href="#financiamento">Financiamento</a><a href="#contato">Contato</a></nav>
+<a class="btn line" href="#contato">Anunciar imóvel</a></div></header>
+<main>
+<section class="wrap hero"><div class="rv"><p class="k">Edição de novembro · 24 imóveis</p>
+<h1>Casas com <i>luz da tarde</i> na Serra.</h1><p class="lead">Uma seleção curta de imóveis em Caxias do Sul, visitados por nós antes de entrar aqui. Sem anúncio repetido, sem foto enganosa.</p></div>
+<figure class="rv"><img src="img/imob-1.webp" alt="" width="1800" height="1200"><figcaption>CS-0412 · Exposição</figcaption></figure></section>
+<form class="wrap" id="sf" onsubmit="return false"><div class="search">
+<label>Tipo<select id="ft"><option value='0'>Todos</option><option value='1'>Casa</option><option value='2'>Apartamento</option></select></label><label>Bairro<select id="fh"><option value='0'>Todos</option><option value='1'>Exposição</option><option value='2'>Madureira</option><option value='3'>São Pelegrino</option><option value='4'>Petrópolis</option><option value='5'>Cinquentenário</option></select></label><label>Quartos<select id="fr"><option value='0'>Qualquer</option><option value='1'>2+</option><option value='2'>3+</option><option value='3'>4+</option></select></label>
+<button class="btn" type="submit">Buscar</button></div></form>
+<section class="wrap listings" id="imoveis" aria-labelledby="lh"><div class="lh"><h2 id="lh">Imóveis à venda</h2><p class="k" id="cnt"></p></div>
+<div class="grid" id="grid" aria-live="polite"></div></section>
+<section class="feature" id="destaque" aria-labelledby="fh"><div class="wrap fg">
+<div class="pics rv"><img src="img/imob-4.webp" alt="" loading="lazy"><img src="img/imob-2.webp" alt="" loading="lazy"><img src="img/imob-3.webp" alt="" loading="lazy"></div>
+<div class="rv"><p class="k">Em destaque · CS-0412</p><h2 id="fh">A casa da Rua das Hortênsias</h2><p class="dc">Quatro quartos, pé-direito duplo na sala e uma janela que pega o sol das quatro da tarde até o fim do dia. A piscina fica do lado do poente e o jardim foi pensado para dar pouco trabalho.</p><p>Fica a oito minutos do centro pela Perimetral, numa rua sem saída onde as crianças ainda andam de bicicleta.</p>
+<div class="facts"><div><b>320 m²</b><span>de área construída</span></div><div><b>4</b><span>quartos, 2 suítes</span></div><div><b>3</b><span>vagas cobertas</span></div><div><b>2019</b><span>ano de construção</span></div></div></div></div></section>
+<section class="wrap fin" id="financiamento" aria-labelledby="nh"><div class="g">
+<div class="rv"><h2 id="nh">Quanto fica a parcela?</h2><p class="sub">Simulação pela tabela SAC, com juros de 10,5% ao ano. É só uma estimativa: a aprovação depende do banco.</p></div>
+<div class="sl"><label>Valor do imóvel<span class="v"><span></span><b id="vv"></b></span><input type="range" id="sv" min="300000" max="3000000" step="10000" value="890000"></label>
+<label>Entrada<span class="v"><span></span><b id="ve"></b></span><input type="range" id="se" min="10" max="70" step="5" value="30"></label>
+<label>Prazo<span class="v"><span></span><b id="vp"></b></span><input type="range" id="sp" min="10" max="35" step="1" value="30"></label>
+<div class="res" aria-live="polite"><div><span>Primeira parcela</span><b id="r1"></b></div><div><span>Última parcela</span><b id="r2"></b></div><div><span>Valor financiado</span><b id="r3"></b></div></div></div></div></section>
+<section class="contact" id="contato" aria-labelledby="ch"><div class="wrap g">
+<div class="rv"><h2 id="ch">Vamos ver de perto?</h2><p>Escreva o código do imóvel ou conte o que você procura. A gente responde no mesmo dia.</p><a class="btn" href="https://wa.me/5554999999999" target="_blank" rel="noopener">Falar com um corretor</a></div>
+<div class="rv"><p class="k" style="color:#cfc9b8">Quem vai te atender</p><div class="team"><div><i>H</i><p style='margin:0'>Helena Basso<span>Corretora · CRECI 00000</span></p></div><div><i>R</i><p style='margin:0'>Rafael Toigo<span>Corretor · CRECI 00000</span></p></div></div><p style="margin-top:22px">Rua Exemplo, 800 · Exposição · Caxias do Sul, RS</p></div></div></section>
+</main>
+<footer><div class="wrap"><span>Casa Serra Imóveis</span><span>Modelo de demonstração da .dev Bossle. Nomes, valores, telefones e endereço são exemplos. Fotos: Unsplash (Unsplash License).</span></div></footer>
+
+<script>
+
+document.documentElement.classList.add('js');
+var RM=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+(function(){
+  var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}})},{threshold:.15});
+  document.querySelectorAll('.rv').forEach(function(el,k){el.style.transitionDelay=(k%3)*80+'ms';io.observe(el)});
+})();
+function clamp(v,a,b){return Math.max(a,Math.min(b,v))}
+function progress(el){var r=el.getBoundingClientRect(),h=el.offsetHeight-innerHeight;return h>0?clamp(-r.top/h,0,1):0}
+
+
+var ITEMS=[["Casa", "Exposição", 4, 320, 2150000, "Casa contemporânea com piscina"], ["Casa", "Petrópolis", 3, 260, 1480000, "Casa térrea com quintal e piscina"], ["Apartamento", "Madureira", 3, 128, 890000, "Apartamento com sala integrada"], ["Apartamento", "São Pelegrino", 2, 84, 540000, "Apartamento claro perto da Sinimbu"], ["Casa", "Cinquentenário", 3, 210, 1190000, "Sobrado com jardim de inverno"], ["Apartamento", "Exposição", 2, 96, 690000, "Apartamento com varanda gourmet"]],IMGS=["imob-1", "imob-4", "imob-2", "imob-3", "imob-1", "imob-2"],POS=["50% 60%", "50% 50%", "50% 50%", "40% 50%", "20% 40%", "80% 60%"],T={"types": ["Todos", "Casa", "Apartamento"], "hoods": ["Todos", "Exposição", "Madureira", "São Pelegrino", "Petrópolis", "Cinquentenário"], "found": "imóveis", "none": "Nenhum imóvel com esses filtros. Tente outro bairro.", "unit": ["quartos", "m²"], "visit": "Agendar visita", "msg": "Olá! Tenho interesse no imóvel", "years": "anos"};
+(function(){
+  var loc=document.documentElement.lang==='en'?'en-US':'pt-BR';
+  var money=function(v){return 'R$ '+Math.round(v).toLocaleString(loc)};
+  var g=document.getElementById('grid'),cnt=document.getElementById('cnt');
+  function render(){
+    var ty=+document.getElementById('ft').value,h=+document.getElementById('fh').value,r=+document.getElementById('fr').value;
+    var out=ITEMS.map(function(it,i){return [it,i]}).filter(function(x){var it=x[0];
+      return (!ty||it[0]===T.types[ty])&&(!h||it[1]===T.hoods[h])&&(!r||it[2]>=r+1)});
+    cnt.textContent=out.length+' '+T.found;
+    g.innerHTML=out.length?out.map(function(x){var it=x[0],i=x[1],code='CS-0'+(412+i*37);
+      return '<article class="card"><div class="ph"><img src="img/'+IMGS[i]+'.webp" alt="" loading="lazy" style="object-position:'+POS[i]+'"><span class="code">'+code+'</span></div>'+
+      '<h3>'+it[5]+'</h3><div class="meta"><span>'+it[1]+'</span><span>'+it[2]+' '+T.unit[0]+'</span><span>'+it[3]+' '+T.unit[1]+'</span></div>'+
+      '<div class="row"><span class="price">'+money(it[4])+'</span><a href="https://wa.me/5554999999999?text='+encodeURIComponent(T.msg+' '+code)+'" target="_blank" rel="noopener">'+T.visit+'</a></div></article>'}).join(''):'<p class="empty">'+T.none+'</p>';
+  }
+  ['ft','fh','fr'].forEach(function(id){document.getElementById(id).addEventListener('change',render)});render();
+  function fin(){
+    var v=+document.getElementById('sv').value,e=+document.getElementById('se').value,y=+document.getElementById('sp').value;
+    var pv=v*(1-e/100),n=y*12,i=Math.pow(1.105,1/12)-1,am=pv/n;
+    document.getElementById('vv').textContent=money(v);document.getElementById('ve').textContent=e+'% · '+money(v*e/100);
+    document.getElementById('vp').textContent=y+' '+T.years;
+    document.getElementById('r1').textContent=money(am+pv*i);document.getElementById('r2').textContent=money(am+am*i);document.getElementById('r3').textContent=money(pv);
+  }
+  ['sv','se','sp'].forEach(function(id){document.getElementById(id).addEventListener('input',fin)});fin();
+})();
+
+</script>
+</body>
+</html>

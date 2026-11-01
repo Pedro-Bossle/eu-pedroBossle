@@ -396,6 +396,42 @@ const pt: TranslationKeys = {
         pitch: "Destinos em pôsteres que trocam ao rolar e a passagem montada na hora, do sonho ao embarque.",
         features: ["Destinos", "Monte sua passagem", "Roteiro sob medida"],
       },
+      hamburgueria: {
+        name: "Hamburgueria",
+        niche: "Food",
+        pitch: "A palavra SMASH cai e amassa o nome da casa ao rolar, com cardápio em abas e monte o seu lanche direto no WhatsApp.",
+        features: ["Cardápio em abas", "Monte seu burger", "Pedido no WhatsApp"],
+      },
+      advocacia: {
+        name: "Escritório de Advocacia",
+        niche: "Jurídico",
+        pitch: "Visual escuro e editorial, com um contrato revisado ao vivo enquanto a pessoa rola a página.",
+        features: ["Revisão ao vivo", "Áreas de atuação", "Contato direto"],
+      },
+      imobiliaria: {
+        name: "Imobiliária",
+        niche: "Imóveis",
+        pitch: "Estilo revista, com busca por tipo, bairro e quartos, imóvel em destaque e simulador de financiamento.",
+        features: ["Busca com filtros", "Imóvel em destaque", "Simulador de parcelas"],
+      },
+      pousada: {
+        name: "Pousada",
+        niche: "Hospedagem",
+        pitch: "Um dia inteiro passando na tela: as fotos trocam e o relógio avança enquanto a pessoa rola.",
+        features: ["Dia no scroll", "Chalés e diárias", "Reserva no WhatsApp"],
+      },
+      cafeteria: {
+        name: "Cafeteria",
+        niche: "Café",
+        pitch: "Nome gigante recheado de grãos com a xícara por cima, seletor de torra e assinatura mensal.",
+        features: ["Seletor de torra", "Assinatura", "Horários e endereço"],
+      },
+      provedor: {
+        name: "Provedor de Internet",
+        niche: "Telecom",
+        pitch: "Relevo 3D que dá pra girar com o mouse, planos para cidade e interior e consulta de cobertura por CEP.",
+        features: ["Relevo 3D interativo", "Planos cidade e interior", "Consulta por CEP"],
+      },
     },
   },
   form: {

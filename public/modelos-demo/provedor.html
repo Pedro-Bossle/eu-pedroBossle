@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Altonet Fibra · Internet fibra óptica na Serra Gaúcha</title>
+<meta name="description" content="Provedor de internet fibra óptica em Caxias do Sul e interior. Planos residenciais e rurais, instalação em até 48 h e suporte local.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0}
+html{scroll-behavior:smooth}
+html,body{overflow-x:clip}
+img{max-width:100%;display:block}
+a{color:inherit}button,input,select{font:inherit;color:inherit}
+
+:root{--bg:#070b16;--panel:#0e1527;--ink:#eef2ff;--mut:#8b95b3;--lime:#c6ff3d;--blue:#4c7dff;--line:rgba(238,242,255,.12);
+--disp:"Space Grotesk",system-ui,sans-serif;--sans:"Inter",system-ui,sans-serif;--g:clamp(16px,3.4vw,56px)}
+body{background:var(--bg);color:var(--ink);font:400 17px/1.6 var(--sans)}
+.wrap{padding-inline:var(--g);max-width:1440px;margin-inline:auto}
+:focus-visible{outline:2px solid var(--lime);outline-offset:3px}
+h1,h2,h3{font-family:var(--disp);font-weight:600;line-height:.95;letter-spacing:-.035em}
+.k{font:500 12px/1.4 var(--disp);letter-spacing:.18em;text-transform:uppercase;color:var(--lime)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:50px;padding:0 24px;border-radius:12px;background:var(--lime);color:#0a0f02;text-decoration:none;font-weight:600;border:0;cursor:pointer;transition:transform .2s,box-shadow .2s}
+.btn:hover{transform:translateY(-2px);box-shadow:0 10px 30px -8px rgba(198,255,61,.6)}
+.btn.ghost{background:transparent;color:var(--ink);box-shadow:inset 0 0 0 1px var(--line)}
+header{position:absolute;inset:0 0 auto;z-index:5}
+header .wrap{display:flex;justify-content:space-between;align-items:center;padding-block:18px;gap:20px}
+.brand{font:700 22px var(--disp);letter-spacing:-.03em;text-decoration:none}.brand b{color:var(--lime)}
+header nav{display:flex;gap:26px;font-size:15px}header nav a{text-decoration:none;color:var(--mut)}header nav a:hover{color:var(--ink)}
+@media(max-width:860px){header nav{display:none}}
+.hero{position:relative;min-height:100svh;display:grid;align-items:end;overflow:hidden;padding-bottom:clamp(30px,6vh,70px)}
+#terrain{position:absolute;inset:0;width:100%;height:100%;cursor:grab;touch-action:pan-y}
+#terrain:active{cursor:grabbing}
+.hero::before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(7,11,22,.0) 35%,rgba(7,11,22,.85) 85%);pointer-events:none;z-index:1}
+.hc{position:relative;z-index:2;width:100%;display:grid;grid-template-columns:1.3fr 1fr;gap:30px;align-items:end;pointer-events:none}
+.hc a,.hc button{pointer-events:auto}
+.hero h1{font-size:clamp(50px,7.6vw,128px);margin-top:16px}
+.hero h1 span{display:block}.hero h1 span:nth-child(2){color:var(--mut)}
+.hero p.l{color:#c6cde2;max-width:42ch}
+.hero .acts{display:flex;gap:10px;flex-wrap:wrap;margin-top:22px}
+.drag{position:absolute;z-index:2;right:var(--g);top:96px;font-size:13px;color:var(--mut);display:flex;gap:8px;align-items:center}
+.drag i{width:8px;height:8px;border-radius:50%;background:var(--lime);box-shadow:0 0 12px var(--lime);animation:pulse 1.6s infinite}
+@keyframes pulse{50%{opacity:.3}}
+@media(max-width:860px){.hc{grid-template-columns:1fr}.drag{display:none}}
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);border-block:1px solid var(--line)}
+.kpis div{padding:28px var(--g);border-right:1px solid var(--line)}.kpis div:last-child{border-right:0}
+.kpis b{display:block;font:600 clamp(34px,4vw,58px)/1 var(--disp);letter-spacing:-.04em}
+.kpis span{color:var(--mut);font-size:14px}
+@media(max-width:620px){.kpis{grid-template-columns:1fr}.kpis div{border-right:0;border-bottom:1px solid var(--line)}}
+.plans{padding-block:clamp(70px,9vw,130px)}
+.ph{display:flex;justify-content:space-between;align-items:end;gap:20px;flex-wrap:wrap}
+.ph h2{font-size:clamp(50px,7vw,120px)}
+.tabs{display:inline-flex;background:var(--panel);border-radius:12px;padding:4px;border:1px solid var(--line)}
+.tabs button{min-height:44px;padding:0 20px;border-radius:9px;border:0;background:transparent;cursor:pointer;color:var(--mut);font-weight:500}
+.tabs button[aria-selected=true]{background:var(--ink);color:var(--bg)}
+.pg{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:36px}
+.plan{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:28px;display:flex;flex-direction:column;gap:18px;transition:transform .3s,border-color .3s}
+.plan:hover{transform:translateY(-4px);border-color:rgba(238,242,255,.3)}
+.plan.hot{background:linear-gradient(160deg,#1a2a5c,#0e1527 70%);border-color:var(--blue)}
+.plan h3{font-size:28px}
+.plan .pr{font:600 56px/1 var(--disp);letter-spacing:-.05em}.plan .pr small{font:400 16px var(--sans);color:var(--mut);letter-spacing:0}
+.plan ul{list-style:none;padding:0;display:grid;gap:8px;color:#c6cde2;font-size:15px;flex:1}
+.plan li::before{content:"";display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--lime);margin:0 10px 2px 0}
+@media(max-width:900px){.pg{grid-template-columns:1fr}}
+.cov{background:var(--lime);color:#0a0f02;padding-block:clamp(60px,8vw,110px)}
+.cov .g{display:grid;grid-template-columns:1fr 1fr;gap:clamp(24px,5vw,80px);align-items:center}
+.cov h2{font-size:clamp(56px,8vw,140px)}.cov p{max-width:36ch;margin-top:12px}
+.cov form{display:flex;gap:10px;flex-wrap:wrap}
+.cov input{flex:1;min-width:200px;min-height:60px;border-radius:12px;border:2px solid #0a0f02;background:transparent;padding:0 18px;font:600 24px var(--disp);letter-spacing:.04em;color:#0a0f02}
+.cov input::placeholder{color:rgba(10,15,2,.4)}
+.cov .btn{background:#0a0f02;color:var(--lime);min-height:60px}
+.cov output{display:block;margin-top:16px;font-weight:600;min-height:1.6em}
+@media(max-width:860px){.cov .g{grid-template-columns:1fr}}
+.rural{padding-block:clamp(70px,9vw,130px)}
+.rural .g{display:grid;grid-template-columns:1fr 1fr;gap:clamp(24px,5vw,80px);align-items:center}
+.rural img{border-radius:18px;width:100%;aspect-ratio:4/5;object-fit:cover}
+.rural h2{font-size:clamp(40px,5vw,80px);margin:14px 0 20px}.rural p{color:#c6cde2;max-width:44ch}
+@media(max-width:860px){.rural .g{grid-template-columns:1fr}.rural img{aspect-ratio:4/3}}
+.faq{padding-bottom:clamp(70px,9vw,130px)}
+.faq h2{font-size:clamp(40px,5vw,80px);margin-bottom:24px}
+details{border-top:1px solid var(--line)}details:last-child{border-bottom:1px solid var(--line)}
+summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;gap:20px;padding:22px 0;font:500 22px var(--disp)}
+summary::-webkit-details-marker{display:none}summary::after{content:"+";color:var(--lime);font-size:28px;line-height:1;transition:transform .3s}
+details[open] summary::after{transform:rotate(45deg)}
+details p{color:#c6cde2;padding-bottom:22px;max-width:60ch}
+.sup{border-top:1px solid var(--line);padding-block:clamp(60px,8vw,110px)}
+.sup .g{display:flex;justify-content:space-between;align-items:end;gap:30px;flex-wrap:wrap}
+.sup h2{font-size:clamp(40px,6vw,100px);max-width:14ch}
+footer{padding-block:26px;color:var(--mut);font-size:13px;border-top:1px solid var(--line)}
+footer .wrap{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap}
+@media (prefers-reduced-motion: reduce){.drag i{animation:none}}
+
+
+.js .rv{opacity:0;transform:translateY(24px);transition:opacity .7s ease,transform .7s cubic-bezier(.2,.7,.2,1)}
+.js .rv.in{opacity:1;transform:none}
+@media (prefers-reduced-motion: reduce){.js .rv{opacity:1;transform:none;transition:none}*{scroll-behavior:auto!important}}
+
+</style>
+</head>
+<body>
+
+<header><div class="wrap"><a class="brand" href="#">alto<b>net</b></a>
+<nav><a href="#planos">Planos</a><a href="#cobertura">Cobertura</a><a href="#interior">Interior</a><a href="#suporte">Suporte</a></nav>
+<a class="btn" href="#planos">Assine</a></div></header>
+<main>
+<section class="hero" aria-labelledby="hh"><canvas id="terrain" aria-hidden="true"></canvas><p class="drag"><i></i>Arraste para girar o relevo</p>
+<div class="wrap hc"><div><p class="k">Fibra óptica · Serra Gaúcha</p><h1 id="hh"><span>Sinal forte</span><span>até no fim</span><span>da estrada.</span></h1></div>
+<div><p class="l">Internet por fibra em Caxias do Sul e nas linhas do interior. Instalação em até 48 horas e suporte que atende em português de gente.</p><div class="acts"><a class="btn" href="#planos">Planos</a><a class="btn ghost" href="#cobertura">Chega aí?</a></div></div></div></section>
+<section class="kpis"><div><b>48 h</b><span>para instalar</span></div><div><b>99,7%</b><span>de disponibilidade em 2026</span></div><div><b>2 min</b><span>tempo médio no WhatsApp</span></div></section>
+<section class="wrap plans" id="planos" aria-labelledby="ph"><div class="ph"><h2 id="ph" class="rv">Planos</h2><div class="tabs" role="tablist"><button type="button" role="tab" aria-selected="true" data-i="0">Cidade</button><button type="button" role="tab" aria-selected="false" data-i="1">Interior</button></div></div>
+<div class="pg" id="pg" role="tabpanel"></div></section>
+<section class="cov" id="cobertura" aria-labelledby="cvh"><div class="wrap g"><div><h2 id="cvh">Chega aí?</h2><p>Digite o CEP e veja se a fibra já passa na sua rua.</p></div>
+<div><form id="cf" novalidate><label class="k" for="cep" style="position:absolute;left:-9999px">CEP</label><input id="cep" inputmode="numeric" autocomplete="postal-code" placeholder="00000-000" maxlength="9"><button class="btn" type="submit">Consultar</button></form>
+<output id="co" aria-live="polite"></output></div></div></section>
+<section class="wrap rural" id="interior" aria-labelledby="rh"><div class="g"><img src="img/net-1.webp" alt="" loading="lazy">
+<div class="rv"><p class="k">Interior</p><h2 id="rh">Fibra na colônia, do parreiral ao galpão.</h2><p>Levamos fibra pelas linhas de Ana Rech, Criúva, Vila Seca e Santa Lúcia do Piaí. Com roteador externo, o sinal chega na casa, no galpão e na câmera do portão.</p></div></div></section>
+<section class="wrap faq" aria-labelledby="fh"><h2 id="fh">Perguntas</h2><details><summary>Tem fidelidade?</summary><p>Não. Você pode cancelar quando quiser, sem multa.</p></details><details><summary>Quanto custa a instalação?</summary><p>É grátis em todos os planos da cidade. No interior depende da distância do poste mais próximo.</p></details><details><summary>E se a internet cair?</summary><p>Chame no WhatsApp. Se for problema na rede, o técnico vai até você no mesmo dia.</p></details></section>
+<section class="wrap sup" id="suporte" aria-labelledby="sh"><div class="g"><h2 id="sh" class="rv">Suporte de verdade, aqui da Serra.</h2>
+<div><p style="color:var(--mut);margin-bottom:14px">Rua Exemplo, 1500 · São Pelegrino · Caxias do Sul, RS</p><a class="btn" href="https://wa.me/5554999999999" target="_blank" rel="noopener">Chamar no WhatsApp</a></div></div></section>
+</main>
+<footer><div class="wrap"><span>Altonet Fibra</span><span>Modelo de demonstração da .dev Bossle. Nomes, valores, telefones e endereço são exemplos. Foto: Unsplash (Unsplash License).</span></div></footer>
+
+<script>
+
+document.documentElement.classList.add('js');
+var RM=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+(function(){
+  var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}})},{threshold:.15});
+  document.querySelectorAll('.rv').forEach(function(el,k){el.style.transitionDelay=(k%3)*80+'ms';io.observe(el)});
+})();
+function clamp(v,a,b){return Math.max(a,Math.min(b,v))}
+function progress(el){var r=el.getBoundingClientRect(),h=el.offsetHeight-innerHeight;return h>0?clamp(-r.top/h,0,1):0}
+
+
+var P=[[["300 Mega", 89, ["Wi-Fi 6 incluso", "Ideal para 2 a 4 pessoas"], 0], ["600 Mega", 119, ["Wi-Fi 6 mesh", "Streaming 4K em várias telas", "Mais escolhido"], 1], ["1 Giga", 169, ["Wi-Fi 6 mesh com 2 pontos", "IP fixo opcional", "Para quem trabalha em casa"], 0]], [["100 Mega Rural", 99, ["Fibra até a propriedade", "Roteador externo"], 0], ["300 Mega Rural", 139, ["Wi-Fi para casa e galpão", "Câmeras de segurança", "Mais escolhido"], 1], ["500 Mega Agro", 199, ["2 pontos de acesso externos", "Suporte prioritário na safra"], 0]]],T={"month": "/mês", "pick": "Quero esse", "msg": "Olá! Quero assinar o plano", "ok": "Boa notícia: a fibra já passa no CEP {cep}. Instalação em até 48 horas.", "soon": "O CEP {cep} entra na expansão do próximo semestre. Deixe seu contato e avisamos.", "bad": "Digite um CEP com 8 números."};
+(function(){
+  /* relevo 3D em wireframe com pulsos de sinal */
+  var cv=document.getElementById('terrain'),cx=cv.getContext('2d'),W,H,dpr;
+  var N=46,M=30,rot=-.5,tilt=1.02,drag=null,auto=!RM,t0=performance.now();
+  function hgt(i,j){var x=i/N*6,y=j/M*4;return Math.sin(x*1.1+1)*.9+Math.cos(y*1.4+x*.6)*.7+Math.sin(x*2.3-y*1.7)*.25}
+  function size(){dpr=Math.min(devicePixelRatio||1,2);W=cv.clientWidth;H=cv.clientHeight;cv.width=W*dpr;cv.height=H*dpr;cx.setTransform(dpr,0,0,dpr,0,0)}
+  function proj(x,y,z){var c=Math.cos(rot),s=Math.sin(rot),X=x*c-y*s,Y=x*s+y*c;
+    var ct=Math.cos(tilt),st=Math.sin(tilt),Y2=Y*ct-z*st,Z=Y*st+z*ct;var d=10/(10+Y2),sc=Math.min(W*.14,H*.12);
+    return [W*(W>860?.64:.5)+X*sc*d,H*(W>860?.36:.36)-Z*sc*d*.9,d]}
+  var tw=[[8,20],[26,10],[38,22]];
+  function draw(now){
+    var tt=Math.max(0,(now-t0)/1000);if(auto&&!drag)rot+=.0016;
+    cx.clearRect(0,0,W,H);var pts=[];
+    for(var j=0;j<=M;j++){pts[j]=[];for(var i=0;i<=N;i++){var x=(i/N-.5)*7,y=(j/M-.5)*5;pts[j][i]=proj(x,y,hgt(i,j)*.55)}}
+    cx.lineWidth=1;
+    for(var j=0;j<=M;j++){cx.beginPath();for(var i=0;i<=N;i++){var p=pts[j][i];i?cx.lineTo(p[0],p[1]):cx.moveTo(p[0],p[1])}
+      cx.strokeStyle='rgba(120,150,255,'+(.12+.3*j/M)+')';cx.stroke()}
+    for(var i=0;i<=N;i+=2){cx.beginPath();for(var j=0;j<=M;j++){var p=pts[j][i];j?cx.lineTo(p[0],p[1]):cx.moveTo(p[0],p[1])}
+      cx.strokeStyle='rgba(120,150,255,.12)';cx.stroke()}
+    /* torres e pulsos */
+    tw.forEach(function(w,k){var b=pts[w[1]][w[0]],top=proj((w[0]/N-.5)*7,(w[1]/M-.5)*5,hgt(w[0],w[1])*.55+.9);
+      cx.strokeStyle='rgba(198,255,61,.9)';cx.lineWidth=1.5;cx.beginPath();cx.moveTo(b[0],b[1]);cx.lineTo(top[0],top[1]);cx.stroke();
+      cx.fillStyle='#c6ff3d';cx.beginPath();cx.arc(top[0],top[1],3.5,0,7);cx.fill();
+      for(var r=0;r<3;r++){var ph=(((tt*.6+r/3+k*.21)%1)+1)%1;cx.strokeStyle='rgba(198,255,61,'+(1-ph)*.55+')';cx.lineWidth=1;
+        cx.beginPath();cx.ellipse(top[0],top[1],ph*90*top[2],ph*40*top[2],0,0,7);cx.stroke()}});
+    /* linha de fibra entre as torres */
+    cx.setLineDash([2,6]);cx.lineDashOffset=-tt*20;cx.strokeStyle='rgba(198,255,61,.55)';cx.lineWidth=1.2;cx.beginPath();
+    tw.forEach(function(w,k){var p=pts[w[1]][w[0]];k?cx.lineTo(p[0],p[1]):cx.moveTo(p[0],p[1])});cx.stroke();cx.setLineDash([]);
+    if(!RM)requestAnimationFrame(draw)}
+  size();addEventListener('resize',function(){size();if(RM)draw(performance.now())});requestAnimationFrame(draw);
+  cv.addEventListener('pointerdown',function(e){drag={x:e.clientX,y:e.clientY,r:rot,t:tilt};cv.setPointerCapture(e.pointerId)});
+  cv.addEventListener('pointermove',function(e){if(!drag)return;rot=drag.r+(e.clientX-drag.x)*.006;tilt=clamp(drag.t+(e.clientY-drag.y)*.004,.6,1.35);if(RM)draw(performance.now())});
+  ['pointerup','pointercancel'].forEach(function(n){cv.addEventListener(n,function(){drag=null})});
+  /* planos */
+  var pg=document.getElementById('pg'),tabs=[].slice.call(document.querySelectorAll('.tabs button'));
+  function plans(k){pg.innerHTML=P[k].map(function(p){return '<article class="plan'+(p[3]?' hot':'')+'"><h3>'+p[0]+'</h3><div class="pr">R$ '+p[1]+'<small>'+T.month+'</small></div><ul>'+
+    p[2].map(function(f){return '<li>'+f+'</li>'}).join('')+'</ul><a class="btn'+(p[3]?'':' ghost')+'" target="_blank" rel="noopener" href="https://wa.me/5554999999999?text='+encodeURIComponent(T.msg+' '+p[0])+'">'+T.pick+'</a></article>'}).join('')}
+  tabs.forEach(function(b){b.addEventListener('click',function(){tabs.forEach(function(x){x.setAttribute('aria-selected',x===b)});plans(+b.dataset.i)})});plans(0);
+  /* cobertura */
+  var cep=document.getElementById('cep'),co=document.getElementById('co');
+  cep.addEventListener('input',function(){var d=cep.value.replace(/\D/g,'').slice(0,8);cep.value=d.length>5?d.slice(0,5)+'-'+d.slice(5):d});
+  document.getElementById('cf').addEventListener('submit',function(e){e.preventDefault();var d=cep.value.replace(/\D/g,'');
+    if(d.length!==8){co.textContent=T.bad;return}
+    co.textContent=(/^95(0|1)/.test(d)?T.ok:T.soon).replace('{cep}',cep.value)});
+})();
+
+</script>
+</body>
+</html>
