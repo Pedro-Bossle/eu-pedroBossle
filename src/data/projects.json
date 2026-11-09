@@ -5,19 +5,11 @@
       "pt": "Site institucional do Capítulo Farrapos Nº 1111 da Ordem DeMolay, feito nos primeiros meses de curso da Alura.",
       "en": "Institutional website for Capítulo Farrapos Nº 1111 of the DeMolay Order, built in the first months of the Alura course."
     },
-    "stack": [
-      "HTML",
-      "CSS",
-      "Javascript"
-    ],
+    "stack": ["HTML", "CSS", "Javascript"],
     "visibility": "public",
     "category": {
-      "pt": [
-        "Site institucional"
-      ],
-      "en": [
-        "Institutional website"
-      ]
+      "pt": ["Site institucional"],
+      "en": ["Institutional website"]
     },
     "year": 2025,
     "featured": true,
@@ -35,23 +27,11 @@
       "pt": "Site institucional e sistema de gerenciamento interno de uma casa de religião localizada em Caxias do Sul.",
       "en": "Institutional website and internal management system for a religious house in Caxias do Sul."
     },
-    "stack": [
-      "Typescript",
-      "Javascript",
-      "CSS",
-      "Supabase SQL",
-      "HTML"
-    ],
+    "stack": ["Typescript", "Javascript", "CSS", "Supabase SQL", "HTML"],
     "visibility": "public",
     "category": {
-      "pt": [
-        "Site Institucional",
-        "SaaS"
-      ],
-      "en": [
-        "Institutional website",
-        "SaaS"
-      ]
+      "pt": ["Site Institucional", "SaaS"],
+      "en": ["Institutional website", "SaaS"]
     },
     "year": 2026,
     "featured": true,
@@ -107,12 +87,8 @@
     ],
     "visibility": "private",
     "category": {
-      "pt": [
-        "SaaS"
-      ],
-      "en": [
-        "SaaS"
-      ]
+      "pt": ["SaaS"],
+      "en": ["SaaS"]
     },
     "year": 2026,
     "featured": true,
@@ -157,12 +133,8 @@
     ],
     "visibility": "public",
     "category": {
-      "pt": [
-        "SaaS"
-      ],
-      "en": [
-        "SaaS"
-      ]
+      "pt": ["SaaS"],
+      "en": ["SaaS"]
     },
     "year": 2026,
     "featured": true,
@@ -206,27 +178,24 @@
       "REACT",
       "VITE"
     ],
-    "visibility": "private",
+    "visibility": "public",
     "category": {
-      "pt": [
-        "SaaS"
-      ],
-      "en": [
-        "SaaS"
-      ]
+      "pt": ["SaaS"],
+      "en": ["SaaS"]
     },
     "year": 2026,
     "featured": true,
     "openSource": false,
     "image": "flow-logo",
+    "link": "https://flowfinancas.devbossle.com.br/",
     "visual": {
       "background": "#1C332E",
       "accent": "#7BE0A8"
     },
     "case": {
       "context": {
-        "pt": "Sistema sob medida para uso pessoal · Privado · 2026",
-        "en": "Custom personal finance system · Private · 2026"
+        "pt": "Sistema sob medida para uso pessoal · 2026",
+        "en": "Custom personal finance system · 2026"
       },
       "challenge": {
         "pt": "O cliente anotava todas as despesas e receitas num caderninho.",
@@ -248,20 +217,11 @@
       "pt": "Landing page para empresa metalúrgica, feita em conjunto com a equipe da VERSO Núcleo Criativo.",
       "en": "Landing page for a metalworking company, built together with the VERSO Núcleo Criativo team."
     },
-    "stack": [
-      "Javascript",
-      "CSS",
-      "REACT",
-      "VITE"
-    ],
+    "stack": ["Javascript", "CSS", "REACT", "VITE"],
     "visibility": "public",
     "category": {
-      "pt": [
-        "Site Institucional"
-      ],
-      "en": [
-        "Institutional website"
-      ]
+      "pt": ["Site Institucional"],
+      "en": ["Institutional website"]
     },
     "year": 2026,
     "featured": true,
@@ -279,20 +239,11 @@
       "pt": "Quiz interativo feito para a disciplina de Qualidade e Auditoria sobre as 9 características de qualidade do produto da ISO/IEC 25010:2023. Auditoria gamificada do NEXUS-9, com banco de questões editável e documentação integrada. Contém um banco de dados temporário que foi utilizado para gravar os melhores jogadores durante o período de apresentações do projeto em aula.",
       "en": "Interactive quiz for the Quality and Audit course on the nine product quality characteristics of ISO/IEC 25010:2023. Gamified NEXUS-9 audit with an editable question bank and integrated docs. Includes a temporary database used to store top players during class presentations."
     },
-    "stack": [
-      "Javascript",
-      "CSS",
-      "Postgre SQL",
-      "HTML"
-    ],
+    "stack": ["Javascript", "CSS", "Postgre SQL", "HTML"],
     "visibility": "public",
     "category": {
-      "pt": [
-        "Jogo"
-      ],
-      "en": [
-        "Game"
-      ]
+      "pt": ["Jogo"],
+      "en": ["Game"]
     },
     "year": 2026,
     "featured": true,
@@ -328,21 +279,11 @@
       "pt": "Estante online com as minhas recomendações de livros: 42 títulos com capa, contracapa, lombada, sinopse, autor, nível de dificuldade e link de compra. Feita para o trabalho “Você tem brio?” do Capítulo Farrapos nº 1111.",
       "en": "Online bookshelf with my book recommendations: 42 titles with front and back covers, spine, synopsis, author, difficulty level and a purchase link. Built for the “Você tem brio?” project of Capítulo Farrapos nº 1111."
     },
-    "stack": [
-      "HTML",
-      "CSS",
-      "Javascript"
-    ],
+    "stack": ["HTML", "CSS", "Javascript"],
     "visibility": "public",
     "category": {
-      "pt": [
-        "Site",
-        "Catálogo de livros"
-      ],
-      "en": [
-        "Website",
-        "Book catalog"
-      ]
+      "pt": ["Site", "Catálogo de livros"],
+      "en": ["Website", "Book catalog"]
     },
     "year": 2026,
     "featured": true,
