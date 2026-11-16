@@ -8,241 +8,313 @@
 <meta name="description" content="Clínica odontológica e estética em Caxias do Sul. Descubra o tom do seu sorriso e agende a primeira avaliação.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,300..800&display=swap" rel="stylesheet">
 <style>
 :root{
-  --ground:#f3ede2; --ink:#0f2f2d; --soft:#46605d;
-  --b1:#f6efe0; --a1:#eee1c8; --a2:#e6d5b4; --a3:#dcc59f; --a35:#d1b88b; --a4:#c3a577;
-  --display:"Fraunces",Georgia,serif; --text:"DM Sans",system-ui,sans-serif;
-  --gutter:clamp(18px,4vw,64px);
+  --porcelana:#f6f7f5; --petroleo:#0e2a3b; --petroleo-2:#163a4f; --texto:#3d5664;
+  --gengiva:#ee8c86; --gengiva-claro:#fbe1de; --vidro:#dceeea;
+  --B1:#f7f1e3; --A1:#efe3c9; --A2:#e6d5b2; --A3:#dbc49c; --A35:#cfb585; --A4:#c1a26f;
+  --f:"Bricolage Grotesque",system-ui,sans-serif;
+  --gutter:clamp(18px,4.4vw,72px);
 }
 *{box-sizing:border-box;margin:0}
 html{scroll-behavior:smooth}
-body{background:var(--ground);color:var(--ink);font:400 18px/1.6 var(--text);-webkit-font-smoothing:antialiased}
+body{background:var(--porcelana);color:var(--petroleo);font:400 18px/1.6 var(--f);font-variation-settings:"opsz" 14;-webkit-font-smoothing:antialiased}
+img{display:block;max-width:100%;height:auto}
 a{color:inherit}button,input{font:inherit;color:inherit}
-:focus-visible{outline:3px solid var(--ink);outline-offset:3px}
-.wrap{padding-inline:var(--gutter);max-width:1560px;margin-inline:auto}
-h1,h2,h3{font-family:var(--display);font-weight:400;letter-spacing:-.035em;line-height:1}
-.btn{display:inline-flex;align-items:center;justify-content:center;min-height:54px;padding:0 30px;background:var(--ink);color:var(--ground);font-weight:600;text-decoration:none;border:0;border-radius:999px;cursor:pointer;transition:transform .25s}
-.btn:hover{transform:translateY(-2px)}
-.btn.soft{background:var(--a2);color:var(--ink)}
-/* nav */
-.nav{display:flex;justify-content:space-between;align-items:center;gap:16px;padding-block:22px}
-.brand{font:600 24px/1 var(--display);letter-spacing:-.03em;text-decoration:none}
-.btn{white-space:nowrap}@media(max-width:520px){.nav .btn{min-height:44px;padding:0 16px;font-size:15px}.brand{font-size:20px}}
-.nav nav{display:flex;gap:30px}
-.nav nav a{text-decoration:none;color:var(--soft);font-weight:500}.nav nav a:hover{color:var(--ink)}
-@media(max-width:820px){.nav nav{display:none}}
-/* hero */
-.hero{display:grid;grid-template-columns:1.1fr .9fr;gap:clamp(24px,5vw,90px);align-items:center;padding-block:clamp(20px,4vw,60px) clamp(70px,9vw,140px)}
-.hero h1{font-size:clamp(50px,7.6vw,128px)}
-.hero p.lead{margin-top:26px;max-width:34ch;font-size:clamp(18px,1.5vw,22px);color:var(--soft)}
-.hero .cta{margin-top:32px;display:flex;gap:12px;flex-wrap:wrap}
-@media(max-width:940px){.hero{grid-template-columns:1fr}}
-/* shade lab */
-.lab{background:var(--ink);color:var(--ground);padding:clamp(22px,3vw,44px);border-radius:36px}
-.swatch{width:min(58%,230px);aspect-ratio:1;border-radius:50%;margin:6px auto 0;background-image:radial-gradient(circle at 32% 26%,#ffffffb3 0,#ffffff00 40%);background-color:#dcc59f;box-shadow:inset 0 -22px 38px #00000024,0 26px 50px #00000055;transition:background-color .5s}
-.read{text-align:center;margin-top:8px}
-.read b{display:block;font:400 clamp(44px,5vw,72px)/1 var(--display);letter-spacing:-.04em}
-.read span{display:block;color:#bfd0cc;font-size:16px}
-.tabs{display:flex;gap:8px;justify-content:center;margin-top:22px}
-.tab{flex:1;max-width:84px;height:120px;border:0;border-radius:14px 14px 40px 40px;display:flex;align-items:flex-end;justify-content:center;padding-bottom:12px;font-weight:600;font-size:15px;transition:transform .3s cubic-bezier(.22,1,.36,1);cursor:pointer}
-.tab:hover{transform:translateY(-6px)}
-.tab{color:#0f2f2d}.tab[aria-pressed=true]{transform:translateY(-14px);outline:3px solid var(--ground);outline-offset:3px}
-.plan{margin-top:26px;background:var(--ground);color:var(--ink);border-radius:24px;padding:22px 24px;display:grid;gap:4px}
-.plan b{font:400 clamp(26px,2.6vw,36px)/1.1 var(--display);letter-spacing:-.03em}
-.plan span{color:var(--soft);font-size:16px}
-.plan .btn{margin-top:14px;background:var(--ink);color:var(--ground);justify-self:start}
-/* tratamentos */
-.treat{padding-block:clamp(70px,9vw,140px)}
-.sec-h{font-size:clamp(42px,6.4vw,104px);max-width:13ch}
-.cards{margin-top:clamp(30px,4vw,60px);display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
-.t{border-radius:28px;padding:clamp(22px,2.6vw,36px);min-height:320px;display:flex;flex-direction:column;justify-content:space-between;transition:transform .35s cubic-bezier(.22,1,.36,1)}
-.t:hover{transform:translateY(-6px)}
-.t h3{font-size:clamp(30px,3vw,46px)}
-.t p{margin-top:12px;max-width:34ch}
-.t dl{display:flex;gap:26px;margin-top:26px}
-.t dt{font-size:13px;color:var(--soft);font-weight:600}
-.t dd{font:400 22px/1.2 var(--display)}
-.t:nth-child(1){background:var(--b1)}.t:nth-child(2){background:var(--a1)}.t:nth-child(3){background:var(--a2)}
-.t:nth-child(4){background:var(--a3)}.t:nth-child(5){background:var(--a35)}
-.t:nth-child(6){background:var(--ink);color:var(--ground)}.t:nth-child(6) dt{color:#bfd0cc}
-@media(max-width:900px){.cards{grid-template-columns:1fr 1fr}}@media(max-width:560px){.cards{grid-template-columns:1fr}}
-/* avaliação */
-.eval{background:var(--ink);color:var(--ground);padding-block:clamp(70px,9vw,140px);border-radius:48px 48px 0 0}
-.eval .sec-h{max-width:12ch}
-.moves{margin-top:clamp(30px,4vw,56px);display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(20px,3vw,56px)}
-.moves div{font:400 clamp(34px,4.4vw,68px)/1 var(--display);letter-spacing:-.035em}
-.moves p{font:400 18px/1.55 var(--text);letter-spacing:0;margin-top:14px;max-width:28ch;color:#cfe0dc}
-@media(max-width:760px){.moves{grid-template-columns:1fr}}
-/* antes e depois */
-.ba{padding-block:clamp(70px,9vw,140px);display:grid;grid-template-columns:1fr 1fr;gap:clamp(24px,5vw,90px);align-items:center}
-.ba h2{font-size:clamp(42px,6vw,96px)}
-.ba p{margin-top:20px;color:var(--soft);max-width:36ch}
-.slide{position:relative;border-radius:36px;overflow:hidden;background:var(--b1);aspect-ratio:4/3;display:flex}
-.slide svg{position:absolute;inset:0;width:100%;height:100%}
-.slide .after{clip-path:inset(0 0 0 var(--pos,50%))}
-.slide input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:ew-resize;margin:0}
-.slide .knob{position:absolute;top:0;bottom:0;left:var(--pos,50%);width:6px;margin-left:-3px;background:var(--ink);pointer-events:none}
-.slide .knob::after{content:"";position:absolute;top:50%;left:50%;width:46px;height:46px;margin:-23px;border-radius:50%;background:var(--ground);border:4px solid var(--ink)}
-.slide span{position:absolute;bottom:16px;font-weight:600;font-size:14px;background:var(--ground);padding:6px 14px;border-radius:99px}
-.slide .l{left:16px}.slide .r{right:16px}
-@media(max-width:900px){.ba{grid-template-columns:1fr}}
-/* equipe */
-.doc{background:var(--a1);padding-block:clamp(60px,8vw,120px);border-radius:48px}
-.docg{display:grid;grid-template-columns:auto 1fr;gap:clamp(24px,5vw,80px);align-items:center}
-.docg .mono{font:400 clamp(160px,22vw,340px)/.8 var(--display);letter-spacing:-.06em;color:var(--ink)}
-.docg h2{font-size:clamp(36px,5vw,76px)}
-.docg p{margin-top:16px;max-width:44ch;font-size:19px;color:var(--soft)}
-@media(max-width:700px){.docg{grid-template-columns:1fr}}
-/* faq */
-.faq{padding-block:clamp(70px,9vw,130px)}
-.faq-l{margin-top:clamp(26px,3.6vw,48px);display:grid;gap:10px;max-width:920px}
-details{background:var(--b1);border-radius:22px}
-summary{list-style:none;cursor:pointer;padding:22px 28px;font:400 clamp(22px,2.2vw,30px)/1.2 var(--display);letter-spacing:-.02em;display:flex;justify-content:space-between;gap:20px}
-summary::-webkit-details-marker{display:none}summary::after{content:"+";font-size:28px;line-height:1;transition:transform .25s}
-details[open] summary::after{transform:rotate(45deg)}
-details p{padding:0 28px 24px;color:var(--soft);max-width:60ch}
-/* contato */
-.contact{background:var(--ink);color:var(--ground);padding-block:clamp(70px,9vw,130px);border-radius:48px 48px 0 0}
-.cg{display:grid;grid-template-columns:1.2fr 1fr;gap:clamp(24px,5vw,80px);align-items:end}
-.contact h2{font-size:clamp(44px,7vw,112px)}
-.info{display:grid;gap:20px;font-size:20px}
-.info b{display:block;font-size:13px;font-weight:600;color:#bfd0cc}
-.contact .btn{background:var(--ground);color:var(--ink);justify-self:start}
-@media(max-width:820px){.cg{grid-template-columns:1fr}}
-footer{background:var(--ink);color:var(--ground);overflow:hidden;padding:40px 0 22px}
-footer .big{font:400 clamp(44px,15vw,260px)/.85 var(--display);letter-spacing:-.06em;white-space:nowrap;color:#1d4543}
-footer small{display:block;margin-top:16px;color:#9fb6b1;font-size:14px;max-width:70ch}
-.js .rv{opacity:0;transform:translateY(24px);transition:opacity .8s,transform .8s cubic-bezier(.22,1,.36,1)}
-.js .rv.in{opacity:1;transform:none}
-@media(prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}.js .rv{opacity:1;transform:none}}
+:focus-visible{outline:3px solid var(--gengiva);outline-offset:3px}
+.wrap{padding-inline:var(--gutter);max-width:1480px;margin-inline:auto}
+h1,h2,h3{font-weight:700;letter-spacing:-.035em;line-height:.98;font-variation-settings:"opsz" 96,"wdth" 80}
+.btn{display:inline-flex;align-items:center;justify-content:center;min-height:54px;padding:0 28px;border-radius:999px;background:var(--petroleo);color:var(--porcelana);font-weight:600;text-decoration:none;border:0;cursor:pointer;white-space:nowrap;transition:background .2s}
+.btn:hover{background:var(--petroleo-2)}
+.btn.rosa{background:var(--gengiva);color:var(--petroleo)}
+.btn.rosa:hover{background:#f39d97}
+.btn.claro{background:var(--porcelana);color:var(--petroleo)}
 
-/* hero recomposto: título centrado + bancada de cor em faixa */
-.hero{grid-template-columns:1fr;text-align:center;gap:clamp(28px,4vw,56px)}
-.hero h1{font-size:clamp(52px,9.4vw,160px);line-height:.92;margin-inline:auto;max-width:13ch}
-.hero p.lead{margin:24px auto 0}
-.hero .cta{justify-content:center}
-.lab{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.3fr) minmax(0,1fr);gap:clamp(18px,3vw,48px);align-items:center;text-align:left;border-radius:48px}
-.lab .swatch{grid-column:1;grid-row:1;width:min(100%,220px);margin:0 auto}
-.lab .read{grid-column:1;grid-row:2;margin-top:0}
-.lab .tabs{grid-column:2;grid-row:1/3;margin-top:0;align-self:center}
-.lab .tab{height:clamp(120px,14vw,190px)}
-.lab .plan{grid-column:3;grid-row:1/3;margin-top:0}
-@media(max-width:940px){.lab{grid-template-columns:1fr;border-radius:36px}.lab>*{grid-column:1!important;grid-row:auto!important}.hero h1{font-size:clamp(42px,12.4vw,90px)}.lab .tab{height:110px}}
-.hero h1{text-wrap:balance}
+/* topo */
+.nav{display:flex;align-items:center;justify-content:space-between;gap:16px;padding-block:22px}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;font-weight:700;font-size:23px;letter-spacing:-.03em;font-variation-settings:"opsz" 48,"wdth" 85}
+.brand svg{width:30px;height:30px}
+.nav nav{display:flex;gap:30px}
+.nav nav a{text-decoration:none;color:var(--texto);font-weight:500;white-space:nowrap}
+.brand{white-space:nowrap}
+.nav nav a:hover{color:var(--petroleo)}
+@media(max-width:1060px){.nav nav{display:none}}
+@media(max-width:520px){.nav .btn{min-height:44px;padding:0 16px;font-size:15px}.brand{font-size:19px}}
+
+/* capa */
+.hero{display:grid;grid-template-columns:1.05fr .95fr;gap:clamp(28px,5vw,80px);align-items:end;padding-block:clamp(16px,3vw,40px) 0}
+.hero h1{font-size:clamp(56px,8.6vw,148px)}
+.hero .lead{margin-top:26px;max-width:36ch;font-size:clamp(18px,1.45vw,21px);color:var(--texto)}
+.hero .cta{margin-top:30px;display:flex;flex-wrap:wrap;gap:12px}
+.hero .cta a.link{display:inline-flex;align-items:center;min-height:54px;padding:0 6px;font-weight:600;text-decoration:underline;text-underline-offset:5px;text-decoration-thickness:2px;text-decoration-color:var(--gengiva)}
+.hero-copy{padding-bottom:clamp(30px,5vw,80px)}
+.foto{position:relative;align-self:stretch}
+.foto img{width:100%;height:100%;min-height:440px;max-height:640px;object-fit:cover;border-radius:999px 999px 0 0}
+.foto .selo{position:absolute;left:-18px;top:clamp(90px,12vw,150px);background:var(--porcelana);border-radius:22px;padding:16px 20px;box-shadow:0 18px 40px -18px rgba(14,42,59,.45);max-width:250px;font-size:15px;line-height:1.35}
+.foto .selo b{display:block;font-size:20px;letter-spacing:-.02em}
+@media(max-width:900px){.hero{grid-template-columns:1fr}.hero-copy{padding-bottom:0}.foto img{max-height:520px}.foto .selo{left:12px}}
+
+/* escala de cor: o elemento da página */
+.escala{background:var(--petroleo);color:var(--porcelana)}
+.escala .wrap{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.5fr);gap:clamp(28px,5vw,80px);padding-block:clamp(56px,7vw,110px);align-items:center}
+.escala h2{font-size:clamp(40px,5vw,80px)}
+.escala .sub{margin-top:18px;color:#b8cdd6;max-width:34ch}
+.dente{display:flex;align-items:center;gap:24px;margin-top:34px}
+.dente svg{width:clamp(96px,10vw,140px);height:auto;flex:none;filter:drop-shadow(0 22px 30px rgba(0,0,0,.35))}
+.dente svg path.esmalte{transition:fill .45s ease}
+.dente b{display:block;font-size:clamp(46px,5vw,72px);line-height:1;letter-spacing:-.04em;font-variation-settings:"opsz" 96,"wdth" 75}
+.dente span{color:#b8cdd6;font-size:16px}
+.colunas{display:grid;grid-template-columns:repeat(6,1fr);gap:clamp(6px,1vw,14px);align-items:end;height:clamp(260px,30vw,420px)}
+.col{height:100%;border:0;border-radius:18px 18px 999px 999px;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;padding-bottom:22px;cursor:pointer;color:var(--petroleo);font-weight:700;font-size:clamp(15px,1.4vw,20px);transform-origin:bottom;transition:transform .35s cubic-bezier(.22,1,.36,1),box-shadow .35s}
+.col small{display:block;font-weight:500;font-size:12px;opacity:.7}
+.col:nth-child(1){height:100%}.col:nth-child(2){height:94%}.col:nth-child(3){height:88%}.col:nth-child(4){height:82%}.col:nth-child(5){height:76%}.col:nth-child(6){height:70%}
+.col[aria-pressed=true]{box-shadow:0 0 0 4px var(--petroleo),0 0 0 7px var(--gengiva);transform:translateY(-10px)}
+.col:hover{transform:translateY(-6px)}
+.plano{margin-top:26px;display:flex;flex-wrap:wrap;align-items:center;gap:16px 24px;background:var(--petroleo-2);border-radius:24px;padding:20px 22px}
+.plano p{flex:1 1 260px}
+.plano b{display:block;font-size:24px;letter-spacing:-.02em;font-variation-settings:"opsz" 48}
+.plano span{color:#b8cdd6;font-size:16px}
+@media(max-width:940px){.escala .wrap{grid-template-columns:1fr}.colunas{height:240px}}
+.js .col{transform:scaleY(.2);opacity:0}
+.js .escala.on .col{transform:none;opacity:1;transition:transform .9s cubic-bezier(.22,1,.36,1),opacity .5s,box-shadow .35s}
+.js .escala.on .col:nth-child(2){transition-delay:.06s}.js .escala.on .col:nth-child(3){transition-delay:.12s}.js .escala.on .col:nth-child(4){transition-delay:.18s}.js .escala.on .col:nth-child(5){transition-delay:.24s}.js .escala.on .col:nth-child(6){transition-delay:.3s}
+.js .escala.on .col[aria-pressed=true]{transform:translateY(-10px)}
+
+/* antes e depois */
+.ad{display:grid;grid-template-columns:.8fr 1.2fr;gap:clamp(28px,5vw,90px);align-items:center;padding-block:clamp(70px,9vw,140px)}
+.ad h2{font-size:clamp(40px,5.4vw,88px)}
+.ad p{margin-top:18px;color:var(--texto);max-width:36ch}
+.comparar{position:relative;border-radius:36px;overflow:hidden;background:var(--gengiva-claro);aspect-ratio:16/10;--pos:50%}
+.comparar svg{position:absolute;inset:0;width:100%;height:100%}
+.comparar .depois{clip-path:inset(0 0 0 var(--pos))}
+.comparar input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:ew-resize;margin:0}
+.comparar .linha{position:absolute;top:0;bottom:0;left:var(--pos);width:4px;margin-left:-2px;background:var(--petroleo);pointer-events:none}
+.comparar .linha::after{content:"";position:absolute;top:50%;left:50%;width:48px;height:48px;margin:-24px;border-radius:50%;background:var(--porcelana);border:4px solid var(--petroleo)}
+.comparar .tag{position:absolute;bottom:16px;font-weight:600;font-size:14px;background:var(--porcelana);padding:6px 14px;border-radius:99px;pointer-events:none}
+.comparar .t1{left:16px}.comparar .t2{right:16px}
+.comparar input:focus-visible+.linha::after{outline:3px solid var(--gengiva);outline-offset:3px}
+.nota{margin-top:12px;font-size:14px;color:var(--texto)}
+@media(max-width:900px){.ad{grid-template-columns:1fr}}
+
+/* tratamentos */
+.trat{padding-bottom:clamp(70px,9vw,140px)}
+.trat-top{display:grid;grid-template-columns:1fr auto;gap:30px;align-items:end}
+.trat h2{font-size:clamp(40px,5.4vw,88px);max-width:12ch}
+.trat-top img{width:clamp(160px,18vw,260px);aspect-ratio:1;object-fit:cover;border-radius:50%}
+.lista{margin-top:clamp(30px,4vw,56px);border-top:2px solid var(--petroleo)}
+.item{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1.6fr) 140px 160px;gap:24px;align-items:baseline;padding-block:26px;border-bottom:1px solid #c9d5d3}
+.item h3{font-size:clamp(26px,2.6vw,40px);font-variation-settings:"opsz" 72,"wdth" 85}
+.item p{color:var(--texto)}
+.item dl{display:contents}
+.item dt{font-size:13px;color:var(--texto)}
+.item dd{font-weight:600;font-size:19px}
+.item div.q{display:flex;flex-direction:column}
+@media(max-width:900px){.item{grid-template-columns:1fr 1fr;gap:6px 20px}.item h3,.item p{grid-column:1/-1}.trat-top{grid-template-columns:1fr}.trat-top img{display:none}}
+
+/* primeira avaliação */
+.aval{background:var(--vidro);border-radius:48px;overflow:hidden;display:grid;grid-template-columns:1fr 1fr}
+.aval img{width:100%;height:100%;object-fit:cover;min-height:420px}
+.aval .txt{padding:clamp(34px,5vw,80px)}
+.aval h2{font-size:clamp(38px,4.6vw,74px)}
+.passos{list-style:none;padding:0;margin-top:30px;display:grid;gap:22px;counter-reset:p}
+.passos li{counter-increment:p;display:grid;grid-template-columns:52px 1fr;gap:16px;align-items:start}
+.passos li::before{content:counter(p);width:52px;height:52px;border-radius:50%;background:var(--petroleo);color:var(--porcelana);display:grid;place-items:center;font-weight:700;font-size:21px}
+.passos b{display:block;font-size:23px;letter-spacing:-.02em}
+.passos span{color:var(--texto)}
+@media(max-width:900px){.aval{grid-template-columns:1fr;border-radius:32px}.aval img{min-height:260px;max-height:360px}}
+
+/* doutora */
+.dra{display:grid;grid-template-columns:.8fr 1.2fr;gap:clamp(28px,5vw,90px);align-items:center;padding-block:clamp(70px,9vw,140px)}
+.dra img{width:100%;max-width:520px;aspect-ratio:4/5;object-fit:cover;border-radius:36px 36px 999px 999px}
+.dra h2{font-size:clamp(38px,4.8vw,78px)}
+.dra p{margin-top:18px;color:var(--texto);max-width:44ch;font-size:19px}
+.dra .cro{margin-top:22px;display:inline-block;background:var(--gengiva-claro);border-radius:99px;padding:8px 16px;font-weight:600;font-size:15px}
+@media(max-width:820px){.dra{grid-template-columns:1fr}.dra img{max-width:420px}}
+
+/* dúvidas */
+.faq{padding-bottom:clamp(70px,9vw,140px)}
+.faq h2{font-size:clamp(38px,4.8vw,78px)}
+.faq-l{margin-top:clamp(26px,3.6vw,48px);max-width:900px;border-top:2px solid var(--petroleo)}
+details{border-bottom:1px solid #c9d5d3}
+summary{list-style:none;cursor:pointer;padding:24px 0;font-weight:600;font-size:clamp(20px,2vw,26px);letter-spacing:-.02em;display:flex;justify-content:space-between;gap:20px}
+summary::-webkit-details-marker{display:none}
+summary::after{content:"+";font-weight:400;font-size:30px;line-height:1;transition:transform .25s}
+details[open] summary::after{transform:rotate(45deg)}
+details p{padding:0 0 24px;color:var(--texto);max-width:62ch}
+
+/* contato */
+.contato{background:var(--petroleo);color:var(--porcelana);border-radius:48px 48px 0 0}
+.contato .wrap{display:grid;grid-template-columns:1.2fr 1fr;gap:clamp(28px,5vw,80px);align-items:end;padding-block:clamp(70px,9vw,130px)}
+.contato h2{font-size:clamp(46px,7vw,116px)}
+.info{display:grid;gap:22px;font-size:19px}
+.info b{display:block;font-size:14px;font-weight:600;color:var(--gengiva)}
+.info .btn{justify-self:start}
+@media(max-width:820px){.contato .wrap{grid-template-columns:1fr}}
+footer{background:var(--petroleo);color:#9fb7c2;padding:0 0 26px}
+footer .wrap{border-top:1px solid #2a4a5d;padding-top:22px;font-size:14px;display:flex;flex-wrap:wrap;justify-content:space-between;gap:10px 30px}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}.js .col{transform:none;opacity:1}}
 </style>
 </head>
 <body>
 <header class="wrap nav">
-  <a class="brand" href="#">Marchi Odontologia</a>
-  <nav aria-label="Principal"><a href="#tratamentos">Tratamentos</a><a href="#avaliacao">Primeira avaliação</a><a href="#duvidas">Dúvidas</a><a href="#contato">Contato</a></nav>
-  <a class="btn" href="#tom">Agendar avaliação</a>
+  <a class="brand" href="#"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M20 6C10 6 5 15 6 27c1 13 6 31 12 31 6 0 6-17 14-17s8 17 14 17c6 0 11-18 12-31 1-12-4-21-14-21-6 0-8 3-12 3s-6-3-12-3z" fill="#ee8c86"/></svg>Marchi Odontologia</a>
+  <nav aria-label="Principal"><a href="#tom">Seu tom</a><a href="#tratamentos">Tratamentos</a><a href="#avaliacao">Primeira avaliação</a><a href="#contato">Contato</a></nav>
+  <a class="btn" href="#contato">Agendar avaliação</a>
 </header>
 
 <main>
-<section class="wrap hero" id="tom" aria-labelledby="h1">
-  <div>
+<section class="wrap hero" aria-labelledby="h1">
+  <div class="hero-copy">
     <h1 id="h1">Seu sorriso, no seu tom.</h1>
-    <p class="lead">Escolha a cor dos seus dentes hoje e veja o plano para chegar onde você quer. A avaliação é o primeiro passo.</p>
-    <div class="cta"><a class="btn" href="#tratamentos">Ver tratamentos</a></div>
+    <p class="lead">Clareamento, lentes e alinhadores com plano por escrito antes de começar. Você sabe o caminho, o tempo e o valor de cada etapa.</p>
+    <div class="cta"><a class="btn" href="#tom">Descobrir meu tom</a><a class="link" href="#tratamentos">Ver tratamentos</a></div>
   </div>
-  <div class="lab" id="lab">
-    <div class="swatch" id="swatch" role="img" aria-label="Cor selecionada"></div>
-    <div class="read"><b id="tomNome">A3</b><span id="tomTxt">Seu tom hoje</span></div>
-    <div class="tabs" role="group" aria-label="Escolha o tom dos seus dentes" id="tabs">
-      <button class="tab" style="background:#f6efe0" data-s="B1" data-c="#f6efe0" aria-pressed="false">B1</button>
-      <button class="tab" style="background:#eee1c8" data-s="A1" data-c="#eee1c8" aria-pressed="false">A1</button>
-      <button class="tab" style="background:#e6d5b4" data-s="A2" data-c="#e6d5b4" aria-pressed="false">A2</button>
-      <button class="tab" style="background:#dcc59f" data-s="A3" data-c="#dcc59f" aria-pressed="true">A3</button>
-      <button class="tab" style="background:#d1b88b" data-s="A3.5" data-c="#d1b88b" aria-pressed="false">A3.5</button>
-      <button class="tab" style="background:#c3a577" data-s="A4" data-c="#c3a577" aria-pressed="false">A4</button>
-    </div>
-    <div class="plan" aria-live="polite"><b id="planB">2 sessões de clareamento</b><span id="planT">Para chegar ao tom B1, o mais claro da escala.</span><a class="btn" id="zap" href="#" target="_blank" rel="noopener">Agendar avaliação</a></div>
+  <div class="foto">
+    <img src="img/dent-sorriso.webp" alt="Mulher sorrindo de olhos fechados, com a mão no rosto" width="1100" height="1400">
+    <p class="selo"><b>Hora marcada</b>Seg a sex até 19h e sábado pela manhã, no Centro de Caxias.</p>
   </div>
 </section>
 
-<section class="wrap treat" id="tratamentos" aria-labelledby="th">
-  <h2 class="sec-h rv" id="th">Tratamentos, sem complicação.</h2>
-  <div class="cards">
-    <article class="t rv"><div><h3>Clareamento</h3><p>Muda o tom dos dentes sem desgastar. Em consultório ou com moldeira em casa.</p></div><dl><div><dt>Sessões</dt><dd>2 a 3</dd></div><div><dt>Duração</dt><dd>1 h</dd></div></dl></article>
-    <article class="t rv"><div><h3>Lentes de contato</h3><p>Lâminas finas de porcelana que corrigem cor, forma e tamanho.</p></div><dl><div><dt>Sessões</dt><dd>3 a 4</dd></div><div><dt>Duração</dt><dd>2 h</dd></div></dl></article>
-    <article class="t rv"><div><h3>Facetas em resina</h3><p>Fecham espaços e consertam lascas em uma só consulta.</p></div><dl><div><dt>Sessões</dt><dd>1</dd></div><div><dt>Duração</dt><dd>1 h 30</dd></div></dl></article>
-    <article class="t rv"><div><h3>Limpeza e profilaxia</h3><p>Remove tártaro e manchas. A base de qualquer outro tratamento.</p></div><dl><div><dt>Sessões</dt><dd>1</dd></div><div><dt>Duração</dt><dd>40 min</dd></div></dl></article>
-    <article class="t rv"><div><h3>Alinhadores</h3><p>Aparelho transparente e removível, com planejamento digital.</p></div><dl><div><dt>Retornos</dt><dd>mensais</dd></div><div><dt>Duração</dt><dd>6 a 18 meses</dd></div></dl></article>
-    <article class="t rv"><div><h3>Implantes</h3><p>Substituem o dente perdido com raiz de titânio e coroa sob medida.</p></div><dl><div><dt>Etapas</dt><dd>2</dd></div><div><dt>Duração</dt><dd>3 a 6 meses</dd></div></dl></article>
-  </div>
-</section>
-
-<section class="eval" id="avaliacao" aria-labelledby="eh">
+<section class="escala" id="tom" aria-labelledby="eh">
   <div class="wrap">
-    <h2 class="sec-h rv" id="eh">Sua primeira avaliação.</h2>
-    <div class="moves">
-      <div class="rv">Conversa.<p>Você conta o que incomoda e o que sonha para o seu sorriso.</p></div>
-      <div class="rv">Exame.<p>Avaliação completa, fotos e, se preciso, radiografia.</p></div>
-      <div class="rv">Plano.<p>Você sai com o caminho, o tempo e o valor de cada etapa.</p></div>
+    <div>
+      <h2 id="eh">Qual é o tom dos seus dentes hoje?</h2>
+      <p class="sub">Toque na cor mais parecida com a sua. É a mesma escala que usamos na avaliação.</p>
+      <div class="dente">
+        <svg viewBox="0 0 120 150" role="img" aria-label="Dente na cor escolhida"><path class="esmalte" id="esmalte" d="M36 8C16 8 6 24 8 46c2 24 10 96 26 96 12 0 10-38 26-38s14 38 26 38c16 0 24-72 26-96 2-22-8-38-28-38-10 0-14 6-24 6S46 8 36 8z" fill="#dbc49c"/><path d="M30 22c-8 4-12 14-10 26" stroke="#fff" stroke-opacity=".7" stroke-width="7" stroke-linecap="round" fill="none"/></svg>
+        <div><b id="tomNome">A3</b><span>seu tom hoje</span></div>
+      </div>
+      <div class="plano" aria-live="polite"><p><b id="planB">2 sessões de clareamento</b><span id="planT">Para chegar ao B1, o tom mais claro da escala.</span></p><a class="btn rosa" id="zap" href="#" target="_blank" rel="noopener">Agendar com esse tom</a></div>
+    </div>
+    <div class="colunas" role="group" aria-label="Escala de cores dos dentes">
+      <button class="col" style="background:var(--B1)" data-s="B1" data-c="#f7f1e3" aria-pressed="false">B1<small>mais claro</small></button>
+      <button class="col" style="background:var(--A1)" data-s="A1" data-c="#efe3c9" aria-pressed="false">A1</button>
+      <button class="col" style="background:var(--A2)" data-s="A2" data-c="#e6d5b2" aria-pressed="false">A2</button>
+      <button class="col" style="background:var(--A3)" data-s="A3" data-c="#dbc49c" aria-pressed="true">A3</button>
+      <button class="col" style="background:var(--A35)" data-s="A3.5" data-c="#cfb585" aria-pressed="false">A3.5</button>
+      <button class="col" style="background:var(--A4)" data-s="A4" data-c="#c1a26f" aria-pressed="false">A4<small>mais escuro</small></button>
     </div>
   </div>
 </section>
 
-<section class="wrap ba" aria-labelledby="bh">
-  <div class="rv"><h2 id="bh">Escolhemos o tom com a escala.</h2><p>Antes de indicar o clareamento, comparamos o seu sorriso com a escala de cores da clínica, e assim o resultado fica combinado desde a primeira consulta.</p></div>
-  <figure class="slide rv" style="margin:0"><img src="img/dent-1.webp" alt="Escala de cores de dentes usada na avaliação" width="1800" height="458" style="width:100%;height:100%;object-fit:cover"></figure>
+<section class="wrap ad" aria-labelledby="ah">
+  <div>
+    <h2 id="ah">Arraste e veja a diferença.</h2>
+    <p>Do A3.5 ao B1, que é o resultado mais comum depois de duas a três sessões de clareamento em consultório.</p>
+  </div>
+  <div>
+    <div class="comparar" id="comparar">
+      <svg viewBox="0 0 800 500" aria-hidden="true"><use href="#sorriso" fill="#cfb585"/></svg>
+      <svg class="depois" viewBox="0 0 800 500" aria-hidden="true"><use href="#sorriso" fill="#f7f1e3"/></svg>
+      <input type="range" min="0" max="100" value="50" aria-label="Comparar antes e depois do clareamento" id="slider">
+      <div class="linha"></div>
+      <span class="tag t1">Antes · A3.5</span><span class="tag t2">Depois · B1</span>
+    </div>
+    <p class="nota">Ilustração. O resultado de cada pessoa é definido na avaliação.</p>
+  </div>
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+      <g id="sorriso">
+        <path d="M40 120 C200 60 600 60 760 120 L760 0 L40 0 Z" fill="#ee8c86"/>
+        <path d="M40 120 C200 60 600 60 760 120 C700 170 610 200 560 205 L240 205 C190 200 100 170 40 120Z" fill="#e9726b"/>
+        <g transform="rotate(-10 149.0 179.0)"><path d="M110 104 H188 V221.24 Q188 254 149.0 254 Q110 254 110 221.24 Z"/><path d="M127.16 134 V186.5" stroke="#fff" stroke-opacity=".55" stroke-width="9" stroke-linecap="round"/></g>
+        <g transform="rotate(-5 239.0 181.0)"><path d="M196 92 H282 V233.88 Q282 270 239.0 270 Q196 270 196 233.88 Z"/><path d="M214.92000000000002 122 V189.9" stroke="#fff" stroke-opacity=".55" stroke-width="10" stroke-linecap="round"/></g>
+        <g transform="rotate(0 342.0 193.0)"><path d="M292 86 H392 V258.0 Q392 300 342.0 300 Q292 300 292 258.0 Z"/><path d="M314.0 116 V203.7" stroke="#fff" stroke-opacity=".55" stroke-width="12" stroke-linecap="round"/></g>
+        <g transform="rotate(0 458.0 193.0)"><path d="M408 86 H508 V258.0 Q508 300 458.0 300 Q408 300 408 258.0 Z"/><path d="M430.0 116 V203.7" stroke="#fff" stroke-opacity=".55" stroke-width="12" stroke-linecap="round"/></g>
+        <g transform="rotate(5 561.0 181.0)"><path d="M518 92 H604 V233.88 Q604 270 561.0 270 Q518 270 518 233.88 Z"/><path d="M536.92 122 V189.9" stroke="#fff" stroke-opacity=".55" stroke-width="10" stroke-linecap="round"/></g>
+        <g transform="rotate(10 651.0 179.0)"><path d="M612 104 H690 V221.24 Q690 254 651.0 254 Q612 254 612 221.24 Z"/><path d="M629.16 134 V186.5" stroke="#fff" stroke-opacity=".55" stroke-width="9" stroke-linecap="round"/></g>
+        <path d="M60 330 C220 470 580 470 740 330 C620 400 180 400 60 330Z" fill="#e9726b"/>
+      </g>
+    </defs>
+  </svg>
 </section>
 
-<section class="wrap doc" aria-labelledby="dh" style="max-width:none">
-  <div class="wrap docg" style="padding-inline:0">
-    <div class="mono rv" aria-hidden="true">H</div>
-    <div class="rv"><h2 id="dh">Dra. Helena Marchi</h2><p>Cirurgiã-dentista, especialista em estética e reabilitação oral. CRO-RS 00000. Atende com hora marcada e tempo para explicar cada etapa.</p></div>
+<section class="wrap trat" id="tratamentos" aria-labelledby="th">
+  <div class="trat-top"><h2 id="th">Tratamentos, do básico ao estético.</h2><img src="img/dent-clareamento.webp" alt="Clareamento com luz em consultório" width="1000" height="1000"></div>
+  <div class="lista">
+    <article class="item"><h3>Clareamento</h3><p>Muda o tom dos dentes sem desgastar. Em consultório ou com moldeira em casa.</p><div class="q"><dt>Sessões</dt><dd>2 a 3</dd></div><div class="q"><dt>Cada sessão</dt><dd>1 h</dd></div></article>
+    <article class="item"><h3>Lentes de contato</h3><p>Lâminas finas de porcelana que corrigem cor, forma e tamanho.</p><div class="q"><dt>Sessões</dt><dd>3 a 4</dd></div><div class="q"><dt>Cada sessão</dt><dd>2 h</dd></div></article>
+    <article class="item"><h3>Facetas em resina</h3><p>Fecham espaços e consertam lascas em uma só consulta.</p><div class="q"><dt>Sessões</dt><dd>1</dd></div><div class="q"><dt>Duração</dt><dd>1 h 30</dd></div></article>
+    <article class="item"><h3>Limpeza</h3><p>Remove tártaro e manchas. É a base de qualquer outro tratamento.</p><div class="q"><dt>Sessões</dt><dd>1</dd></div><div class="q"><dt>Duração</dt><dd>40 min</dd></div></article>
+    <article class="item"><h3>Alinhadores</h3><p>Aparelho transparente e removível, com planejamento digital.</p><div class="q"><dt>Retornos</dt><dd>mensais</dd></div><div class="q"><dt>Tratamento</dt><dd>6 a 18 meses</dd></div></article>
+    <article class="item"><h3>Implantes</h3><p>Substituem o dente perdido com raiz de titânio e coroa sob medida.</p><div class="q"><dt>Etapas</dt><dd>2</dd></div><div class="q"><dt>Tratamento</dt><dd>3 a 6 meses</dd></div></article>
+  </div>
+</section>
+
+<section class="wrap" id="avaliacao" aria-labelledby="vh">
+  <div class="aval">
+    <img src="img/dent-consulta.webp" alt="Dentista atendendo uma paciente no consultório" width="1500" height="1000">
+    <div class="txt">
+      <h2 id="vh">Como é a primeira avaliação.</h2>
+      <ol class="passos">
+        <li><p><b>Conversa</b><span>Você conta o que incomoda e o que quer mudar no sorriso.</span></p></li>
+        <li><p><b>Exame</b><span>Avaliação completa, fotos e, se precisar, radiografia.</span></p></li>
+        <li><p><b>Plano por escrito</b><span>Você sai com o caminho, o tempo e o valor de cada etapa.</span></p></li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<section class="wrap dra" aria-labelledby="dh">
+  <img src="img/dent-dra.webp" alt="Retrato da Dra. Helena Marchi sorrindo" width="1000" height="1250">
+  <div>
+    <h2 id="dh">Dra. Helena Marchi</h2>
+    <p>Cirurgiã-dentista, especialista em estética e reabilitação oral. Atende com hora marcada e explica cada etapa antes de fazer, sem pressa.</p>
+    <span class="cro">CRO-RS 00000</span>
   </div>
 </section>
 
 <section class="wrap faq" id="duvidas" aria-labelledby="fh">
-  <h2 class="sec-h rv" id="fh">Perguntas frequentes.</h2>
+  <h2 id="fh">Antes de marcar.</h2>
   <div class="faq-l">
     <details><summary>Clareamento estraga os dentes?</summary><p>Feito com avaliação e acompanhamento, não. Pode haver sensibilidade passageira, que a gente controla.</p></details>
-    <details><summary>Quanto custa a avaliação?</summary><p>A primeira avaliação tem valor fixo e, se você iniciar o tratamento, ele é abatido do total.</p></details>
+    <details><summary>Quanto custa a avaliação?</summary><p>A primeira avaliação tem valor fixo e, se você começar o tratamento, ele é abatido do total.</p></details>
     <details><summary>Atendem convênio?</summary><p>Atendemos particular e emitimos recibo para reembolso. Parcelamos em até 12 vezes no cartão.</p></details>
-    <details><summary>Tenho medo de dentista.</summary><p>Muita gente tem. Explicamos cada passo antes de fazer e você pode parar quando quiser.</p></details>
+    <details><summary>Tenho medo de dentista.</summary><p>Muita gente tem. Explicamos cada passo antes de fazer e você pode pedir para parar quando quiser.</p></details>
   </div>
 </section>
 
-<section class="contact" id="contato" aria-labelledby="ch">
-  <div class="wrap cg">
-    <h2 id="ch" class="rv">Vamos conversar.</h2>
-    <div class="info rv">
+<section class="contato" id="contato" aria-labelledby="ch">
+  <div class="wrap">
+    <h2 id="ch">Vamos marcar sua avaliação?</h2>
+    <div class="info">
       <div><b>Endereço</b>Rua Exemplo, 000, sala 12, Centro<br>Caxias do Sul, RS</div>
-      <div><b>Horário</b>Seg a sex, 8h30 às 19h · Sábado, com hora marcada</div>
-      <a class="btn" href="https://wa.me/5554999999999" target="_blank" rel="noopener">Agendar pelo WhatsApp</a>
+      <div><b>Horário</b>Seg a sex, 8h30 às 19h<br>Sábado, com hora marcada</div>
+      <a class="btn rosa" href="https://wa.me/5554999999999" target="_blank" rel="noopener">Agendar pelo WhatsApp</a>
     </div>
   </div>
 </section>
 </main>
-<footer><div class="wrap"><div class="big" aria-hidden="true">Marchi</div><small>Modelo de demonstração da .dev Bossle. Nomes, valores e registro profissional são exemplos. Foto: “Shade guide” (Shaimaa Abdellatif), CC BY-SA 4.0, via Wikimedia Commons.</small></div></footer>
+<footer><div class="wrap"><span>Marchi Odontologia · modelo de demonstração da .dev Bossle</span><span>Nomes, valores e registro profissional são exemplos. Fotos: Pexels (licença Pexels).</span></div></footer>
 
 <script>
 document.documentElement.classList.add('js');
 (function(){
   var $=function(s){return document.querySelector(s)};
-  var order=['B1','A1','A2','A3','A3.5','A4'];
   var plan={'B1':['Você já está no tom mais claro','Para manter, uma limpeza a cada 6 meses.'],
-    'A1':['1 sessão de clareamento','Para chegar ao tom B1, o mais claro da escala.'],
-    'A2':['1 a 2 sessões de clareamento','Para chegar ao tom B1, o mais claro da escala.'],
-    'A3':['2 sessões de clareamento','Para chegar ao tom B1, o mais claro da escala.'],
-    'A3.5':['3 sessões de clareamento','Para chegar ao tom B1. Avaliamos a causa da cor.'],
-    'A4':['3 a 4 sessões ou lentes','O melhor caminho depende do que causa a cor. A avaliação mostra.']};
+    'A1':['1 sessão de clareamento','Para chegar ao B1, o tom mais claro da escala.'],
+    'A2':['1 a 2 sessões de clareamento','Para chegar ao B1, o tom mais claro da escala.'],
+    'A3':['2 sessões de clareamento','Para chegar ao B1, o tom mais claro da escala.'],
+    'A3.5':['3 sessões de clareamento','Para chegar ao B1. Na avaliação vemos a causa da cor.'],
+    'A4':['3 a 4 sessões ou lentes','O melhor caminho depende da causa da cor. A avaliação mostra.']};
   function pick(b){
-    document.querySelectorAll('.tab').forEach(function(t){t.setAttribute('aria-pressed',t===b)});
-    $('#swatch').style.backgroundColor=b.dataset.c;
+    document.querySelectorAll('.col').forEach(function(t){t.setAttribute('aria-pressed',t===b)});
+    $('#esmalte').setAttribute('fill',b.dataset.c);
     $('#tomNome').textContent=b.dataset.s;
     var p=plan[b.dataset.s];$('#planB').textContent=p[0];$('#planT').textContent=p[1];
     var msg='Oi! Meu dente está no tom '+b.dataset.s+'. Quero agendar uma avaliação ('+p[0].toLowerCase()+').';
     $('#zap').href='https://wa.me/5554999999999?text='+encodeURIComponent(msg);
   }
-  document.querySelectorAll('.tab').forEach(function(t){t.addEventListener('click',function(){pick(t)})});
-  pick(document.querySelector('.tab[aria-pressed=true]'));
-  var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}})},{threshold:.12});
-  document.querySelectorAll('.rv').forEach(function(el,k){el.style.transitionDelay=(k%3)*80+'ms';io.observe(el)});
+  document.querySelectorAll('.col').forEach(function(t){t.addEventListener('click',function(){pick(t)})});
+  pick(document.querySelector('.col[aria-pressed=true]'));
+  var s=$('#slider'),c=$('#comparar');
+  s.addEventListener('input',function(){c.style.setProperty('--pos',s.value+'%')});
+  var esc=document.querySelector('.escala');
+  if('IntersectionObserver' in window){
+    var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){esc.classList.add('on');io.disconnect()}})},{threshold:.25});
+    io.observe(esc);
+  } else esc.classList.add('on');
 })();
 </script>
 </body>
