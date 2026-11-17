@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { orcamentosApi } from "../../lib/orcamentos/api";
 import type { FinAccount, FinMonth, FinOverview, FinTransaction } from "../../types/orcamentos";
-import { btn, btnPrimary, cardClass, focusRing } from "./panelStyles";
+import { btn, btnDangerSm, btnPrimary, btnSm, cardClass, control, focusRing, inputClass, labelClass, tabItem, tabList } from "./panelStyles";
 
 type Props = { showToast: (msg: string) => void };
 type View = "visao" | "transacoes" | "orcamentos" | "contas";
@@ -13,10 +13,7 @@ const VIEWS: { id: View; label: string }[] = [
   { id: "contas", label: "Contas" },
 ];
 
-const control = `border border-neutral-200 bg-[#f9f9f9] outline-none transition focus:border-emerald-600 dark:border-neutral-700 dark:bg-[#121212] dark:focus:border-emerald-400 ${focusRing}`;
-const inputClass = `${control} w-full min-h-11 px-3 py-2 text-base sm:text-sm`;
-const btnSm = `inline-flex min-h-9 cursor-pointer items-center justify-center gap-1.5 border border-neutral-200 bg-white px-2.5 py-1.5 text-xs font-medium transition-[border-color,opacity] hover:border-neutral-400 disabled:cursor-not-allowed disabled:opacity-50 dark:border-neutral-700 dark:bg-[#151515] dark:hover:border-neutral-500 ${focusRing}`;
-const smallLabel = "text-xs font-medium uppercase tracking-widest text-neutral-500 dark:text-neutral-400";
+const smallLabel = labelClass;
 
 // Paleta validada (dataviz): entradas / saídas, claro e escuro
 const C_IN = "var(--fin-in)";
@@ -119,7 +116,7 @@ export default function Finance({ showToast }: Props) {
     }
   };
 
-  if (loading) return <p className="text-sm text-neutral-500">Carregando finanças…</p>;
+  if (loading) return <p className="text-sm text-muted">Carregando finanças…</p>;
   if (!data) return null;
 
   const hasData = data.accounts.length > 0;
@@ -133,7 +130,7 @@ export default function Finance({ showToast }: Props) {
           <h2 id="fin-title" className="mt-1 text-2xl font-semibold tracking-tight">
             Finanças
           </h2>
-          <p className="mt-1 text-xs text-neutral-500">
+          <p className="mt-1 text-xs text-muted">
             Última sincronização: {relTime(data.items.map((i) => i.syncedAt).filter(Boolean).sort().pop() ?? null)}
           </p>
         </div>
@@ -163,16 +160,14 @@ export default function Finance({ showToast }: Props) {
         </div>
       ) : null}
 
-      <nav className="flex gap-1 overflow-x-auto border-b border-neutral-200 dark:border-neutral-800" aria-label="Seções de finanças">
+      <nav className={`${tabList} w-fit max-w-full`} aria-label="Seções de finanças">
         {VIEWS.map((v) => (
           <button
             key={v.id}
             type="button"
             onClick={() => setView(v.id)}
             aria-current={view === v.id ? "page" : undefined}
-            className={`-mb-px shrink-0 border-b-2 px-3 py-2.5 text-sm ${focusRing} ${
-              view === v.id ? "border-neutral-900 font-medium dark:border-white" : "border-transparent text-neutral-500 hover:text-neutral-900 dark:hover:text-white"
-            }`}
+            className={tabItem(view === v.id)}
           >
             {v.label}
           </button>
@@ -222,7 +217,7 @@ export default function Finance({ showToast }: Props) {
 function EmptyState({ onGo }: { onGo: () => void }) {
   return (
     <div className={`${cardClass} text-center`}>
-      <p className="text-sm text-neutral-600 dark:text-neutral-300">Conecte um banco para ver saldo, gastos por categoria e evolução mensal.</p>
+      <p className="text-sm text-muted">Conecte um banco para ver saldo, gastos por categoria e evolução mensal.</p>
       <button type="button" className={`${btnPrimary} mt-4`} onClick={onGo}>
         Conectar banco
       </button>
@@ -306,12 +301,12 @@ function Overview({
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <div className="grid grid-cols-2 overflow-hidden rounded-2xl border border-line bg-surface lg:grid-cols-4">
         {tiles.map((t) => (
-          <div key={t.label} className={cardClass}>
+          <div key={t.label} className="border-line p-5 xl:p-6 [&:nth-child(n+3)]:border-t [&:nth-child(even)]:border-l lg:[&:nth-child(n+3)]:border-t-0 lg:[&:not(:first-child)]:border-l">
             <p className={smallLabel}>{t.label}</p>
             <p className="mt-2 text-xl font-semibold tabular-nums sm:text-2xl">{t.value}</p>
-            {t.hint ? <p className="mt-1 text-xs text-neutral-500">{t.hint}</p> : null}
+            {t.hint ? <p className="mt-1 text-xs text-muted">{t.hint}</p> : null}
           </div>
         ))}
       </div>
@@ -330,34 +325,34 @@ function Overview({
           <dl className="mt-4 space-y-3">
             <div className="flex items-baseline justify-between">
               <dt className="flex items-center gap-2 text-sm">
-                <span className="size-2.5 rounded-sm" style={{ background: C_IN }} /> Entradas
+                <span className="size-2.5 rounded-lg" style={{ background: C_IN }} /> Entradas
               </dt>
               <dd className="text-lg font-semibold tabular-nums">{money(stats.income)}</dd>
             </div>
             <div className="flex items-baseline justify-between">
               <dt className="flex items-center gap-2 text-sm">
-                <span className="size-2.5 rounded-sm" style={{ background: C_OUT }} /> Saídas
+                <span className="size-2.5 rounded-lg" style={{ background: C_OUT }} /> Saídas
               </dt>
               <dd className="text-lg font-semibold tabular-nums">{money(stats.expense)}</dd>
             </div>
-            <div className="flex items-baseline justify-between border-t border-neutral-200 pt-3 dark:border-neutral-800">
+            <div className="flex items-baseline justify-between border-t border-line pt-3">
               <dt className="text-sm font-medium">Resultado</dt>
-              <dd className={`text-xl font-semibold tabular-nums ${result < 0 ? "text-red-700 dark:text-red-400" : ""}`}>
+              <dd className={`text-xl font-semibold tabular-nums ${result < 0 ? "text-danger" : ""}`}>
                 {result >= 0 ? "+" : "−"}
                 {money(Math.abs(result))}
               </dd>
             </div>
             {stats.income > 0 ? (
-              <p className="text-xs text-neutral-500">
+              <p className="text-xs text-muted">
                 Taxa de poupança: {Math.round((result / stats.income) * 100)}% da renda
               </p>
             ) : null}
             {projected ? (
-              <p className="text-xs text-neutral-500">No ritmo atual, o mês fecha com ~{money(projected)} em saídas.</p>
+              <p className="text-xs text-muted">No ritmo atual, o mês fecha com ~{money(projected)} em saídas.</p>
             ) : null}
           </dl>
           {data.accounts.some((a) => isCredit(a) && a.billDueDate) ? (
-            <div className="mt-5 border-t border-neutral-200 pt-4 dark:border-neutral-800">
+            <div className="mt-5 border-t border-line pt-4">
               <p className={smallLabel}>Faturas</p>
               <ul className="mt-2 space-y-1.5 text-sm">
                 {data.accounts
@@ -365,7 +360,7 @@ function Overview({
                   .map((a) => (
                     <li key={a.id} className="flex justify-between gap-3">
                       <span className="truncate">
-                        {a.name} {a.billDueDate ? <span className="text-xs text-neutral-500">vence {fmtDay(a.billDueDate)}</span> : null}
+                        {a.name} {a.billDueDate ? <span className="text-xs text-muted">vence {fmtDay(a.billDueDate)}</span> : null}
                       </span>
                       <span className="tabular-nums">{money(a.balance)}</span>
                     </li>
@@ -380,9 +375,9 @@ function Overview({
         <div className={cardClass}>
           <div className="flex items-baseline justify-between">
             <h3 className="text-base font-semibold">Gastos por categoria</h3>
-            {loading ? <span className="text-xs text-neutral-500">carregando…</span> : null}
+            {loading ? <span className="text-xs text-muted">carregando…</span> : null}
           </div>
-          {!stats.categories.length ? <p className="mt-4 text-sm text-neutral-500">Sem gastos neste mês.</p> : null}
+          {!stats.categories.length ? <p className="mt-4 text-sm text-muted">Sem gastos neste mês.</p> : null}
           <ul className="mt-4 space-y-3">
             {stats.categories.map((c) => {
               const limit = budgets.get(c.category);
@@ -394,20 +389,20 @@ function Overview({
                       <span className="truncate group-hover:underline">{c.category}</span>
                       <span className="shrink-0 tabular-nums">
                         {money(c.spent)}
-                        {limit != null ? <span className="text-xs text-neutral-500"> / {money(limit)}</span> : null}
-                        <span className="ml-2 text-xs text-neutral-500">{Math.round((c.spent / Math.max(1, stats.expense)) * 100)}%</span>
+                        {limit != null ? <span className="text-xs text-muted"> / {money(limit)}</span> : null}
+                        <span className="ml-2 text-xs text-muted">{Math.round((c.spent / Math.max(1, stats.expense)) * 100)}%</span>
                       </span>
                     </div>
-                    <div className="relative mt-1.5 h-2 bg-neutral-100 dark:bg-neutral-800">
+                    <div className="relative mt-1.5 h-2 bg-sunken">
                       <div
                         className="h-full rounded-r-[4px]"
                         style={{ width: `${(c.spent / maxCat) * 100}%`, background: over ? "#dc2626" : C_OUT }}
                       />
                       {limit != null ? (
-                        <span className="absolute -top-1 h-4 w-0.5 bg-neutral-900 dark:bg-white" style={{ left: `${Math.min(100, (limit / maxCat) * 100)}%` }} aria-hidden />
+                        <span className="absolute -top-1 h-4 w-0.5 bg-ink" style={{ left: `${Math.min(100, (limit / maxCat) * 100)}%` }} aria-hidden />
                       ) : null}
                     </div>
-                    {over ? <p className="mt-1 text-xs font-medium text-red-700 dark:text-red-400">⚠ Passou {money(c.spent - limit!)} do orçamento</p> : null}
+                    {over ? <p className="mt-1 text-xs font-medium text-danger">⚠ Passou {money(c.spent - limit!)} do orçamento</p> : null}
                   </button>
                 </li>
               );
@@ -417,19 +412,19 @@ function Overview({
 
         <div className={cardClass}>
           <h3 className="text-base font-semibold">Maiores gastos do mês</h3>
-          <ul className="mt-4 divide-y divide-neutral-100 dark:divide-neutral-800">
+          <ul className="mt-4 divide-y divide-line">
             {stats.biggest.map((t) => (
               <li key={t.id} className="flex items-center justify-between gap-3 py-2.5 text-sm">
                 <div className="min-w-0">
                   <p className="truncate">{t.merchant || t.description}</p>
-                  <p className="truncate text-xs text-neutral-500">
+                  <p className="truncate text-xs text-muted">
                     {fmtDay(t.date)} · {t.category} · {accName.get(t.accountId)}
                   </p>
                 </div>
                 <span className="shrink-0 font-medium tabular-nums">{money(-t.amount)}</span>
               </li>
             ))}
-            {!stats.biggest.length ? <li className="py-2 text-sm text-neutral-500">Nada ainda.</li> : null}
+            {!stats.biggest.length ? <li className="py-2 text-sm text-muted">Nada ainda.</li> : null}
           </ul>
         </div>
       </div>
@@ -439,12 +434,12 @@ function Overview({
 
 function Legend() {
   return (
-    <div className="flex gap-4 text-xs text-neutral-600 dark:text-neutral-300">
+    <div className="flex gap-4 text-xs text-muted">
       <span className="inline-flex items-center gap-1.5">
-        <span className="size-2.5 rounded-sm" style={{ background: C_IN }} /> Entradas
+        <span className="size-2.5 rounded-lg" style={{ background: C_IN }} /> Entradas
       </span>
       <span className="inline-flex items-center gap-1.5">
-        <span className="size-2.5 rounded-sm" style={{ background: C_OUT }} /> Saídas
+        <span className="size-2.5 rounded-lg" style={{ background: C_OUT }} /> Saídas
       </span>
     </div>
   );
@@ -482,7 +477,7 @@ function MonthlyChart({ months, selected, onPick }: { months: FinMonth[]; select
         </button>
         <table className="mt-3 w-full text-sm tabular-nums">
           <thead>
-            <tr className="text-left text-xs text-neutral-500">
+            <tr className="text-left text-xs text-muted">
               <th className="py-1 font-medium">Mês</th>
               <th className="py-1 text-right font-medium">Entradas</th>
               <th className="py-1 text-right font-medium">Saídas</th>
@@ -491,7 +486,7 @@ function MonthlyChart({ months, selected, onPick }: { months: FinMonth[]; select
           </thead>
           <tbody>
             {[...series].reverse().map((m) => (
-              <tr key={m.month} className="border-t border-neutral-100 dark:border-neutral-800">
+              <tr key={m.month} className="border-t border-line">
                 <td className="py-1.5">{monthLabel(m.month)}</td>
                 <td className="py-1.5 text-right">{money(m.income)}</td>
                 <td className="py-1.5 text-right">{money(m.expense)}</td>
@@ -510,7 +505,7 @@ function MonthlyChart({ months, selected, onPick }: { months: FinMonth[]; select
         {ticks.map((t) => (
           <g key={t}>
             <line x1={pad.l} x2={W - pad.r} y1={y(t)} y2={y(t)} stroke="var(--fin-grid)" strokeWidth={1} />
-            <text x={pad.l - 6} y={y(t) + 3} textAnchor="end" className="fill-neutral-500 text-[10px]">
+            <text x={pad.l - 6} y={y(t) + 3} textAnchor="end" className="fill-faint text-[10px]">
               {brlShort.format(t)}
             </text>
           </g>
@@ -534,10 +529,10 @@ function MonthlyChart({ months, selected, onPick }: { months: FinMonth[]; select
           };
           return (
             <g key={m.month}>
-              {sel ? <rect x={pad.l + i * step} y={pad.t} width={step} height={H - pad.t - pad.b} className="fill-neutral-100 dark:fill-neutral-800/60" /> : null}
+              {sel ? <rect x={pad.l + i * step} y={pad.t} width={step} height={H - pad.t - pad.b} className="fill-sunken" /> : null}
               {bar(m.income, x0, C_IN)}
               {bar(m.expense, x0 + barW + 2, C_OUT)}
-              <text x={pad.l + i * step + step / 2} y={H - 8} textAnchor="middle" className={`text-[10px] ${sel ? "fill-neutral-900 font-semibold dark:fill-white" : "fill-neutral-500"}`}>
+              <text x={pad.l + i * step + step / 2} y={H - 8} textAnchor="middle" className={`text-[10px] ${sel ? "fill-ink font-semibold" : "fill-faint"}`}>
                 {monthLabel(m.month, "short").replace(".", "")}
               </text>
               {/* área de hover maior que a barra */}
@@ -555,11 +550,11 @@ function MonthlyChart({ months, selected, onPick }: { months: FinMonth[]; select
             </g>
           );
         })}
-        <line x1={pad.l} x2={W - pad.r} y1={H - pad.b} y2={H - pad.b} stroke="currentColor" className="text-neutral-300 dark:text-neutral-700" />
+        <line x1={pad.l} x2={W - pad.r} y1={H - pad.b} y2={H - pad.b} stroke="currentColor" className="text-faint" />
       </svg>
       {hovered ? (
         <div
-          className="pointer-events-none absolute top-0 z-10 border border-neutral-200 bg-white px-3 py-2 text-xs shadow-sm dark:border-neutral-700 dark:bg-[#1c1c1c]"
+          className="pointer-events-none absolute top-0 z-10 rounded-xl border border-line bg-surface px-3 py-2 text-xs shadow-sm"
           style={{
             left: `${((pad.l + series.indexOf(hovered) * step + step / 2) / W) * 100}%`,
             transform: series.indexOf(hovered) > series.length / 2 ? "translateX(-105%)" : "translateX(5%)",
@@ -567,15 +562,15 @@ function MonthlyChart({ months, selected, onPick }: { months: FinMonth[]; select
         >
           <p className="font-semibold">{monthLabel(hovered.month)}</p>
           <p className="mt-1 flex items-center gap-1.5 tabular-nums">
-            <span className="size-2 rounded-sm" style={{ background: C_IN }} /> {money(hovered.income)}
+            <span className="size-2 rounded-lg" style={{ background: C_IN }} /> {money(hovered.income)}
           </p>
           <p className="flex items-center gap-1.5 tabular-nums">
-            <span className="size-2 rounded-sm" style={{ background: C_OUT }} /> {money(hovered.expense)}
+            <span className="size-2 rounded-lg" style={{ background: C_OUT }} /> {money(hovered.expense)}
           </p>
-          <p className="mt-1 border-t border-neutral-200 pt-1 tabular-nums dark:border-neutral-700">Resultado {money(hovered.income - hovered.expense)}</p>
+          <p className="mt-1 border-t border-line pt-1 tabular-nums">Resultado {money(hovered.income - hovered.expense)}</p>
         </div>
       ) : null}
-      <div className="mt-2 flex justify-between text-xs text-neutral-500">
+      <div className="mt-2 flex justify-between text-xs text-muted">
         <span>Clique num mês para ver os detalhes.</span>
         <button type="button" className="underline underline-offset-4" onClick={() => setAsTable(true)}>
           Ver como tabela
@@ -705,8 +700,8 @@ function Transactions({
             Voltar ao mês
           </button>
         ) : null}
-        <span className="ml-auto text-neutral-500">
-          {list.length} transações · saldo <strong className="tabular-nums text-neutral-900 dark:text-white">{money(total)}</strong>
+        <span className="ml-auto text-muted">
+          {list.length} transações · saldo <strong className="tabular-nums text-ink">{money(total)}</strong>
           {loading ? " · carregando…" : ""}
         </span>
       </div>
@@ -730,13 +725,13 @@ function Transactions({
               </button>
             </div>
           </div>
-          <p className="text-xs text-neutral-500">Aplica nas transações já existentes (exceto as editadas à mão) e nas próximas.</p>
+          <p className="text-xs text-muted">Aplica nas transações já existentes (exceto as editadas à mão) e nas próximas.</p>
         </div>
       ) : null}
 
-      <div className="overflow-x-auto border border-neutral-200 dark:border-neutral-800">
+      <div className="overflow-x-auto rounded-xl border border-line">
         <table className="w-full min-w-[720px] text-sm">
-          <thead className="bg-neutral-50 text-left text-xs text-neutral-500 dark:bg-white/[0.03]">
+          <thead className="bg-sunken/50 text-left text-xs text-muted dark:bg-sunken/50">
             <tr>
               <th className="px-3 py-2 font-medium">Data</th>
               <th className="px-3 py-2 font-medium">Descrição</th>
@@ -749,14 +744,14 @@ function Transactions({
           </thead>
           <tbody>
             {list.map((t) => (
-              <tr key={t.id} className={`border-t border-neutral-100 align-top dark:border-neutral-800 ${t.ignored ? "opacity-50" : ""}`}>
-                <td className="px-3 py-2 whitespace-nowrap tabular-nums text-neutral-500">
+              <tr key={t.id} className={`border-t border-line align-top ${t.ignored ? "opacity-50" : ""}`}>
+                <td className="px-3 py-2 whitespace-nowrap tabular-nums text-muted">
                   {fmtDay(t.date)}
-                  {t.status === "PENDING" ? <span className="block text-[10px] uppercase">pendente</span> : null}
+                  {t.status === "PENDING" ? <span className="block text-[10px]">pendente</span> : null}
                 </td>
                 <td className="px-3 py-2">
                   <p className="font-medium">{t.merchant || t.description}</p>
-                  <p className="text-xs text-neutral-500">
+                  <p className="text-xs text-muted">
                     {t.merchant && t.merchant !== t.description ? `${t.description} · ` : ""}
                     {accName.get(t.accountId)}
                   </p>
@@ -775,7 +770,7 @@ function Transactions({
                     aria-label="Categoria"
                   />
                 </td>
-                <td className={`px-3 py-2 text-right font-medium whitespace-nowrap tabular-nums ${t.amount > 0 ? "text-emerald-700 dark:text-emerald-400" : ""}`}>
+                <td className={`px-3 py-2 text-right font-medium whitespace-nowrap tabular-nums ${t.amount > 0 ? "text-accent-text" : ""}`}>
                   {t.amount > 0 ? "+" : "−"}
                   {money(Math.abs(t.amount))}
                 </td>
@@ -803,7 +798,7 @@ function Transactions({
             ))}
             {!list.length ? (
               <tr>
-                <td colSpan={5} className="px-3 py-8 text-center text-neutral-500">
+                <td colSpan={5} className="px-3 py-8 text-center text-muted">
                   Nenhuma transação.
                 </td>
               </tr>
@@ -855,14 +850,14 @@ function Budgets({
       <div className={cardClass}>
         <div className="flex items-baseline justify-between">
           <h3 className="text-base font-semibold">Orçamento mensal</h3>
-          <span className="text-xs text-neutral-500">{monthLabel(month)}</span>
+          <span className="text-xs text-muted">{monthLabel(month)}</span>
         </div>
         {data.budgets.length ? (
-          <p className="mt-1 text-sm text-neutral-600 dark:text-neutral-300">
+          <p className="mt-1 text-sm text-muted">
             {money(totalSpentBudgeted)} de {money(totalLimit)} ({Math.round((totalSpentBudgeted / Math.max(1, totalLimit)) * 100)}%)
           </p>
         ) : (
-          <p className="mt-1 text-sm text-neutral-500">Defina limites por categoria para acompanhar o mês.</p>
+          <p className="mt-1 text-sm text-muted">Defina limites por categoria para acompanhar o mês.</p>
         )}
         <ul className="mt-4 space-y-4">
           {data.budgets.map((b) => {
@@ -893,17 +888,17 @@ function Budgets({
                     </button>
                   </span>
                 </div>
-                <div className="mt-1.5 h-2 bg-neutral-100 dark:bg-neutral-800">
+                <div className="mt-1.5 h-2 bg-sunken">
                   <div className="h-full rounded-r-[4px]" style={{ width: `${Math.min(100, pct * 100)}%`, background: tone }} />
                 </div>
-                <p className="mt-1 text-xs text-neutral-500">
+                <p className="mt-1 text-xs text-muted">
                   {pct > 1 ? `⚠ Estourou ${money(s - b.limit)}` : `Restam ${money(b.limit - s)}`}
                 </p>
               </li>
             );
           })}
         </ul>
-        <div className="mt-5 grid gap-2 border-t border-neutral-200 pt-4 sm:grid-cols-[1fr_140px_auto] dark:border-neutral-800">
+        <div className="mt-5 grid gap-2 border-t border-line pt-4 sm:grid-cols-[1fr_140px_auto]">
           <datalist id="fin-categories-b">
             {data.categories.map((c) => (
               <option key={c} value={c} />
@@ -926,7 +921,7 @@ function Budgets({
         </div>
         {unbudgeted.length ? (
           <div className="mt-3 flex flex-wrap gap-1.5">
-            <span className="text-xs text-neutral-500">Sem orçamento:</span>
+            <span className="text-xs text-muted">Sem orçamento:</span>
             {unbudgeted.slice(0, 8).map((c) => (
               <button
                 key={c.category}
@@ -946,7 +941,7 @@ function Budgets({
 
       <div className={cardClass}>
         <h3 className="text-base font-semibold">Regras de categorização</h3>
-        <p className="mt-1 text-sm text-neutral-500">
+        <p className="mt-1 text-sm text-muted">
           Quando a descrição contém o texto, a transação ganha a categoria (ou é ignorada nos totais). Pagamento de fatura e transferência entre suas contas já são ignorados.
         </p>
         <div className="mt-4 grid gap-2 sm:grid-cols-2">
@@ -974,16 +969,16 @@ function Budgets({
             Criar regra
           </button>
         </div>
-        <ul className="mt-4 divide-y divide-neutral-100 dark:divide-neutral-800">
+        <ul className="mt-4 divide-y divide-line">
           {data.rules.map((r) => (
             <li key={r.id} className="flex items-center justify-between gap-3 py-2 text-sm">
               <span className="min-w-0 truncate">
                 “<strong>{r.pattern}</strong>” → {r.category || "—"}
-                {r.ignore ? <span className="ml-1 text-xs text-neutral-500">(ignorar)</span> : null}
+                {r.ignore ? <span className="ml-1 text-xs text-muted">(ignorar)</span> : null}
               </span>
               <button
                 type="button"
-                className={`${btnSm} text-red-600 dark:text-red-400`}
+                className={btnDangerSm}
                 onClick={async () => {
                   await orcamentosApi.finDeleteRule(r.id);
                   await onChanged();
@@ -993,7 +988,7 @@ function Budgets({
               </button>
             </li>
           ))}
-          {!data.rules.length ? <li className="py-2 text-sm text-neutral-500">Nenhuma regra ainda.</li> : null}
+          {!data.rules.length ? <li className="py-2 text-sm text-muted">Nenhuma regra ainda.</li> : null}
         </ul>
       </div>
     </div>
@@ -1044,10 +1039,10 @@ function Accounts({ data, showToast, onChanged }: { data: FinOverview; showToast
           return (
             <div key={item.id} className={cardClass}>
               <div className="flex items-center gap-3">
-                {item.connectorImage ? <img src={item.connectorImage} alt="" className="size-10 rounded-full bg-white object-contain p-1" /> : null}
+                {item.connectorImage ? <img src={item.connectorImage} alt="" className="size-10 rounded-full bg-surface object-contain p-1" /> : null}
                 <div className="min-w-0 flex-1">
                   <p className="font-semibold">{item.connectorName || "Conexão"}</p>
-                  <p className="truncate font-mono text-[11px] text-neutral-500">{item.id}</p>
+                  <p className="truncate font-mono text-[11px] text-muted">{item.id}</p>
                 </div>
                 <span
                   className={`border px-2 py-0.5 text-[11px] font-medium ${
@@ -1059,16 +1054,16 @@ function Accounts({ data, showToast, onChanged }: { data: FinOverview; showToast
                   {ok ? "✓ Atualizado" : `⚠ ${item.status || "Pendente"}`}
                 </span>
               </div>
-              <p className="mt-2 text-xs text-neutral-500">
+              <p className="mt-2 text-xs text-muted">
                 Banco atualizou {relTime(item.bankUpdatedAt)} · painel sincronizou {relTime(item.syncedAt)}
               </p>
-              {item.error ? <p className="mt-2 text-xs text-red-700 dark:text-red-400">{item.error}</p> : null}
-              <ul className="mt-4 divide-y divide-neutral-100 text-sm dark:divide-neutral-800">
+              {item.error ? <p className="mt-2 text-xs text-danger">{item.error}</p> : null}
+              <ul className="mt-4 divide-y divide-line text-sm">
                 {accounts.map((a) => (
                   <li key={a.id} className={`flex items-center justify-between gap-3 py-2 ${a.hidden ? "opacity-50" : ""}`}>
                     <div className="min-w-0">
                       <p className="truncate">{a.name}</p>
-                      <p className="text-xs text-neutral-500">
+                      <p className="text-xs text-muted">
                         {isCredit(a) ? "Cartão" : a.subtype === "SAVINGS_ACCOUNT" ? "Poupança" : "Conta"}
                         {a.number ? ` · ${a.number}` : ""}
                         {isCredit(a) && a.availableCredit != null ? ` · disponível ${money(a.availableCredit)}` : ""}
@@ -1094,7 +1089,7 @@ function Accounts({ data, showToast, onChanged }: { data: FinOverview; showToast
                   <li key={i.id} className="flex items-center justify-between gap-3 py-2">
                     <div className="min-w-0">
                       <p className="truncate">{i.name}</p>
-                      <p className="text-xs text-neutral-500">
+                      <p className="text-xs text-muted">
                         Investimento · {i.type}
                         {i.dueDate ? ` · vence ${new Date(i.dueDate).toLocaleDateString("pt-BR")}` : ""}
                       </p>
@@ -1112,7 +1107,7 @@ function Accounts({ data, showToast, onChanged }: { data: FinOverview; showToast
                 </button>
                 <button
                   type="button"
-                  className={`${btnSm} ml-auto text-red-600 dark:text-red-400`}
+                  className={`${btnDangerSm} ml-auto `}
                   disabled={!!busy}
                   onClick={async () => {
                     if (!window.confirm("Remover esta conexão e todo o histórico dela do painel?")) return;
@@ -1130,7 +1125,7 @@ function Accounts({ data, showToast, onChanged }: { data: FinOverview; showToast
 
       <div className={cardClass}>
         <h3 className="text-base font-semibold">Conectar banco (Meu Pluggy)</h3>
-        <ol className="mt-2 list-decimal space-y-1 pl-5 text-sm text-neutral-600 dark:text-neutral-300">
+        <ol className="mt-2 list-decimal space-y-1 pl-5 text-sm text-muted">
           <li>Em meu.pluggy.ai, conecte seu banco pelo Open Finance.</li>
           <li>No menu (⋮) da conexão, toque em “Copiar Item ID”.</li>
           <li>Cole abaixo. O painel importa 12 meses e passa a sincronizar todo dia.</li>

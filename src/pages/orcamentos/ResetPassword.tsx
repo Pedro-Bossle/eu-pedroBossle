@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { Link } from "react-router";
 import { orcamentosApi } from "../../lib/orcamentos/api";
+import { appRoot, btnPrimary, inputClass, labelClass } from "./panelStyles";
 
 type Props = {
   token: string;
@@ -51,22 +52,22 @@ function ResetPassword({ token, onDone }: Props) {
   };
 
   return (
-    <div className="flex min-h-dvh flex-col bg-[#f9f9f9] text-neutral-900 dark:bg-[#121212] dark:text-[#f9f9f9] [&_a]:cursor-pointer [&_button:disabled]:cursor-not-allowed [&_button:not(:disabled)]:cursor-pointer [&_label]:cursor-pointer">
-      <header className="border-b border-neutral-200 bg-[#F3F4F6] px-4 py-4 dark:border-neutral-800 dark:bg-[#151515] sm:px-6">
+    <div className={`${appRoot} flex flex-col`}>
+      <header className="px-4 py-5 sm:px-6">
         <div className="mx-auto flex max-w-md items-center justify-between">
           <Link to="/" className="flex cursor-pointer items-center gap-2 sm:gap-2.5">
             <TrafficLights />
             <span className="ml-1 font-bold sm:ml-2">.dev Bossle</span>
           </Link>
-          <span className="text-xs font-medium uppercase tracking-[0.14em] opacity-50">
+          <span className={labelClass}>
             Orçamentos
           </span>
         </div>
       </header>
 
       <main className="flex flex-1 items-center justify-center px-4 py-12">
-        <div className="w-full max-w-md border border-neutral-200 bg-white p-8 dark:border-neutral-800 dark:bg-[#151515] sm:p-10">
-          <p className="text-sm font-medium uppercase tracking-widest opacity-60">
+        <div className="w-full max-w-md rounded-2xl border border-line bg-surface p-7 shadow-float sm:p-9">
+          <p className="text-sm font-medium text-accent-text">
             Segurança
           </p>
           <h1 className="mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">
@@ -75,12 +76,12 @@ function ResetPassword({ token, onDone }: Props) {
 
           {done ? (
             <>
-              <p className="mt-4 text-sm text-neutral-500 dark:text-neutral-400">
+              <p className="mt-4 text-sm text-muted">
                 Senha atualizada. Você já pode entrar no painel.
               </p>
               <button
                 type="button"
-                className="mt-6 w-full cursor-pointer bg-neutral-900 px-4 py-3 text-sm font-semibold text-white transition hover:opacity-90 dark:bg-[#f9f9f9] dark:text-neutral-900"
+                className={`${btnPrimary} mt-6 min-h-11 w-full`}
                 onClick={onDone}
               >
                 Ir para o login
@@ -88,12 +89,12 @@ function ResetPassword({ token, onDone }: Props) {
             </>
           ) : (
             <form onSubmit={submit} className="mt-2">
-              <p className="text-sm text-neutral-500 dark:text-neutral-400">
+              <p className="text-sm text-muted">
                 Defina uma senha com no mínimo 8 caracteres.
               </p>
 
               <label className="mt-8 block">
-                <span className="text-xs font-medium uppercase tracking-[0.14em] opacity-50">
+                <span className={labelClass}>
                   Nova senha
                 </span>
                 <input
@@ -101,14 +102,14 @@ function ResetPassword({ token, onDone }: Props) {
                   autoComplete="new-password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="mt-2 w-full border border-neutral-200 bg-[#f9f9f9] px-3 py-3 text-sm outline-none transition focus:border-emerald-600 dark:border-neutral-700 dark:bg-[#121212] dark:focus:border-emerald-400"
+                  className={`${inputClass} mt-2`}
                   required
                   minLength={8}
                 />
               </label>
 
               <label className="mt-4 block">
-                <span className="text-xs font-medium uppercase tracking-[0.14em] opacity-50">
+                <span className={labelClass}>
                   Confirmar senha
                 </span>
                 <input
@@ -116,7 +117,7 @@ function ResetPassword({ token, onDone }: Props) {
                   autoComplete="new-password"
                   value={confirm}
                   onChange={(e) => setConfirm(e.target.value)}
-                  className="mt-2 w-full border border-neutral-200 bg-[#f9f9f9] px-3 py-3 text-sm outline-none transition focus:border-emerald-600 dark:border-neutral-700 dark:bg-[#121212] dark:focus:border-emerald-400"
+                  className={`${inputClass} mt-2`}
                   required
                   minLength={8}
                 />
@@ -124,7 +125,7 @@ function ResetPassword({ token, onDone }: Props) {
 
               {error ? (
                 <p
-                  className="mt-4 text-sm text-red-600 dark:text-red-400"
+                  className="mt-4 text-sm text-danger"
                   role="alert"
                 >
                   {error}
@@ -134,7 +135,7 @@ function ResetPassword({ token, onDone }: Props) {
               <button
                 type="submit"
                 disabled={loading}
-                className="mt-6 w-full cursor-pointer bg-neutral-900 px-4 py-3 text-sm font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-[#f9f9f9] dark:text-neutral-900"
+                className={`${btnPrimary} mt-6 min-h-11 w-full`}
               >
                 {loading ? "Salvando…" : "Salvar nova senha"}
               </button>

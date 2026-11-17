@@ -46,6 +46,20 @@ import {
 import { money, uid } from "./money";
 import ProposalPdfDocument from "./ProposalPdfDocument";
 import Funnel from "./Funnel";
+import {
+  appRoot,
+  btn,
+  btnDanger,
+  btnGhost,
+  btnPrimary,
+  cardClass,
+  focusRing,
+  inputClass,
+  labelClass,
+  selectClass,
+  shellClass,
+  textareaClass,
+} from "./panelStyles";
 import Instagram from "./Instagram";
 import Finance from "./Finance";
 
@@ -98,19 +112,6 @@ const blankProposal = (clientId = ""): OrcamentoProposal => ({
   created: new Date().toISOString(),
 });
 
-const focusRing =
-  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2 dark:focus-visible:ring-emerald-400 dark:focus-visible:ring-offset-[#121212]";
-const inputClass =
-  `w-full min-h-12 border border-neutral-200 bg-[#f9f9f9] px-4 py-3.5 text-base outline-none transition focus:border-emerald-600 dark:border-neutral-700 dark:bg-[#121212] dark:focus:border-emerald-400 ${focusRing}`;
-const textareaClass = `${inputClass} min-h-40 resize-y leading-relaxed`;
-const cardClass =
-  "border border-neutral-200 bg-white p-5 dark:border-neutral-800 dark:bg-[#151515] xl:p-6";
-const shellClass = "w-full";
-const btn =
-  `inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 border border-neutral-200 bg-white px-4 py-2.5 text-sm font-medium transition-[border-color,opacity] hover:border-neutral-400 disabled:cursor-not-allowed dark:border-neutral-700 dark:bg-[#151515] dark:hover:border-neutral-500 ${focusRing}`;
-const btnPrimary =
-  `inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 bg-neutral-900 px-4 py-2.5 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-[#f9f9f9] dark:text-neutral-900 ${focusRing}`;
-
 const EDIT_STEPS = [
   { id: "projeto", label: "Projeto" },
   { id: "conteudo", label: "Conteúdo" },
@@ -123,12 +124,12 @@ type EditStepId = (typeof EDIT_STEPS)[number]["id"];
 function statusClass(status: string) {
   const s = status.toLowerCase();
   if (s.includes("aprov"))
-    return "bg-emerald-500/10 text-emerald-800 dark:text-emerald-300";
+    return "bg-emerald-500/10 text-accent-text";
   if (s.includes("envi"))
     return "bg-amber-500/10 text-amber-800 dark:text-amber-300";
   if (s.includes("recus") || s.includes("cancel"))
     return "bg-red-500/10 text-red-700 dark:text-red-300";
-  return "bg-neutral-100 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-300";
+  return "bg-sunken text-muted";
 }
 
 function statusChipClass(status: string) {
@@ -139,7 +140,7 @@ function statusChipClass(status: string) {
     return "border-amber-500/40 text-amber-800 hover:bg-amber-500/10 dark:text-amber-300";
   if (s.includes("recus") || s.includes("cancel"))
     return "border-red-500/35 text-red-700 hover:bg-red-500/10 dark:text-red-300";
-  return "border-neutral-300 text-neutral-700 hover:bg-neutral-100 dark:border-neutral-600 dark:text-neutral-200 dark:hover:bg-neutral-800";
+  return "border-line-strong text-muted hover:bg-sunken";
 }
 
 function TrafficLights({ compact }: { compact?: boolean }) {
@@ -186,11 +187,11 @@ function Field({
 }) {
   return (
     <label className={`block ${full ? "sm:col-span-2" : ""}`}>
-      <span className="text-sm font-medium tracking-tight text-neutral-700 dark:text-neutral-300">
+      <span className="text-sm font-medium tracking-tight text-muted">
         {label}
       </span>
       {hint ? (
-        <span className="mt-0.5 block text-xs text-neutral-500 dark:text-neutral-400">
+        <span className="mt-0.5 block text-xs text-muted">
           {hint}
         </span>
       ) : null}
@@ -867,7 +868,7 @@ function Panel({
     return () => {
       cancelled = true;
     };
-  }, [tab]);
+  }, [tab, showToast]);
 
   const blankPreset = (section: PresetSection = "timeline"): OrcamentoPreset => ({
     id: uid(),
@@ -928,18 +929,13 @@ function Panel({
     }
   };
 
-  const PresetSelect = ({
-    section,
-    label = "Usar preset",
-  }: {
-    section: PresetSection;
-    label?: string;
-  }) => {
+  // Função de render (não componente): evita remontar o <select> a cada render
+  const presetSelect = (section: PresetSection, label = "Usar preset") => {
     const list = presetsFor(section);
     if (!list.length) return null;
     return (
       <select
-        className={`${inputClass} max-w-md`}
+        className={`${selectClass} max-w-md`}
         defaultValue=""
         onChange={(e) => {
           const id = e.target.value;
@@ -959,11 +955,12 @@ function Panel({
     );
   };
 
-  const today = new Date().toLocaleDateString("pt-BR", {
+  const todayRaw = new Date().toLocaleDateString("pt-BR", {
     weekday: "long",
     day: "numeric",
-    month: "short",
+    month: "long",
   });
+  const today = todayRaw.charAt(0).toUpperCase() + todayRaw.slice(1);
 
   const ProposalRow = ({
     p,
@@ -975,8 +972,8 @@ function Panel({
     <article
       className={
         compact
-          ? "flex flex-col gap-3 border-b border-neutral-200 py-4 last:border-b-0 last:pb-0 first:pt-0 dark:border-neutral-800 sm:flex-row sm:items-center sm:justify-between"
-          : "flex flex-col gap-3 border border-neutral-200 bg-white p-4 transition-[border-color] hover:border-neutral-400 dark:border-neutral-800 dark:bg-[#151515] dark:hover:border-neutral-600 sm:flex-row sm:items-center sm:justify-between"
+          ? "flex flex-col gap-3 border-b border-line py-4 last:border-b-0 last:pb-0 first:pt-0 sm:flex-row sm:items-center sm:justify-between"
+          : "flex flex-col gap-3 rounded-xl border border-line bg-surface p-4 transition-[border-color] hover:border-line-strong sm:flex-row sm:items-center sm:justify-between"
       }
     >
       <div className="min-w-0 flex-1">
@@ -989,7 +986,7 @@ function Panel({
           >
             {p.status}
           </span>
-          <p className="min-w-0 truncate text-xs text-neutral-500 dark:text-neutral-400">
+          <p className="min-w-0 truncate text-xs text-muted">
             {clientName(p.clientId)}
             {compact ? null : ` · v${p.version}`}
             {" · "}
@@ -1043,7 +1040,7 @@ function Panel({
         {!compact ? (
           <button
             type="button"
-            className={`${btn} text-red-600 dark:text-red-400`}
+            className={btnDanger}
             onClick={async () => {
               if (!window.confirm("Excluir orçamento?")) return;
               await orcamentosApi.deleteProposal(p.id);
@@ -1059,7 +1056,7 @@ function Panel({
   );
 
   return (
-    <div className="min-h-dvh bg-[#f9f9f9] text-neutral-900 dark:bg-[#121212] dark:text-[#f9f9f9] [&_a]:cursor-pointer [&_button:disabled]:cursor-not-allowed [&_button:not(:disabled)]:cursor-pointer [&_label]:cursor-pointer [&_select]:cursor-pointer [&_summary]:cursor-pointer [&_input[type=checkbox]]:cursor-pointer [&_input[type=radio]]:cursor-pointer [&_[role=button]]:cursor-pointer">
+    <div className={appRoot}>
       <input
         ref={templateInputRef}
         type="file"
@@ -1071,24 +1068,24 @@ function Panel({
           if (file) void importTemplate(file);
         }}
       />
-      <header className="sticky top-0 z-30 border-b border-neutral-200 bg-[#F3F4F6] dark:border-neutral-800 dark:bg-[#151515]">
+      <header className="sticky top-0 z-30 border-b border-line/70 bg-canvas/85 backdrop-blur-md">
         <div className={`${shellClass} flex items-center justify-between gap-3 px-4 py-3 sm:px-6 sm:py-4 xl:px-8 2xl:px-10`}>
           <Link to="/" className="flex cursor-pointer items-center gap-2 sm:gap-2.5">
             <TrafficLights />
             <span className="ml-1 font-bold sm:ml-2">.dev Bossle</span>
-            <span className="hidden text-sm font-light text-neutral-500 sm:inline dark:text-neutral-400">
+            <span className="hidden text-sm font-light text-muted sm:inline">
               / orçamentos
             </span>
           </Link>
           <div className="flex items-center gap-3">
-            <span className="hidden max-w-[160px] truncate text-xs text-neutral-500 sm:inline xl:max-w-[280px] dark:text-neutral-400">
+            <span className="hidden max-w-[160px] truncate text-xs text-muted sm:inline xl:max-w-[280px]">
               {username}
             </span>
             <button
               type="button"
               onClick={toggleDark}
               aria-label="Alternar tema"
-              className={`rounded-sm p-1 ${focusRing}`}
+              className={`rounded-lg p-1 ${focusRing}`}
             >
               <img
                 src={`${import.meta.env.BASE_URL}${dark ? "sun.png" : "moon.png"}`}
@@ -1110,10 +1107,8 @@ function Panel({
       </header>
 
       <div className={`${shellClass} grid md:grid-cols-[210px_1fr] xl:grid-cols-[230px_1fr]`}>
-        <aside className="hidden border-r border-neutral-200 py-6 pr-4 md:sticky md:top-[65px] md:flex md:h-[calc(100dvh-65px)] md:flex-col md:pl-4 xl:pr-5 xl:pl-5 dark:border-neutral-800">
-          <p className="text-xs font-medium uppercase tracking-[0.14em] opacity-50">
-            Menu
-          </p>
+        <aside className="hidden py-6 pr-3 md:sticky md:top-[65px] md:flex md:h-[calc(100dvh-65px)] md:flex-col md:pl-4 xl:pr-5 xl:pl-5">
+          <p className={`${labelClass} px-3`}>Menu</p>
           <nav className="mt-3 flex flex-1 flex-col gap-0.5">
             {nav.map((item) => {
               const active = tab === item.id && !editing;
@@ -1122,10 +1117,10 @@ function Panel({
                   key={item.id}
                   type="button"
                   onClick={() => go(item.id)}
-                  className={`flex items-center gap-2.5 rounded-sm px-3 py-2.5 text-left text-sm transition-colors xl:py-3 ${focusRing} ${
+                  className={`flex items-center gap-2.5 rounded-[10px] px-3 py-2.5 text-left text-sm transition-colors xl:py-2.5 ${focusRing} ${
                     active
-                      ? "bg-neutral-100 font-medium text-neutral-900 dark:bg-neutral-800/80 dark:text-white"
-                      : "font-light text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white"
+                      ? "bg-surface font-medium text-ink shadow-[0_1px_2px_rgb(24_32_42/0.06)] ring-1 ring-line [&_svg]:text-accent"
+                      : "text-muted hover:bg-surface/60 hover:text-ink"
                   }`}
                 >
                   <Icon paths={navIcons[item.id]} />
@@ -1134,7 +1129,7 @@ function Panel({
               );
             })}
           </nav>
-          <button type="button" onClick={onLogout} className={`${btn} mt-4 w-full`}>
+          <button type="button" onClick={onLogout} className={`${btnGhost} mt-4 w-full justify-start`}>
             Sair
           </button>
         </aside>
@@ -1144,7 +1139,7 @@ function Panel({
             <section className="space-y-4">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
-                  <p className="text-sm font-medium uppercase tracking-widest opacity-60">
+                  <p className="text-sm font-medium opacity-60">
                     Proposta
                   </p>
                   <h1 className="mt-1 text-2xl font-semibold tracking-tight sm:text-3xl">
@@ -1231,12 +1226,12 @@ function Panel({
                       key={step.id}
                       type="button"
                       onClick={() => setEditStep(step.id)}
-                      className={`inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-sm border px-3.5 py-2 text-sm font-medium transition-colors ${focusRing} ${
+                      className={`inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-lg border px-3.5 py-2 text-sm font-medium transition-colors ${focusRing} ${
                         active
-                          ? "border-neutral-900 bg-neutral-900 text-white dark:border-[#f9f9f9] dark:bg-[#f9f9f9] dark:text-neutral-900"
+                          ? "border-ink bg-ink text-canvas"
                           : done
-                            ? "border-emerald-600/40 bg-emerald-500/10 text-emerald-800 dark:text-emerald-300"
-                            : "border-neutral-200 bg-white text-neutral-600 dark:border-neutral-700 dark:bg-[#151515] dark:text-neutral-300"
+                            ? "border-emerald-600/40 bg-emerald-500/10 text-accent-text"
+                            : "border-line bg-surface text-muted"
                       }`}
                     >
                       <span
@@ -1245,7 +1240,7 @@ function Panel({
                             ? "bg-white/20"
                             : done
                               ? "bg-emerald-600 text-white"
-                              : "bg-neutral-100 dark:bg-neutral-800"
+                              : "bg-sunken"
                         }`}
                       >
                         {index + 1}
@@ -1262,7 +1257,7 @@ function Panel({
                     <h2 className="text-lg font-semibold tracking-tight">
                       Dados do projeto
                     </h2>
-                    <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
+                    <p className="mt-1 text-sm text-muted">
                       Cliente, nome e condições básicas do orçamento.
                     </p>
                   </div>
@@ -1313,7 +1308,7 @@ function Panel({
                         })
                       }
                     />
-                    <p className="mt-1 text-[11px] leading-snug text-neutral-500 dark:text-neutral-400">
+                    <p className="mt-1 text-[11px] leading-snug text-muted">
                       Conta a partir do status Enviado ou da regeneração do
                       link.
                     </p>
@@ -1343,11 +1338,11 @@ function Panel({
                       <h2 className="text-lg font-semibold tracking-tight">
                         Conteúdo da proposta
                       </h2>
-                      <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
+                      <p className="mt-1 text-sm text-muted">
                         Textos que aparecem no PDF e na página do cliente.
                       </p>
                     </div>
-                    <PresetSelect section="timeline" label="Preset de etapas" />
+                    {presetSelect("timeline", "Preset de etapas")}
                   </div>
                   <Field
                     label="Ideia"
@@ -1395,7 +1390,7 @@ function Panel({
                       <h2 className="text-lg font-semibold tracking-tight">
                         Investimento
                       </h2>
-                      <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
+                      <p className="mt-1 text-sm text-muted">
                         Itens gerados pelas etapas, valores e forma de pagamento.
                       </p>
                     </div>
@@ -1428,7 +1423,7 @@ function Panel({
                     {editing.items.map((item, index) => (
                       <div
                         key={index}
-                        className="grid gap-3 border border-neutral-200 bg-[#f9f9f9] p-4 dark:border-neutral-700 dark:bg-[#121212] sm:grid-cols-[1fr_1fr_140px]"
+                        className="grid gap-3 rounded-xl border border-line bg-canvas p-4 sm:grid-cols-[1fr_1fr_140px]"
                       >
                         <input
                           className={inputClass}
@@ -1476,7 +1471,7 @@ function Panel({
                       </div>
                     ))}
                   </div>
-                  <div className="flex flex-wrap items-center justify-between gap-3 border-t border-neutral-200 pt-4 font-semibold dark:border-neutral-800">
+                  <div className="flex flex-wrap items-center justify-between gap-3 border-t border-line pt-4 font-semibold">
                     <span className="text-base">Total</span>
                     <input
                       type="number"
@@ -1491,7 +1486,7 @@ function Panel({
                       }
                     />
                   </div>
-                  <label className="flex cursor-pointer items-center gap-2.5 text-sm text-neutral-500 dark:text-neutral-400">
+                  <label className="flex cursor-pointer items-center gap-2.5 text-sm text-muted">
                     <input
                       type="checkbox"
                       checked={editing.manualTotal}
@@ -1513,13 +1508,10 @@ function Panel({
                   </label>
                   <div className="space-y-2.5">
                     <div className="flex flex-wrap items-center justify-between gap-2">
-                      <span className="text-sm font-medium tracking-tight text-neutral-700 dark:text-neutral-300">
+                      <span className="text-sm font-medium tracking-tight text-muted">
                         Forma de pagamento
                       </span>
-                      <PresetSelect
-                        section="payment"
-                        label="Preset de pagamento"
-                      />
+                      {presetSelect("payment", "Preset de pagamento")}
                     </div>
                     <textarea
                       className={textareaClass}
@@ -1538,18 +1530,18 @@ function Panel({
                     <h2 className="text-lg font-semibold tracking-tight">
                       Extras
                     </h2>
-                    <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
+                    <p className="mt-1 text-sm text-muted">
                       Materiais necessários e observações da proposta.
                     </p>
                   </div>
                   <div className="space-y-2.5">
                     <div className="flex flex-wrap items-center justify-between gap-2">
-                      <span className="text-sm font-medium tracking-tight text-neutral-700 dark:text-neutral-300">
+                      <span className="text-sm font-medium tracking-tight text-muted">
                         O que preciso do cliente
                       </span>
-                      <PresetSelect section="needs" label="Preset" />
+                      {presetSelect("needs", "Preset")}
                     </div>
-                    <p className="text-xs text-neutral-500 dark:text-neutral-400">
+                    <p className="text-xs text-muted">
                       Uma solicitação por linha.
                     </p>
                     <textarea
@@ -1562,10 +1554,10 @@ function Panel({
                   </div>
                   <div className="space-y-2.5">
                     <div className="flex flex-wrap items-center justify-between gap-2">
-                      <span className="text-sm font-medium tracking-tight text-neutral-700 dark:text-neutral-300">
+                      <span className="text-sm font-medium tracking-tight text-muted">
                         Observações
                       </span>
-                      <PresetSelect section="notes" label="Preset" />
+                      {presetSelect("notes", "Preset")}
                     </div>
                     <textarea
                       className={`${textareaClass} min-h-48`}
@@ -1585,7 +1577,7 @@ function Panel({
                   <h2 className="text-lg font-semibold tracking-tight">
                     Link para o cliente
                   </h2>
-                  <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
+                  <p className="mt-1 text-sm text-muted">
                     Gere um link com senha para o cliente ver, comentar e
                     aprovar ou recusar a proposta.
                   </p>
@@ -1619,9 +1611,9 @@ function Panel({
                       ) : null}
                     </div>
                     {editing.shareEnabled && editing.shareToken ? (
-                      <div className="space-y-3 border border-neutral-200 bg-[#f9f9f9] p-3 dark:border-neutral-700 dark:bg-[#121212]">
+                      <div className="space-y-3 rounded-xl border border-line bg-canvas p-3">
                         <div>
-                          <p className="text-xs font-medium uppercase tracking-[0.14em] opacity-50">
+                          <p className="text-xs font-medium opacity-50">
                             Link
                           </p>
                           <div className="mt-1 flex flex-wrap items-center gap-2">
@@ -1648,11 +1640,11 @@ function Panel({
                         </div>
                         {sharePassword ? (
                           <div>
-                            <p className="text-xs font-medium uppercase tracking-[0.14em] opacity-50">
+                            <p className="text-xs font-medium opacity-50">
                               Senha (só aparece agora)
                             </p>
                             <div className="mt-1 flex flex-wrap items-center gap-2">
-                              <code className="text-base font-semibold tracking-wider">
+                              <code className="text-base font-semibold">
                                 {sharePassword}
                               </code>
                               <button
@@ -1667,7 +1659,7 @@ function Panel({
                             </div>
                           </div>
                         ) : (
-                          <p className="text-sm text-neutral-500 dark:text-neutral-400">
+                          <p className="text-sm text-muted">
                             A senha só é mostrada ao gerar ou regenerar. Se
                             perdeu, regenere uma nova.
                           </p>
@@ -1686,11 +1678,11 @@ function Panel({
                       </div>
                     ) : null}
 
-                    <div className="space-y-2 border-t border-neutral-200 pt-3 dark:border-neutral-700">
-                      <p className="text-xs font-medium uppercase tracking-[0.14em] opacity-50">
+                    <div className="space-y-2 border-t border-line pt-3">
+                      <p className="text-xs font-medium opacity-50">
                         Enviar ao cliente
                       </p>
-                      <p className="text-sm text-neutral-500 dark:text-neutral-400">
+                      <p className="text-sm text-muted">
                         WhatsApp abre o app com a mensagem pronta (link + senha).
                         E-mail envia o PDF da documentação junto com o acesso
                         online.
@@ -1729,22 +1721,22 @@ function Panel({
                     <h2 className="text-lg font-semibold tracking-tight">
                       Comentários
                     </h2>
-                    <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
+                    <p className="mt-1 text-sm text-muted">
                       Thread com o cliente na página da proposta.
                     </p>
                   </div>
                   <ul className="space-y-2">
                     {comments.length === 0 ? (
-                      <li className="text-sm text-neutral-500 dark:text-neutral-400">
+                      <li className="text-sm text-muted">
                         Nenhum comentário ainda.
                       </li>
                     ) : (
                       comments.map((c) => (
                         <li
                           key={c.id}
-                          className="border border-neutral-200 bg-[#f9f9f9] px-4 py-3 text-base dark:border-neutral-700 dark:bg-[#121212]"
+                          className="rounded-xl border border-line bg-canvas px-4 py-3 text-base"
                         >
-                          <div className="mb-1 flex justify-between gap-2 text-xs font-medium uppercase tracking-wide opacity-60">
+                          <div className="mb-1 flex justify-between gap-2 text-xs font-medium tracking-wide opacity-60">
                             <span>
                               {c.author === "admin" ? "Você" : "Cliente"}
                             </span>
@@ -1778,7 +1770,7 @@ function Panel({
               </>
               ) : null}
 
-              <div className="flex flex-wrap items-center justify-between gap-3 border-t border-neutral-200 pt-4 dark:border-neutral-800">
+              <div className="flex flex-wrap items-center justify-between gap-3 border-t border-line pt-4">
                 <button
                   type="button"
                   className={btn}
@@ -1789,7 +1781,7 @@ function Panel({
                 >
                   Anterior
                 </button>
-                <p className="text-sm text-neutral-500 dark:text-neutral-400">
+                <p className="text-sm text-muted">
                   Parte {editStepIndex + 1} de {EDIT_STEPS.length}
                 </p>
                 {editStepIndex < EDIT_STEPS.length - 1 ? (
@@ -1820,7 +1812,7 @@ function Panel({
             <section className="space-y-6 xl:space-y-8" aria-labelledby="dashboard-title">
               <div className="flex flex-wrap items-end justify-between gap-4">
                 <div className="min-w-0">
-                  <p className="text-sm font-medium capitalize text-neutral-500 dark:text-neutral-400">
+                  <p className="text-sm font-medium text-muted">
                     {today}
                   </p>
                   <h1
@@ -1829,7 +1821,7 @@ function Panel({
                   >
                     Painel de orçamentos
                   </h1>
-                  <p className="mt-2 max-w-xl text-sm text-neutral-500 xl:max-w-2xl dark:text-neutral-400">
+                  <p className="mt-2 max-w-xl text-sm text-muted xl:max-w-2xl">
                     Acompanhe clientes, propostas e valores do pipeline.
                   </p>
                 </div>
@@ -1842,7 +1834,7 @@ function Panel({
                 </button>
               </div>
 
-              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4 xl:gap-4 2xl:gap-5">
+              <div className="grid grid-cols-2 overflow-hidden rounded-2xl border border-line bg-surface xl:grid-cols-4">
                 {[
                   {
                     label: "Clientes",
@@ -1881,21 +1873,21 @@ function Panel({
                 ].map((stat) => (
                   <div
                     key={stat.label}
-                    className={`${cardClass} flex min-h-[116px] flex-col xl:min-h-[132px]`}
+                    className="flex min-h-[104px] min-w-0 flex-col border-line p-4 sm:p-5 xl:p-6 [&:nth-child(n+3)]:border-t [&:nth-child(even)]:border-l xl:[&:nth-child(n+3)]:border-t-0 xl:[&:not(:first-child)]:border-l"
                   >
-                    <p className="text-xs font-medium uppercase tracking-[0.12em] text-neutral-500 dark:text-neutral-400">
+                    <p className={labelClass}>
                       {stat.label}
                     </p>
                     <p
-                      className={`mt-3 text-2xl font-semibold tracking-tight tabular-nums xl:text-3xl ${
+                      className={`mt-3 truncate text-xl font-semibold tracking-tight tabular-nums sm:text-2xl xl:text-3xl ${
                         stat.accent
-                          ? "text-emerald-700 dark:text-emerald-400"
+                          ? "text-accent-text"
                           : ""
                       }`}
                     >
                       {stat.value}
                     </p>
-                    <p className="mt-auto pt-2 text-xs leading-snug text-neutral-500 dark:text-neutral-400">
+                    <p className="mt-auto pt-2 text-xs leading-snug text-muted">
                       {stat.hint}
                     </p>
                   </div>
@@ -1936,7 +1928,7 @@ function Panel({
                   {proposals.length > 0 ? (
                     <button
                       type="button"
-                      className={`shrink-0 text-sm font-medium text-emerald-800 underline decoration-emerald-800/30 underline-offset-4 transition-opacity hover:opacity-80 dark:text-emerald-300 dark:decoration-emerald-300/30 ${focusRing} rounded-sm`}
+                      className={`shrink-0 text-sm font-medium text-accent-text underline decoration-accent/30 underline-offset-4 transition-opacity hover:opacity-80 ${focusRing} rounded-lg`}
                       onClick={() => go("proposals")}
                     >
                       Ver todos
@@ -1951,9 +1943,9 @@ function Panel({
                     ))}
                   </div>
                 ) : (
-                  <div className="mt-4 border border-dashed border-neutral-300 px-4 py-10 text-center dark:border-neutral-700">
+                  <div className="mt-4 rounded-xl border border-dashed border-line-strong px-4 py-10 text-center">
                     <p className="font-medium">Nenhum orçamento ainda</p>
-                    <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
+                    <p className="mt-1 text-sm text-muted">
                       Crie o primeiro ou importe o seed em Backup.
                     </p>
                     <div className="mt-4 flex flex-wrap justify-center gap-2">
@@ -1990,13 +1982,13 @@ function Panel({
             <section>
               <div className="mb-6 flex flex-wrap items-start justify-between gap-3">
                 <div>
-                  <p className="text-sm font-medium uppercase tracking-widest opacity-60">
+                  <p className="text-sm font-medium opacity-60">
                     Site
                   </p>
                   <h1 className="mt-1 text-2xl font-semibold tracking-tight sm:text-3xl">
                     Inbox
                   </h1>
-                  <p className="mt-2 text-sm text-neutral-500 dark:text-neutral-400">
+                  <p className="mt-2 text-sm text-muted">
                     Contatos do formulário em devbossle.com.br
                   </p>
                 </div>
@@ -2028,7 +2020,7 @@ function Panel({
                     key={lead.id}
                     className={`border p-4 transition ${
                       lead.readAt
-                        ? "border-neutral-200 bg-white dark:border-neutral-800 dark:bg-[#151515]"
+                        ? "border-line bg-surface"
                         : "border-emerald-600/40 bg-emerald-500/5 dark:border-emerald-400/30"
                     }`}
                   >
@@ -2039,23 +2031,23 @@ function Panel({
                             {lead.name}
                           </h3>
                           {!lead.readAt ? (
-                            <span className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-[10px] font-bold text-emerald-800 dark:text-emerald-300">
+                            <span className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-[10px] font-bold text-accent-text">
                               Novo
                             </span>
                           ) : null}
                           {lead.style ? (
-                            <span className="rounded-full bg-neutral-100 px-2 py-0.5 text-[10px] font-bold text-neutral-600 dark:bg-neutral-800 dark:text-neutral-300">
+                            <span className="rounded-full bg-sunken px-2 py-0.5 text-[10px] font-bold text-muted">
                               {lead.style}
                             </span>
                           ) : null}
                         </div>
                         <a
                           href={`mailto:${lead.email}`}
-                          className="mt-1 block text-sm text-emerald-800 underline decoration-emerald-800/30 underline-offset-4 dark:text-emerald-300 dark:decoration-emerald-300/30"
+                          className="mt-1 block text-sm text-accent-text underline decoration-accent/30 underline-offset-4"
                         >
                           {lead.email}
                         </a>
-                        <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
+                        <p className="mt-1 text-xs text-muted">
                           {lead.created
                             ? new Date(lead.created).toLocaleString("pt-BR")
                             : ""}
@@ -2093,13 +2085,13 @@ function Panel({
                         </a>
                       </div>
                     </div>
-                    <p className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-neutral-700 dark:text-neutral-300">
+                    <p className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-muted">
                       {lead.idea}
                     </p>
                   </article>
                 ))}
                 {!leadsLoading && !leads.length ? (
-                  <div className="border border-dashed border-neutral-300 px-4 py-10 text-center text-sm text-neutral-500 dark:border-neutral-700 dark:text-neutral-400">
+                  <div className="border border-dashed border-line-strong px-4 py-10 text-center text-sm text-muted">
                     Nenhum contato ainda.
                   </div>
                 ) : null}
@@ -2111,13 +2103,13 @@ function Panel({
             <section>
               <div className="mb-6 flex flex-wrap items-start justify-between gap-3">
                 <div>
-                  <p className="text-sm font-medium uppercase tracking-widest opacity-60">
+                  <p className="text-sm font-medium opacity-60">
                     Cadastro
                   </p>
                   <h1 className="mt-1 text-2xl font-semibold tracking-tight sm:text-3xl">
                     Clientes
                   </h1>
-                  <p className="mt-2 text-sm text-neutral-500 dark:text-neutral-400">
+                  <p className="mt-2 text-sm text-muted">
                     {clients.length} cadastrado
                     {clients.length === 1 ? "" : "s"}
                   </p>
@@ -2245,19 +2237,19 @@ function Panel({
                 {clients.map((c) => (
                   <div
                     key={c.id}
-                    className="flex flex-wrap items-center justify-between gap-3 border border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-[#151515]"
+                    className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-line bg-surface p-4"
                   >
                     <div className="min-w-0">
                       <p className="font-medium">
                         {c.name}
                         {c.company ? (
-                          <span className="text-xs font-normal text-neutral-500 dark:text-neutral-400">
+                          <span className="text-xs font-normal text-muted">
                             {" "}
                             · {c.company}
                           </span>
                         ) : null}
                       </p>
-                      <p className="mt-0.5 text-xs text-neutral-500 dark:text-neutral-400">
+                      <p className="mt-0.5 text-xs text-muted">
                         {[c.phone ? maskPhoneBr(c.phone) : "", c.email]
                           .filter(Boolean)
                           .join(" · ") || "Sem contato"}
@@ -2280,7 +2272,7 @@ function Panel({
                       </button>
                       <button
                         type="button"
-                        className={`${btn} text-red-600 dark:text-red-400`}
+                        className={btnDanger}
                         onClick={async () => {
                           if (!window.confirm("Excluir cliente?")) return;
                           await orcamentosApi.deleteClient(c.id);
@@ -2294,7 +2286,7 @@ function Panel({
                   </div>
                 ))}
                 {!clients.length ? (
-                  <div className="border border-dashed border-neutral-300 px-4 py-10 text-center text-sm text-neutral-500 dark:border-neutral-700 dark:text-neutral-400">
+                  <div className="border border-dashed border-line-strong px-4 py-10 text-center text-sm text-muted">
                     Nenhum cliente. Cadastre o primeiro para emitir propostas.
                   </div>
                 ) : null}
@@ -2306,7 +2298,7 @@ function Panel({
             <section>
               <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
                 <div>
-                  <p className="text-sm font-medium uppercase tracking-widest opacity-60">
+                  <p className="text-sm font-medium opacity-60">
                     Histórico
                   </p>
                   <h1 className="mt-1 text-2xl font-semibold tracking-tight sm:text-3xl">
@@ -2337,8 +2329,8 @@ function Panel({
                   onClick={() => setStatusFilter("todos")}
                   className={`rounded-full px-3 py-1.5 text-xs font-medium transition ${
                     statusFilter === "todos"
-                      ? "bg-neutral-900 text-white dark:bg-[#f9f9f9] dark:text-neutral-900"
-                      : "border border-neutral-200 text-neutral-500 dark:border-neutral-700 dark:text-neutral-400"
+                      ? "bg-ink text-canvas"
+                      : "border border-line text-muted"
                   }`}
                 >
                   Todos · {proposals.length}
@@ -2351,7 +2343,7 @@ function Panel({
                     className={`rounded-full px-3 py-1.5 text-xs font-medium transition ${
                       statusFilter === s
                         ? statusClass(s)
-                        : "border border-neutral-200 text-neutral-500 dark:border-neutral-700 dark:text-neutral-400"
+                        : "border border-line text-muted"
                     }`}
                   >
                     {s}
@@ -2364,7 +2356,7 @@ function Panel({
                   <ProposalRow key={p.id} p={p} />
                 ))}
                 {!filteredProposals.length ? (
-                  <div className="border border-dashed border-neutral-300 px-4 py-10 text-center text-sm text-neutral-500 dark:border-neutral-700 dark:text-neutral-400">
+                  <div className="border border-dashed border-line-strong px-4 py-10 text-center text-sm text-muted">
                     Nenhum orçamento neste filtro.
                   </div>
                 ) : null}
@@ -2376,13 +2368,13 @@ function Panel({
             <section>
               <div className="mb-6 flex flex-wrap items-start justify-between gap-3">
                 <div>
-                  <p className="text-sm font-medium uppercase tracking-widest opacity-60">
+                  <p className="text-sm font-medium opacity-60">
                     Biblioteca
                   </p>
                   <h1 className="mt-1 text-2xl font-semibold tracking-tight sm:text-3xl">
                     Presets de texto
                   </h1>
-                  <p className="mt-2 max-w-2xl text-sm text-neutral-500 dark:text-neutral-400">
+                  <p className="mt-2 max-w-2xl text-sm text-muted">
                     Textos prontos para etapas, pagamento, necessidades e
                     observações. Ao aplicar etapas, o investimento é montado
                     automaticamente com essas linhas.
@@ -2411,8 +2403,8 @@ function Panel({
                   onClick={() => setPresetSectionFilter("todos")}
                   className={`rounded-full px-3 py-1.5 text-xs font-medium transition ${
                     presetSectionFilter === "todos"
-                      ? "bg-neutral-900 text-white dark:bg-[#f9f9f9] dark:text-neutral-900"
-                      : "border border-neutral-200 text-neutral-500 dark:border-neutral-700 dark:text-neutral-400"
+                      ? "bg-ink text-canvas"
+                      : "border border-line text-muted"
                   }`}
                 >
                   Todos · {presets.length}
@@ -2426,8 +2418,8 @@ function Panel({
                       onClick={() => setPresetSectionFilter(s.id)}
                       className={`rounded-full px-3 py-1.5 text-xs font-medium transition ${
                         presetSectionFilter === s.id
-                          ? "bg-neutral-900 text-white dark:bg-[#f9f9f9] dark:text-neutral-900"
-                          : "border border-neutral-200 text-neutral-500 dark:border-neutral-700 dark:text-neutral-400"
+                          ? "bg-ink text-canvas"
+                          : "border border-line text-muted"
                       }`}
                     >
                       {s.label} · {n}
@@ -2520,17 +2512,17 @@ function Panel({
                   return (
                     <div
                       key={p.id}
-                      className="border border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-[#151515]"
+                      className="rounded-xl border border-line bg-surface p-4"
                     >
                       <div className="flex flex-wrap items-start justify-between gap-3">
                         <div className="min-w-0">
-                          <p className="text-xs font-medium uppercase tracking-[0.14em] text-emerald-700 dark:text-emerald-300">
+                          <p className="text-xs font-medium text-accent-text">
                             {sectionLabel}
                           </p>
                           <h3 className="mt-1 text-base font-semibold tracking-tight">
                             {p.name}
                           </h3>
-                          <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-neutral-600 dark:text-neutral-300">
+                          <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-muted">
                             {p.body.slice(0, 280)}
                             {p.body.length > 280 ? "…" : ""}
                           </p>
@@ -2545,7 +2537,7 @@ function Panel({
                           </button>
                           <button
                             type="button"
-                            className={`${btn} text-red-600 dark:text-red-400`}
+                            className={btnDanger}
                             onClick={async () => {
                               if (!window.confirm("Excluir este preset?"))
                                 return;
@@ -2564,7 +2556,7 @@ function Panel({
                 {!presets.length ||
                 (presetSectionFilter !== "todos" &&
                   !presetsFor(presetSectionFilter).length) ? (
-                  <div className="border border-dashed border-neutral-300 px-4 py-10 text-center text-sm text-neutral-500 dark:border-neutral-700 dark:text-neutral-400">
+                  <div className="border border-dashed border-line-strong px-4 py-10 text-center text-sm text-muted">
                     Nenhum preset ainda. Crie o primeiro para reutilizar textos
                     nos orçamentos.
                   </div>
@@ -2577,13 +2569,13 @@ function Panel({
             <section>
               <div className="mb-6 flex flex-wrap items-start justify-between gap-3">
                 <div>
-                  <p className="text-sm font-medium uppercase tracking-widest opacity-60">
+                  <p className="text-sm font-medium opacity-60">
                     Perfil
                   </p>
                   <h1 className="mt-1 text-2xl font-semibold tracking-tight sm:text-3xl">
                     Meus dados
                   </h1>
-                  <p className="mt-2 text-sm text-neutral-500 dark:text-neutral-400">
+                  <p className="mt-2 text-sm text-muted">
                     Aparecem no rodapé das propostas
                   </p>
                 </div>
@@ -2692,9 +2684,9 @@ function Panel({
                 <h2 className="text-base font-semibold tracking-tight">
                   Segurança
                 </h2>
-                <p className="mt-2 text-sm text-neutral-500 dark:text-neutral-400">
+                <p className="mt-2 text-sm text-muted">
                   Envia um link de redefinição para{" "}
-                  <span className="font-medium text-neutral-700 dark:text-neutral-300">
+                  <span className="font-medium text-muted">
                     {profileForm.email?.trim() || "o e-mail de Meus dados"}
                   </span>
                   .
@@ -2723,19 +2715,19 @@ function Panel({
 
           {!editing && tab === "settings" ? (
             <section>
-              <p className="text-sm font-medium uppercase tracking-widest opacity-60">
+              <p className="text-sm font-medium opacity-60">
                 Dados
               </p>
               <h1 className="mt-1 text-2xl font-semibold tracking-tight sm:text-3xl">
                 Backup / seed
               </h1>
-              <p className="mt-2 text-sm text-neutral-500 dark:text-neutral-400">
+              <p className="mt-2 text-sm text-muted">
                 Importe o JSON inicial para o Neon.
               </p>
               <div className="mt-6 grid gap-4 sm:grid-cols-2">
                 <div className={cardClass}>
                   <h3 className="font-semibold">Mesclar seed</h3>
-                  <p className="mt-2 text-sm text-neutral-500 dark:text-neutral-400">
+                  <p className="mt-2 text-sm text-muted">
                     Insere/atualiza os clientes e orçamentos iniciais sem
                     apagar o restante.
                   </p>
@@ -2750,12 +2742,12 @@ function Panel({
                 </div>
                 <div className={cardClass}>
                   <h3 className="font-semibold">Substituir tudo</h3>
-                  <p className="mt-2 text-sm text-neutral-500 dark:text-neutral-400">
+                  <p className="mt-2 text-sm text-muted">
                     Apaga clientes e propostas atuais e carrega só o seed.
                   </p>
                   <button
                     type="button"
-                    className={`${btn} mt-4 text-red-600 dark:text-red-400`}
+                    className={`${btnDanger} mt-4 `}
                     disabled={busy}
                     onClick={() => importSeed("replace")}
                   >
@@ -2769,7 +2761,7 @@ function Panel({
       </div>
 
       {!editing ? (
-        <nav className="fixed inset-x-0 bottom-0 z-30 flex overflow-x-auto border-t border-neutral-200 bg-[#F3F4F6]/95 pb-[max(0.35rem,env(safe-area-inset-bottom))] pt-1 backdrop-blur dark:border-neutral-800 dark:bg-[#151515]/95 md:hidden">
+        <nav className="fixed inset-x-0 bottom-0 z-30 flex overflow-x-auto border-t border-line bg-surface/90 backdrop-blur-md pb-[max(0.35rem,env(safe-area-inset-bottom))] pt-1 backdrop-blur md:hidden">
           {nav
             .filter((n) => n.id !== "settings" && n.id !== "presets")
             .map((item) => {
@@ -2781,8 +2773,8 @@ function Panel({
                   onClick={() => go(item.id)}
                   className={`flex min-h-12 min-w-14 flex-1 shrink-0 flex-col items-center justify-center gap-0.5 px-1 py-2 text-[10px] font-medium ${focusRing} ${
                     active
-                      ? "text-neutral-900 dark:text-white"
-                      : "text-neutral-400"
+                      ? "text-ink"
+                      : "text-faint"
                   }`}
                 >
                   <Icon paths={navIcons[item.id]} />
@@ -2793,7 +2785,7 @@ function Panel({
           <button
             type="button"
             onClick={onLogout}
-            className={`flex min-h-12 flex-1 flex-col items-center justify-center gap-0.5 px-1 py-2 text-[10px] font-medium text-neutral-400 ${focusRing}`}
+            className={`flex min-h-12 flex-1 flex-col items-center justify-center gap-0.5 px-1 py-2 text-[10px] font-medium text-faint ${focusRing}`}
           >
             <Icon d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" />
             Sair
@@ -2805,7 +2797,7 @@ function Panel({
         <div
           role="status"
           aria-live="polite"
-          className="fixed bottom-[calc(4.5rem+env(safe-area-inset-bottom))] left-1/2 z-50 -translate-x-1/2 bg-neutral-900 px-5 py-2.5 text-sm font-medium text-white dark:bg-[#f9f9f9] dark:text-neutral-900 md:bottom-6"
+          className="adm-pop fixed bottom-[calc(4.5rem+env(safe-area-inset-bottom))] left-1/2 z-50 -translate-x-1/2 rounded-xl bg-ink px-4 py-2.5 text-sm font-medium text-canvas shadow-float md:bottom-6"
         >
           {toast}
         </div>
@@ -2814,7 +2806,7 @@ function Panel({
       {pdfSource ? (
         <div
           aria-hidden
-          className="pointer-events-none fixed top-0 left-[-10000px] bg-white"
+          className="pointer-events-none fixed top-0 left-[-10000px] bg-surface"
           style={{ width: 680 }}
         >
           <div ref={pdfRef} style={{ width: 680 }}>
@@ -2830,7 +2822,7 @@ function Panel({
       {contractSource ? (
         <div
           aria-hidden
-          className="pointer-events-none fixed top-0 left-[-10000px] bg-white"
+          className="pointer-events-none fixed top-0 left-[-10000px] bg-surface"
           style={{ width: 680 }}
         >
           <div ref={contractRef} style={{ width: 680 }}>

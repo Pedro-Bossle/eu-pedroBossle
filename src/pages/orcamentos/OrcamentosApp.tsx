@@ -110,7 +110,7 @@ function OrcamentosApp() {
 
   if (/\/redefinir-senha\/?$/.test(location.pathname)) {
     return (
-      <div className="flex min-h-dvh flex-col items-center justify-center bg-[#f9f9f9] px-4 text-center text-neutral-700 dark:bg-[#121212] dark:text-neutral-300">
+      <div className="adm flex min-h-dvh flex-col items-center justify-center bg-canvas px-4 text-center text-muted">
         <p className="text-sm">Link inválido ou incompleto.</p>
         <a
           href={
@@ -128,7 +128,7 @@ function OrcamentosApp() {
 
   if (checking) {
     return (
-      <div className="flex min-h-dvh items-center justify-center bg-[#f9f9f9] text-neutral-500 dark:bg-[#121212] dark:text-neutral-400">
+      <div className="adm flex min-h-dvh items-center justify-center bg-canvas text-muted">
         Carregando…
       </div>
     );

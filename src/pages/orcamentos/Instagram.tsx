@@ -10,7 +10,7 @@ import type {
   IgPostInput,
   IgPostKind,
 } from "../../types/orcamentos";
-import { btn, btnPrimary, cardClass, focusRing } from "./panelStyles";
+import { btn, btnDanger, btnDangerSm, btnPrimary, btnSm, cardClass, control, focusRing, inputClass, labelClass, pill, tabItem, tabList } from "./panelStyles";
 
 type Props = { showToast: (msg: string) => void };
 type View = "calendario" | "posts" | "biblioteca" | "comentarios" | "conta";
@@ -39,7 +39,7 @@ const STATUS_LABEL: Record<string, string> = {
 };
 
 const STATUS_CHIP: Record<string, string> = {
-  rascunho: "border-neutral-300 bg-neutral-100 text-neutral-700 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-300",
+  rascunho: "border-line-strong bg-sunken text-muted",
   agendado: "border-sky-300 bg-sky-50 text-sky-900 dark:border-sky-800 dark:bg-sky-950/60 dark:text-sky-200",
   publicando: "border-amber-300 bg-amber-50 text-amber-900 dark:border-amber-800 dark:bg-amber-950/60 dark:text-amber-200",
   publicado: "border-emerald-300 bg-emerald-50 text-emerald-900 dark:border-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-200",
@@ -47,11 +47,8 @@ const STATUS_CHIP: Record<string, string> = {
   instagram: "border-fuchsia-200 bg-fuchsia-50 text-fuchsia-900 dark:border-fuchsia-900 dark:bg-fuchsia-950/50 dark:text-fuchsia-200",
 };
 
-const control = `border border-neutral-200 bg-[#f9f9f9] outline-none transition focus:border-emerald-600 dark:border-neutral-700 dark:bg-[#121212] dark:focus:border-emerald-400 ${focusRing}`;
-const inputClass = `${control} w-full min-h-11 px-3 py-2 text-base sm:text-sm`;
-const areaClass = `${control} w-full min-h-36 resize-y px-3 py-2.5 text-base leading-relaxed sm:text-sm`;
-const btnSm = `inline-flex min-h-9 cursor-pointer items-center justify-center gap-1.5 border border-neutral-200 bg-white px-2.5 py-1.5 text-xs font-medium transition-[border-color,opacity] hover:border-neutral-400 disabled:cursor-not-allowed disabled:opacity-50 dark:border-neutral-700 dark:bg-[#151515] dark:hover:border-neutral-500 ${focusRing}`;
-const smallLabel = "text-xs font-medium uppercase tracking-widest text-neutral-500 dark:text-neutral-400";
+const areaClass = `${control} w-full min-h-36 resize-y px-3.5 py-2.5 text-base leading-relaxed sm:text-sm`;
+const smallLabel = labelClass;
 const WEEKDAYS = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"];
 
 const nf = new Intl.NumberFormat("pt-BR");
@@ -138,7 +135,7 @@ function postToInput(p: IgPost): IgPostInput {
 function Thumb({ url, className = "" }: { url: string; className?: string }) {
   if (!url) {
     return (
-      <div className={`flex items-center justify-center bg-neutral-100 text-neutral-400 dark:bg-neutral-800 ${className}`}>
+      <div className={`flex items-center justify-center bg-sunken text-faint ${className}`}>
         <InstagramIcon className="size-5" />
       </div>
     );
@@ -161,15 +158,15 @@ function Modal({ title, onClose, children, wide }: { title: string; onClose: () 
     };
   }, [onClose]);
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 sm:items-center sm:p-4" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-ink/30 backdrop-blur-[2px] sm:items-center sm:p-4" onClick={onClose}>
       <div
         role="dialog"
         aria-modal="true"
         aria-label={title}
-        className={`max-h-[94dvh] w-full overflow-y-auto border border-neutral-200 bg-white dark:border-neutral-800 dark:bg-[#151515] ${wide ? "sm:max-w-5xl" : "sm:max-w-xl"}`}
+        className={`adm-pop max-h-[94dvh] w-full overflow-y-auto rounded-t-2xl border border-line bg-surface shadow-float sm:rounded-2xl ${wide ? "sm:max-w-5xl" : "sm:max-w-xl"}`}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-neutral-200 bg-white px-5 py-3 dark:border-neutral-800 dark:bg-[#151515]">
+        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-line bg-surface px-5 py-3">
           <h3 className="text-base font-semibold">{title}</h3>
           <button type="button" onClick={onClose} className={`${btnSm} border-transparent`} aria-label="Fechar">
             ✕
@@ -311,7 +308,7 @@ function Composer({
         <div className="space-y-5">
           <div>
             <p className={smallLabel}>Formato</p>
-            <div className="mt-2 grid grid-cols-4 gap-1.5" role="radiogroup" aria-label="Formato">
+            <div className={`${tabList} mt-2 grid grid-cols-4`} role="radiogroup" aria-label="Formato">
               {(Object.keys(KIND_LABEL) as IgPostKind[]).map((k) => (
                 <button
                   key={k}
@@ -321,11 +318,7 @@ function Composer({
                   onClick={() =>
                     setForm((f) => ({ ...f, kind: k, mediaUrls: k === "carousel" ? f.mediaUrls : f.mediaUrls.slice(0, 1) }))
                   }
-                  className={`min-h-10 border px-2 text-sm ${focusRing} ${
-                    form.kind === k
-                      ? "border-neutral-900 bg-neutral-900 font-semibold text-white dark:border-white dark:bg-white dark:text-neutral-900"
-                      : "border-neutral-200 dark:border-neutral-700"
-                  }`}
+                  className={`${tabItem(form.kind === k)} min-h-9`}
                 >
                   {KIND_LABEL[k]}
                 </button>
@@ -356,7 +349,7 @@ function Composer({
                       ) : null}
                       <button
                         type="button"
-                        className={`${btnSm} flex-1 px-1 text-red-600 dark:text-red-400`}
+                        className={`${btnDangerSm} flex-1 px-1 `}
                         onClick={() => set("mediaUrls", form.mediaUrls.filter((_, j) => j !== i))}
                         aria-label="Remover mídia"
                       >
@@ -402,7 +395,7 @@ function Composer({
               </div>
             ) : null}
             {!features.upload ? (
-              <p className="mt-1.5 text-xs text-neutral-500 dark:text-neutral-400">
+              <p className="mt-1.5 text-xs text-muted">
                 Para enviar arquivos direto daqui, conecte um Blob store ao projeto na Vercel.
               </p>
             ) : null}
@@ -425,14 +418,14 @@ function Composer({
             <label className="block">
               <span className="flex items-baseline justify-between">
                 <span className={smallLabel}>Legenda</span>
-                <span className={`text-xs tabular-nums ${form.caption.length > 2200 || hashtags > 30 ? "text-red-600 dark:text-red-400" : "text-neutral-500"}`}>
+                <span className={`text-xs tabular-nums ${form.caption.length > 2200 || hashtags > 30 ? "text-danger" : "text-muted"}`}>
                   {nf.format(form.caption.length)}/2.200 · {hashtags}/30 #
                 </span>
               </span>
               <textarea className={`${areaClass} mt-2`} value={form.caption} onChange={(e) => set("caption", e.target.value)} placeholder="Escreva a legenda…" />
             </label>
           ) : (
-            <p className="text-xs text-neutral-500 dark:text-neutral-400">Stories não têm legenda pela API.</p>
+            <p className="text-xs text-muted">Stories não têm legenda pela API.</p>
           )}
 
           <div className="grid gap-3 sm:grid-cols-2">
@@ -463,7 +456,7 @@ function Composer({
             </ul>
           ) : null}
 
-          <div className="flex flex-wrap gap-2 border-t border-neutral-200 pt-4 dark:border-neutral-800">
+          <div className="flex flex-wrap gap-2 border-t border-line pt-4">
             <button type="button" className={btnPrimary} disabled={!!busy} onClick={() => save("agendado")}>
               {busy === "agendado" ? "Agendando…" : "Agendar"}
             </button>
@@ -474,7 +467,7 @@ function Composer({
               {busy === "agora" ? "Publicando…" : "Publicar agora"}
             </button>
             {form.id ? (
-              <button type="button" className={`${btn} ml-auto text-red-600 dark:text-red-400`} disabled={!!busy} onClick={remove}>
+              <button type="button" className={`${btnDanger} ml-auto `} disabled={!!busy} onClick={remove}>
                 Excluir
               </button>
             ) : null}
@@ -484,13 +477,13 @@ function Composer({
         {/* Prévia */}
         <aside aria-label="Prévia" className="lg:sticky lg:top-16 lg:self-start">
           <p className={smallLabel}>Prévia</p>
-          <div className="mt-2 border border-neutral-200 bg-white text-neutral-900 dark:border-neutral-800 dark:bg-black dark:text-white">
+          <div className="mt-2 border border-line bg-surface text-ink">
             <div className="flex items-center gap-2 px-3 py-2">
               <span className="size-7 rounded-full bg-gradient-to-tr from-amber-400 via-fuchsia-500 to-violet-600 p-[2px]">
-                <span className="block size-full rounded-full bg-white dark:bg-black" />
+                <span className="block size-full rounded-full bg-surface" />
               </span>
               <span className="text-xs font-semibold">{username || "seu_perfil"}</span>
-              <span className="ml-auto text-[10px] uppercase tracking-wide text-neutral-500">{KIND_LABEL[form.kind]}</span>
+              <span className="ml-auto text-[10px] tracking-wide text-muted">{KIND_LABEL[form.kind]}</span>
             </div>
             <div className={form.kind === "story" || form.kind === "reel" ? "aspect-[9/16] max-h-[460px]" : "aspect-[4/5]"}>
               <Thumb url={preview} className="size-full" />
@@ -498,17 +491,17 @@ function Composer({
             {form.kind === "carousel" && form.mediaUrls.length > 1 ? (
               <div className="flex justify-center gap-1 py-1.5">
                 {form.mediaUrls.map((u, i) => (
-                  <span key={`${u}-${i}`} className={`size-1.5 rounded-full ${i === 0 ? "bg-sky-500" : "bg-neutral-300 dark:bg-neutral-700"}`} />
+                  <span key={`${u}-${i}`} className={`size-1.5 rounded-full ${i === 0 ? "bg-sky-500" : "bg-neutral-300"}`} />
                 ))}
               </div>
             ) : null}
             {form.kind !== "story" ? (
               <p className="line-clamp-4 px-3 pt-1 pb-3 text-xs leading-relaxed whitespace-pre-wrap">
-                <strong>{username || "seu_perfil"}</strong> {form.caption || <span className="text-neutral-400">Sua legenda aparece aqui</span>}
+                <strong>{username || "seu_perfil"}</strong> {form.caption || <span className="text-faint">Sua legenda aparece aqui</span>}
               </p>
             ) : null}
           </div>
-          <p className="mt-2 text-xs text-neutral-500 dark:text-neutral-400">
+          <p className="mt-2 text-xs text-muted">
             {form.scheduledAt ? `Sai em ${fmtDateTime(form.scheduledAt)}` : "Sem data: fica como rascunho"}
           </p>
         </aside>
@@ -589,9 +582,9 @@ function Calendar({
 
   return (
     <div className={`${cardClass} p-0 xl:p-0`}>
-      <div className="flex flex-wrap items-center gap-2 border-b border-neutral-200 px-4 py-3 dark:border-neutral-800">
+      <div className="flex flex-wrap items-center gap-2 border-b border-line px-4 py-3">
         <h3 className="text-base font-semibold">{monthLabel}</h3>
-        <span className="text-xs text-neutral-500 dark:text-neutral-400">{scheduledThisMonth} agendado(s)</span>
+        <span className="text-xs text-muted">{scheduledThisMonth} agendado(s)</span>
         <div className="ml-auto flex gap-1">
           <button type="button" className={btnSm} onClick={() => shift(-1)} aria-label="Mês anterior">
             ←
@@ -611,7 +604,7 @@ function Calendar({
           </button>
         </div>
       </div>
-      <div className="grid grid-cols-7 border-b border-neutral-200 text-center text-[11px] font-medium uppercase tracking-wide text-neutral-500 dark:border-neutral-800 dark:text-neutral-400">
+      <div className="grid grid-cols-7 border-b border-line text-center text-[11px] font-medium tracking-wide text-muted">
         {WEEKDAYS.map((w) => (
           <div key={w} className="py-2">
             {w}
@@ -633,14 +626,14 @@ function Calendar({
               }}
               onDragLeave={() => setDragOver((v) => (v === k ? "" : v))}
               onDrop={(e) => onDrop(e, d)}
-              className={`group relative min-h-24 border-r border-b border-neutral-100 p-1 text-left sm:min-h-28 sm:p-1.5 dark:border-neutral-800/70 ${
-                inMonth ? "" : "bg-neutral-50/60 text-neutral-400 dark:bg-white/[0.02]"
+              className={`group relative min-h-24 border-r border-b border-line p-1 text-left sm:min-h-28 sm:p-1.5 ${
+                inMonth ? "" : "bg-sunken/50 text-faint dark:bg-sunken/50"
               } ${dragOver === k ? "bg-emerald-50 dark:bg-emerald-950/30" : ""}`}
             >
               <div className="flex items-center justify-between">
                 <span
                   className={`inline-flex size-6 items-center justify-center text-xs tabular-nums ${
-                    k === todayKey ? "rounded-full bg-neutral-900 font-semibold text-white dark:bg-white dark:text-neutral-900" : ""
+                    k === todayKey ? "rounded-full bg-ink font-semibold text-canvas" : ""
                   }`}
                 >
                   {d.getDate()}
@@ -649,7 +642,7 @@ function Calendar({
                   <button
                     type="button"
                     onClick={() => onNew(new Date(d.getFullYear(), d.getMonth(), d.getDate(), 10, 0))}
-                    className={`size-6 text-sm text-neutral-400 opacity-100 hover:text-neutral-900 sm:opacity-0 sm:group-hover:opacity-100 dark:hover:text-white ${focusRing}`}
+                    className={`size-6 text-sm text-faint opacity-100 hover:text-ink sm:opacity-0 sm:group-hover:opacity-100 ${focusRing}`}
                     aria-label={`Novo post em ${d.toLocaleDateString("pt-BR")}`}
                   >
                     +
@@ -666,7 +659,7 @@ function Calendar({
                         onDragStart={(ev) => ev.dataTransfer.setData("text/ig-post", e.post.id)}
                         onClick={() => onOpenPost(e.post)}
                         title={`${STATUS_LABEL[e.post.status]} · ${KIND_LABEL[e.post.kind]} · ${e.post.caption.slice(0, 80)}`}
-                        className={`flex w-full items-center gap-1 truncate border px-1 py-0.5 text-left text-[10px] leading-tight sm:text-[11px] ${STATUS_CHIP[e.post.status]} ${focusRing}`}
+                        className={`flex w-full items-center gap-1 truncate rounded-md border px-1.5 py-0.5 text-left text-[10px] leading-tight sm:text-[11px] ${STATUS_CHIP[e.post.status]} ${focusRing}`}
                       >
                         <span className="tabular-nums">{timeOf(e.at)}</span>
                         <span className="hidden truncate sm:inline">{e.post.caption || KIND_LABEL[e.post.kind]}</span>
@@ -678,7 +671,7 @@ function Calendar({
                         type="button"
                         onClick={() => onOpenMedia(e.media)}
                         title={e.media.caption.slice(0, 80)}
-                        className={`flex w-full items-center gap-1 truncate border px-1 py-0.5 text-left text-[10px] leading-tight sm:text-[11px] ${STATUS_CHIP.instagram} ${focusRing}`}
+                        className={`flex w-full items-center gap-1 truncate rounded-md border px-1.5 py-0.5 text-left text-[10px] leading-tight sm:text-[11px] ${STATUS_CHIP.instagram} ${focusRing}`}
                       >
                         <span className="tabular-nums">{timeOf(e.at)}</span>
                         <span className="hidden truncate sm:inline">{e.media.caption || e.media.mediaType}</span>
@@ -686,21 +679,21 @@ function Calendar({
                     </li>
                   ),
                 )}
-                {entries.length > 4 ? <li className="px-1 text-[10px] text-neutral-500">+{entries.length - 4}</li> : null}
+                {entries.length > 4 ? <li className="px-1 text-[10px] text-muted">+{entries.length - 4}</li> : null}
               </ul>
             </div>
           );
         })}
       </div>
-      <div className="flex flex-wrap gap-3 px-4 py-3 text-[11px] text-neutral-600 dark:text-neutral-400">
+      <div className="flex flex-wrap gap-3 px-4 py-3 text-[11px] text-muted">
         {["rascunho", "agendado", "publicado", "erro"].map((s) => (
           <span key={s} className="inline-flex items-center gap-1.5">
-            <span className={`size-2.5 border ${STATUS_CHIP[s]}`} />
+            <span className={`size-2.5 rounded-sm border ${STATUS_CHIP[s]}`} />
             {STATUS_LABEL[s]}
           </span>
         ))}
         <span className="inline-flex items-center gap-1.5">
-          <span className={`size-2.5 border ${STATUS_CHIP.instagram}`} />
+          <span className={`size-2.5 rounded-sm border ${STATUS_CHIP.instagram}`} />
           Postado fora do painel
         </span>
         <span className="ml-auto hidden sm:inline">Arraste um post para outro dia para reagendar.</span>
@@ -787,7 +780,7 @@ export default function Instagram({ showToast }: Props) {
   const newCommentCount = data?.comments.filter((c) => c.status === "novo" && !c.fromMe).length ?? 0;
 
   if (loading) {
-    return <p className="text-sm text-neutral-500">Carregando Instagram…</p>;
+    return <p className="text-sm text-muted">Carregando Instagram…</p>;
   }
 
   return (
@@ -796,7 +789,7 @@ export default function Instagram({ showToast }: Props) {
         <div>
           <p className={smallLabel}>Mídia</p>
           <h2 id="ig-title" className="mt-1 text-2xl font-semibold tracking-tight">
-            Instagram{username ? <span className="font-light text-neutral-500"> · @{username}</span> : null}
+            Instagram{username ? <span className="font-light text-muted"> · @{username}</span> : null}
           </h2>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -823,16 +816,14 @@ export default function Instagram({ showToast }: Props) {
 
       {data && account?.connected ? <Kpis data={data} /> : null}
 
-      <nav className="flex gap-1 overflow-x-auto border-b border-neutral-200 dark:border-neutral-800" aria-label="Seções do Instagram">
+      <nav className={`${tabList} w-fit max-w-full`} aria-label="Seções do Instagram">
         {VIEWS.map((v) => (
           <button
             key={v.id}
             type="button"
             onClick={() => setView(v.id)}
             aria-current={view === v.id ? "page" : undefined}
-            className={`-mb-px shrink-0 border-b-2 px-3 py-2.5 text-sm ${focusRing} ${
-              view === v.id ? "border-neutral-900 font-medium dark:border-white" : "border-transparent text-neutral-500 hover:text-neutral-900 dark:hover:text-white"
-            }`}
+            className={tabItem(view === v.id)}
           >
             {v.label}
             {v.id === "comentarios" && newCommentCount ? (
@@ -921,12 +912,12 @@ function Kpis({ data }: { data: IgOverview }) {
     { label: "Agendados", value: String(upcoming), hint: a.publishQuota ? `cota ${a.publishQuota.used}/${a.publishQuota.total} em 24h` : undefined },
   ];
   return (
-    <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+    <div className="grid grid-cols-2 overflow-hidden rounded-2xl border border-line bg-surface lg:grid-cols-4">
       {tiles.map((t) => (
-        <div key={t.label} className={cardClass}>
+        <div key={t.label} className="border-line p-5 xl:p-6 [&:nth-child(n+3)]:border-t [&:nth-child(even)]:border-l lg:[&:nth-child(n+3)]:border-t-0 lg:[&:not(:first-child)]:border-l">
           <p className={smallLabel}>{t.label}</p>
           <p className="mt-2 text-2xl font-semibold tabular-nums">{t.value}</p>
-          {t.hint ? <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">{t.hint}</p> : null}
+          {t.hint ? <p className="mt-1 text-xs text-muted">{t.hint}</p> : null}
         </div>
       ))}
     </div>
@@ -959,29 +950,29 @@ function PostList({ posts, onOpen, onRetry }: { posts: IgPost[]; onOpen: (p: IgP
             key={id}
             type="button"
             onClick={() => setFilter(id!)}
-            className={`${btnSm} ${filter === id ? "border-neutral-900 dark:border-white" : ""}`}
+            className={pill(filter === id)}
             aria-pressed={filter === id}
           >
-            {label} <span className="text-neutral-400">{posts.filter((p) => (id === "pendentes" ? p.status !== "publicado" : id === "todos" || p.status === id)).length}</span>
+            {label} <span className="text-faint">{posts.filter((p) => (id === "pendentes" ? p.status !== "publicado" : id === "todos" || p.status === id)).length}</span>
           </button>
         ))}
       </div>
-      {!filtered.length ? <p className="py-8 text-center text-sm text-neutral-500">Nada por aqui.</p> : null}
+      {!filtered.length ? <p className="py-8 text-center text-sm text-muted">Nada por aqui.</p> : null}
       <ul className="space-y-2">
         {filtered.map((p) => (
           <li key={p.id} className={`${cardClass} flex gap-4 p-3 xl:p-3`}>
             <Thumb url={p.mediaUrls[0] ?? ""} className="size-20 shrink-0" />
             <div className="min-w-0 flex-1">
               <div className="flex flex-wrap items-center gap-2 text-xs">
-                <span className={`border px-1.5 py-0.5 font-medium ${STATUS_CHIP[p.status]}`}>{STATUS_LABEL[p.status]}</span>
-                <span className="text-neutral-500">{KIND_LABEL[p.kind]}</span>
-                <span className="tabular-nums text-neutral-500">{fmtDateTime(p.publishedAt ?? p.scheduledAt)}</span>
+                <span className={`rounded-full border px-2 py-0.5 font-medium ${STATUS_CHIP[p.status]}`}>{STATUS_LABEL[p.status]}</span>
+                <span className="text-muted">{KIND_LABEL[p.kind]}</span>
+                <span className="tabular-nums text-muted">{fmtDateTime(p.publishedAt ?? p.scheduledAt)}</span>
                 {p.tags.map((t) => (
-                  <span key={t} className="text-neutral-500">#{t}</span>
+                  <span key={t} className="text-muted">#{t}</span>
                 ))}
               </div>
-              <p className="mt-1.5 line-clamp-2 text-sm">{p.caption || <span className="text-neutral-400">Sem legenda</span>}</p>
-              {p.error ? <p className="mt-1 text-xs text-red-700 dark:text-red-400">{p.error}</p> : null}
+              <p className="mt-1.5 line-clamp-2 text-sm">{p.caption || <span className="text-faint">Sem legenda</span>}</p>
+              {p.error ? <p className="mt-1 text-xs text-danger">{p.error}</p> : null}
               <div className="mt-2 flex flex-wrap gap-1.5">
                 {p.status === "publicado" ? (
                   p.permalink ? (
@@ -990,7 +981,7 @@ function PostList({ posts, onOpen, onRetry }: { posts: IgPost[]; onOpen: (p: IgP
                     </a>
                   ) : null
                 ) : p.status === "publicando" ? (
-                  <span className="text-xs text-neutral-500">O Instagram está processando a mídia…</span>
+                  <span className="text-xs text-muted">O Instagram está processando a mídia…</span>
                 ) : (
                   <>
                     <button type="button" className={btnSm} onClick={() => onOpen(p)}>
@@ -1030,7 +1021,7 @@ function Library({ media, onOpen, connected, onSync, syncing }: { media: IgMedia
   if (!media.length) {
     return (
       <div className={`${cardClass} text-center`}>
-        <p className="text-sm text-neutral-500">A biblioteca mostra os posts do perfil com métricas.</p>
+        <p className="text-sm text-muted">A biblioteca mostra os posts do perfil com métricas.</p>
         {connected ? (
           <button type="button" className={`${btnPrimary} mt-4`} disabled={syncing} onClick={onSync}>
             {syncing ? "Sincronizando…" : "Sincronizar agora"}
@@ -1060,14 +1051,14 @@ function Library({ media, onOpen, connected, onSync, syncing }: { media: IgMedia
             ))}
           </select>
         ) : null}
-        <span className="text-xs text-neutral-500 sm:ml-auto">{list.length} posts</span>
+        <span className="text-xs text-muted sm:ml-auto">{list.length} posts</span>
       </div>
       <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-6">
         {list.map((m) => {
           const eng = engagement(m);
           return (
             <li key={m.id}>
-              <button type="button" onClick={() => onOpen(m)} className={`block w-full border border-neutral-200 bg-white text-left dark:border-neutral-800 dark:bg-[#151515] ${focusRing}`}>
+              <button type="button" onClick={() => onOpen(m)} className={`block w-full rounded-xl border border-line bg-surface text-left ${focusRing}`}>
                 <div className="relative">
                   <Thumb url={m.thumbnailUrl || m.mediaUrl} className="aspect-square w-full" />
                   <span className="absolute top-1.5 right-1.5 bg-black/70 px-1.5 py-0.5 text-[10px] font-semibold text-white">
@@ -1075,22 +1066,22 @@ function Library({ media, onOpen, connected, onSync, syncing }: { media: IgMedia
                   </span>
                 </div>
                 <div className="p-2.5">
-                  <p className="text-[11px] text-neutral-500">{m.postedAt ? new Date(m.postedAt).toLocaleDateString("pt-BR") : ""}</p>
+                  <p className="text-[11px] text-muted">{m.postedAt ? new Date(m.postedAt).toLocaleDateString("pt-BR") : ""}</p>
                   <dl className="mt-1 grid grid-cols-3 gap-1 text-xs tabular-nums">
                     <div>
-                      <dt className="text-[10px] text-neutral-500">Curtidas</dt>
+                      <dt className="text-[10px] text-muted">Curtidas</dt>
                       <dd className="font-semibold">{fmtNum(m.likes)}</dd>
                     </div>
                     <div>
-                      <dt className="text-[10px] text-neutral-500">Alcance</dt>
+                      <dt className="text-[10px] text-muted">Alcance</dt>
                       <dd className="font-semibold">{fmtNum(m.reach)}</dd>
                     </div>
                     <div>
-                      <dt className="text-[10px] text-neutral-500">Engaj.</dt>
+                      <dt className="text-[10px] text-muted">Engaj.</dt>
                       <dd className="font-semibold">{eng == null ? "—" : `${eng.toFixed(1).replace(".", ",")}%`}</dd>
                     </div>
                   </dl>
-                  {m.tags.length ? <p className="mt-1.5 truncate text-[11px] text-neutral-500">{m.tags.map((t) => `#${t}`).join(" ")}</p> : null}
+                  {m.tags.length ? <p className="mt-1.5 truncate text-[11px] text-muted">{m.tags.map((t) => `#${t}`).join(" ")}</p> : null}
                 </div>
               </button>
             </li>
@@ -1151,11 +1142,11 @@ function MediaDetail({
           <Thumb url={media.thumbnailUrl || media.mediaUrl} className="aspect-square w-full" />
         )}
         <div className="space-y-4">
-          <p className="text-xs text-neutral-500">{media.postedAt ? new Date(media.postedAt).toLocaleString("pt-BR") : ""}</p>
+          <p className="text-xs text-muted">{media.postedAt ? new Date(media.postedAt).toLocaleString("pt-BR") : ""}</p>
           <dl className="grid grid-cols-3 gap-3 sm:grid-cols-4">
             {stats.map(([k, v]) => (
               <div key={k}>
-                <dt className="text-[11px] text-neutral-500">{k}</dt>
+                <dt className="text-[11px] text-muted">{k}</dt>
                 <dd className="text-lg font-semibold tabular-nums">{typeof v === "string" ? v : fmtNum(v)}</dd>
               </div>
             ))}
@@ -1264,9 +1255,9 @@ function Comments({
     <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-1.5">
         {(["novo", "respondido", "arquivado", "todos"] as const).map((s) => (
-          <button key={s} type="button" onClick={() => setStatus(s)} aria-pressed={status === s} className={`${btnSm} ${status === s ? "border-neutral-900 dark:border-white" : ""}`}>
+          <button key={s} type="button" onClick={() => setStatus(s)} aria-pressed={status === s} className={pill(status === s)}>
             {s === "novo" ? "Sem resposta" : s === "respondido" ? "Respondidos" : s === "arquivado" ? "Arquivados" : "Todos"}{" "}
-            <span className="text-neutral-400">{s === "todos" ? others.length : others.filter((c) => c.status === s).length}</span>
+            <span className="text-faint">{s === "todos" ? others.length : others.filter((c) => c.status === s).length}</span>
           </button>
         ))}
         {status === "novo" && list.length > 1 ? (
@@ -1275,8 +1266,8 @@ function Comments({
           </button>
         ) : null}
       </div>
-      {!connected ? <p className="text-xs text-neutral-500">Conecte a conta para responder pelo painel.</p> : null}
-      {!list.length ? <p className="py-8 text-center text-sm text-neutral-500">{status === "novo" ? "Nenhum comentário esperando resposta. 🎉" : "Nada por aqui."}</p> : null}
+      {!connected ? <p className="text-xs text-muted">Conecte a conta para responder pelo painel.</p> : null}
+      {!list.length ? <p className="py-8 text-center text-sm text-muted">{status === "novo" ? "Nenhum comentário esperando resposta. 🎉" : "Nada por aqui."}</p> : null}
       <ul className="space-y-2">
         {list.map((c) => (
           <li key={c.id} className={`${cardClass} p-3 xl:p-4 ${c.hidden ? "opacity-60" : ""}`}>
@@ -1289,13 +1280,13 @@ function Comments({
                   <a className="font-semibold hover:underline" href={`https://instagram.com/${c.username}`} target="_blank" rel="noreferrer">
                     @{c.username}
                   </a>{" "}
-                  <span className="text-xs text-neutral-500">{relTime(c.postedAt)}</span>
-                  {c.parentId ? <span className="ml-1 text-xs text-neutral-500">· em uma thread</span> : null}
-                  {c.hidden ? <span className="ml-1 text-xs text-neutral-500">· oculto</span> : null}
+                  <span className="text-xs text-muted">{relTime(c.postedAt)}</span>
+                  {c.parentId ? <span className="ml-1 text-xs text-muted">· em uma thread</span> : null}
+                  {c.hidden ? <span className="ml-1 text-xs text-muted">· oculto</span> : null}
                 </p>
                 <p className="mt-0.5 text-sm break-words whitespace-pre-wrap">{c.text}</p>
                 {repliesOf(c.id).map((r) => (
-                  <p key={r.id} className="mt-1.5 border-l-2 border-emerald-500 pl-2 text-xs text-neutral-600 dark:text-neutral-300">
+                  <p key={r.id} className="mt-1.5 border-l-2 border-emerald-500 pl-2 text-xs text-muted">
                     Você: {r.text}
                   </p>
                 ))}
@@ -1309,7 +1300,7 @@ function Comments({
                         </button>
                       ))}
                       {draft.trim() && !quick.includes(draft.replace(/^@\S+\s/, "")) ? (
-                        <button type="button" className={`${btnSm} text-neutral-500`} onClick={() => saveQuick([...quick, draft.replace(/^@\S+\s/, "")].slice(-8))}>
+                        <button type="button" className={`${btnSm} text-muted`} onClick={() => saveQuick([...quick, draft.replace(/^@\S+\s/, "")].slice(-8))}>
                           + salvar como rápida
                         </button>
                       ) : null}
@@ -1357,7 +1348,7 @@ function Comments({
                         <button type="button" className={btnSm} disabled={busy === c.id} onClick={() => act(c, c.hidden ? "unhide" : "hide")}>
                           {c.hidden ? "Mostrar" : "Ocultar"}
                         </button>
-                        <button type="button" className={`${btnSm} text-red-600 dark:text-red-400`} disabled={busy === c.id} onClick={() => act(c, "delete")}>
+                        <button type="button" className={btnDangerSm} disabled={busy === c.id} onClick={() => act(c, "delete")}>
                           Excluir
                         </button>
                       </>
@@ -1422,24 +1413,24 @@ function Account({ data, showToast, onChanged }: { data: IgOverview; showToast: 
             {a.picture ? <img src={a.picture} alt="" className="size-14 rounded-full object-cover" /> : null}
             <div>
               <p className="text-lg font-semibold">@{a.username}</p>
-              <p className="text-sm text-neutral-500">{a.name} · {a.accountType || "Profissional"}</p>
+              <p className="text-sm text-muted">{a.name} · {a.accountType || "Profissional"}</p>
             </div>
           </div>
           <dl className="mt-5 grid grid-cols-3 gap-3 text-sm">
             <div>
-              <dt className="text-xs text-neutral-500">Seguidores</dt>
+              <dt className="text-xs text-muted">Seguidores</dt>
               <dd className="text-lg font-semibold tabular-nums">{fmtNum(a.followers)}</dd>
             </div>
             <div>
-              <dt className="text-xs text-neutral-500">Seguindo</dt>
+              <dt className="text-xs text-muted">Seguindo</dt>
               <dd className="text-lg font-semibold tabular-nums">{fmtNum(a.follows)}</dd>
             </div>
             <div>
-              <dt className="text-xs text-neutral-500">Posts</dt>
+              <dt className="text-xs text-muted">Posts</dt>
               <dd className="text-lg font-semibold tabular-nums">{fmtNum(a.mediaCount)}</dd>
             </div>
           </dl>
-          <ul className="mt-5 space-y-1.5 text-sm text-neutral-600 dark:text-neutral-300">
+          <ul className="mt-5 space-y-1.5 text-sm text-muted">
             <li>
               Token {daysLeft == null ? "sem validade conhecida" : daysLeft > 0 ? `válido por ~${daysLeft} dias` : "expirado — conecte de novo"}
               {a.expiryGuessed ? " (estimado)" : ""}. Ele é renovado sozinho pelo agendador diário.
@@ -1447,7 +1438,7 @@ function Account({ data, showToast, onChanged }: { data: IgOverview; showToast: 
             <li>{data.features.cron ? "Agendador configurado (CRON_SECRET)." : "⚠ Defina CRON_SECRET para os posts agendados saírem sozinhos."}</li>
             {a.insightsAt ? <li>Métricas atualizadas {relTime(a.insightsAt)} atrás.</li> : null}
           </ul>
-          <button type="button" className={`${btn} mt-5 text-red-600 dark:text-red-400`} onClick={disconnect}>
+          <button type="button" className={`${btnDanger} mt-5`} onClick={disconnect}>
             Desconectar
           </button>
         </div>
@@ -1455,7 +1446,7 @@ function Account({ data, showToast, onChanged }: { data: IgOverview; showToast: 
 
       <div className={cardClass}>
         <h3 className="text-base font-semibold">{a.connected ? "Trocar token" : "Conectar Instagram"}</h3>
-        <p className="mt-1 text-sm text-neutral-600 dark:text-neutral-300">A conta precisa ser profissional (Criador de conteúdo ou Empresa).</p>
+        <p className="mt-1 text-sm text-muted">A conta precisa ser profissional (Criador de conteúdo ou Empresa).</p>
         {data.features.oauth ? (
           <button type="button" className={`${btnPrimary} mt-4 w-full`} disabled={busy} onClick={oauth}>
             <InstagramIcon className="size-4" /> Entrar com Instagram
@@ -1470,7 +1461,7 @@ function Account({ data, showToast, onChanged }: { data: IgOverview; showToast: 
             {busy ? "Validando…" : "Salvar token"}
           </button>
         </div>
-        <details className="mt-4 text-sm text-neutral-600 dark:text-neutral-300">
+        <details className="mt-4 text-sm text-muted">
           <summary className="cursor-pointer font-medium">Como gerar o token</summary>
           <ol className="mt-2 list-decimal space-y-1 pl-5">
             <li>Em developers.facebook.com crie um app do tipo Business e adicione o produto “Instagram” (API com login do Instagram).</li>
