@@ -1,4 +1,5 @@
 import {
+  useCallback,
   useEffect,
   useMemo,
   useRef,
@@ -45,11 +46,15 @@ import {
 import { money, uid } from "./money";
 import ProposalPdfDocument from "./ProposalPdfDocument";
 import Funnel from "./Funnel";
+import Instagram from "./Instagram";
+import Finance from "./Finance";
 
 type Tab =
   | "dashboard"
   | "inbox"
   | "prospects"
+  | "instagram"
+  | "finance"
   | "clients"
   | "proposals"
   | "presets"
@@ -206,6 +211,15 @@ const navIcons: Record<Tab, string[]> = {
     "M11 8v6",
     "M8 11h6",
   ],
+  instagram: [
+    "M7 2h10a5 5 0 0 1 5 5v10a5 5 0 0 1-5 5H7a5 5 0 0 1-5-5V7a5 5 0 0 1 5-5z",
+    "M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z",
+    "M17.5 6.5h.01",
+  ],
+  finance: [
+    "M3 3v18h18",
+    "M7 14l4-4 4 4 5-6",
+  ],
   clients: [
     "M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2",
     "M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8",
@@ -244,7 +258,11 @@ function Panel({
   onLogout,
   onRefresh,
 }: Props) {
-  const [tab, setTab] = useState<Tab>("dashboard");
+  const [tab, setTab] = useState<Tab>(() => {
+    // ?tab=instagram (volta do login do Instagram) ou ?tab=finance
+    const t = new URLSearchParams(window.location.search).get("tab");
+    return t === "instagram" || t === "finance" ? t : "dashboard";
+  });
   const [toast, setToast] = useState("");
   const [busy, setBusy] = useState(false);
   const [editing, setEditing] = useState<OrcamentoProposal | null>(null);
@@ -397,10 +415,11 @@ function Panel({
     return c ? `${c.name}${c.company ? ` — ${c.company}` : ""}` : "Sem cliente";
   };
 
-  const showToast = (msg: string) => {
+  // Estável: Instagram/Finanças usam em dependências de efeitos
+  const showToast = useCallback((msg: string) => {
     setToast(msg);
-    window.setTimeout(() => setToast(""), 2800);
-  };
+    window.setTimeout(() => setToast(""), 3200);
+  }, []);
 
   const reload = async () => {
     const data = await orcamentosApi.data();
@@ -819,6 +838,8 @@ function Panel({
     { id: "dashboard", label: "Visão geral", short: "Início" },
     { id: "inbox", label: "Inbox", short: "Inbox" },
     { id: "prospects", label: "Funil", short: "Funil" },
+    { id: "instagram", label: "Instagram", short: "Insta" },
+    { id: "finance", label: "Finanças", short: "Finanças" },
     { id: "clients", label: "Clientes", short: "Clientes" },
     { id: "proposals", label: "Orçamentos", short: "Orçam." },
     { id: "presets", label: "Presets", short: "Presets" },
@@ -1961,6 +1982,10 @@ function Panel({
             <Funnel showToast={showToast} />
           ) : null}
 
+          {!editing && tab === "instagram" ? <Instagram showToast={showToast} /> : null}
+
+          {!editing && tab === "finance" ? <Finance showToast={showToast} /> : null}
+
           {!editing && tab === "inbox" ? (
             <section>
               <div className="mb-6 flex flex-wrap items-start justify-between gap-3">
@@ -2744,7 +2769,7 @@ function Panel({
       </div>
 
       {!editing ? (
-        <nav className="fixed inset-x-0 bottom-0 z-30 flex border-t border-neutral-200 bg-[#F3F4F6]/95 pb-[max(0.35rem,env(safe-area-inset-bottom))] pt-1 backdrop-blur dark:border-neutral-800 dark:bg-[#151515]/95 md:hidden">
+        <nav className="fixed inset-x-0 bottom-0 z-30 flex overflow-x-auto border-t border-neutral-200 bg-[#F3F4F6]/95 pb-[max(0.35rem,env(safe-area-inset-bottom))] pt-1 backdrop-blur dark:border-neutral-800 dark:bg-[#151515]/95 md:hidden">
           {nav
             .filter((n) => n.id !== "settings" && n.id !== "presets")
             .map((item) => {
@@ -2754,7 +2779,7 @@ function Panel({
                   key={item.id}
                   type="button"
                   onClick={() => go(item.id)}
-                  className={`flex min-h-12 flex-1 flex-col items-center justify-center gap-0.5 px-1 py-2 text-[10px] font-medium ${focusRing} ${
+                  className={`flex min-h-12 min-w-14 flex-1 shrink-0 flex-col items-center justify-center gap-0.5 px-1 py-2 text-[10px] font-medium ${focusRing} ${
                     active
                       ? "text-neutral-900 dark:text-white"
                       : "text-neutral-400"

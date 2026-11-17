@@ -39,6 +39,22 @@ const loaders: Record<string, () => Promise<{ default: RouteHandler }>> = {
   "bot/leads": () => import("./_handlers/bot/leads.js"),
   "bot/queue": () => import("./_handlers/bot/queue.js"),
   "bot/move": () => import("./_handlers/bot/move.js"),
+  // Instagram (011)
+  instagram: () => import("./_handlers/instagram/index.js"),
+  "instagram/oauth": () => import("./_handlers/instagram/oauth.js"),
+  "instagram/oauth-callback": () => import("./_handlers/instagram/oauthCallback.js"),
+  "instagram/sync": () => import("./_handlers/instagram/sync.js"),
+  "instagram/posts": () => import("./_handlers/instagram/posts.js"),
+  "instagram/media": () => import("./_handlers/instagram/media.js"),
+  "instagram/comments": () => import("./_handlers/instagram/comments.js"),
+  "instagram/upload": () => import("./_handlers/instagram/upload.js"),
+  // Finanças (012)
+  finance: () => import("./_handlers/finance/index.js"),
+  "finance/sync": () => import("./_handlers/finance/sync.js"),
+  "finance/transactions": () => import("./_handlers/finance/transactions.js"),
+  "finance/rules": () => import("./_handlers/finance/rules.js"),
+  // Vercel Cron / GitHub Actions (Bearer CRON_SECRET)
+  cron: () => import("./_handlers/cron.js"),
 };
 
 function routeKey(req: VercelRequest): string {

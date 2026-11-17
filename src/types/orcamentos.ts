@@ -191,3 +191,184 @@ export type BotToken = {
   last_used_at: string | null;
   revoked_at: string | null;
 };
+
+// ---------- Instagram (011) ----------
+
+export type IgPostKind = "image" | "carousel" | "reel" | "story";
+export type IgPostStatus = "rascunho" | "agendado" | "publicando" | "publicado" | "erro";
+
+export type IgPost = {
+  id: string;
+  kind: IgPostKind;
+  caption: string;
+  mediaUrls: string[];
+  coverUrl: string;
+  shareToFeed: boolean;
+  scheduledAt: string | null;
+  status: IgPostStatus;
+  publishedMediaId: string;
+  permalink: string;
+  error: string;
+  attempts: number;
+  tags: string[];
+  notes: string;
+  publishedAt: string | null;
+  created: string | null;
+  updated: string | null;
+};
+
+export type IgPostInput = {
+  id?: string;
+  kind: IgPostKind;
+  caption: string;
+  mediaUrls: string[];
+  coverUrl: string;
+  shareToFeed: boolean;
+  scheduledAt: string | null;
+  mode: "rascunho" | "agendado" | "agora";
+  tags: string[];
+  notes: string;
+};
+
+export type IgMedia = {
+  id: string;
+  caption: string;
+  mediaType: string;
+  productType: string;
+  mediaUrl: string;
+  thumbnailUrl: string;
+  permalink: string;
+  postedAt: string | null;
+  likes: number | null;
+  comments: number | null;
+  reach: number | null;
+  views: number | null;
+  saved: number | null;
+  shares: number | null;
+  tags: string[];
+  notes: string;
+};
+
+export type IgComment = {
+  id: string;
+  mediaId: string;
+  parentId: string | null;
+  username: string;
+  text: string;
+  postedAt: string | null;
+  fromMe: boolean;
+  hidden: boolean;
+  status: "novo" | "respondido" | "arquivado";
+  mediaPermalink: string;
+  mediaThumb: string;
+  mediaCaption: string;
+};
+
+export type IgAccount =
+  | { connected: false }
+  | {
+      connected: true;
+      userId: string;
+      username: string;
+      name: string;
+      picture: string;
+      followers: number | null;
+      follows: number | null;
+      mediaCount: number | null;
+      accountType: string;
+      connectedAt: string;
+      refreshedAt: string;
+      expiresAt?: string | null;
+      expiryGuessed?: boolean;
+      insights28d?: Record<string, number>;
+      insightsAt?: string;
+      publishQuota?: { used: number; total: number } | null;
+    };
+
+export type IgOverview = {
+  account: IgAccount;
+  posts: IgPost[];
+  media: IgMedia[];
+  comments: IgComment[];
+  features: { oauth: boolean; upload: boolean; cron: boolean };
+};
+
+// ---------- Finanças (012) ----------
+
+export type FinItem = {
+  id: string;
+  connectorName: string;
+  connectorImage: string;
+  status: string;
+  executionStatus: string;
+  error: string;
+  bankUpdatedAt: string | null;
+  syncedAt: string | null;
+};
+
+export type FinAccount = {
+  id: string;
+  itemId: string;
+  type: string;
+  subtype: string;
+  name: string;
+  number: string;
+  balance: number;
+  currency: string;
+  creditLimit: number | null;
+  availableCredit: number | null;
+  billDueDate: string | null;
+  hidden: boolean;
+  connectorName: string;
+  syncedAt: string | null;
+};
+
+export type FinTransaction = {
+  id: string;
+  accountId: string;
+  date: string | null;
+  description: string;
+  amount: number;
+  pluggyCategory: string;
+  category: string;
+  categoryManual: boolean;
+  merchant: string;
+  status: string;
+  ignored: boolean;
+  notes: string;
+};
+
+export type FinInvestment = {
+  id: string;
+  itemId: string;
+  name: string;
+  type: string;
+  subtype: string;
+  balance: number;
+  amountOriginal: number | null;
+  annualRate: number | null;
+  dueDate: string | null;
+};
+
+export type FinRule = { id: string; pattern: string; category: string; ignore: boolean };
+export type FinBudget = { category: string; limit: number };
+export type FinMonth = { month: string; income: number; expense: number };
+
+export type FinOverview = {
+  configured: boolean;
+  items: FinItem[];
+  accounts: FinAccount[];
+  investments: FinInvestment[];
+  rules: FinRule[];
+  budgets: FinBudget[];
+  months: FinMonth[];
+  categories: string[];
+};
+
+export type FinSyncResult = {
+  itemId: string;
+  accounts: number;
+  transactions: number;
+  investments: number;
+  error?: string;
+};

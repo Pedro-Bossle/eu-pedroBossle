@@ -31,7 +31,7 @@ Além do Neon, configure (Production + Preview):
 
 ## 3. Schema + RLS
 
-No SQL Editor do Neon, rode os arquivos `001`…`009` (nesta ordem), **ou**:
+No SQL Editor do Neon, rode os arquivos `001`…`012` (nesta ordem), **ou**:
 
 ```bash
 # com DATABASE_URL no ambiente
@@ -43,6 +43,9 @@ npm run db:migrate
 - `006` — `session_version` para invalidar JWTs após reset de senha.
 - `007` — `contact_leads` (formulário da Home → inbox do painel).
 - `008` — `prospect_leads` (menu **Prospecção**). `integration_settings` é legado e pode ficar vazia.
+- `009`/`010` — funil de prospecção e nota do lead.
+- `011` — Instagram: `integration_credentials` (token criptografado), `ig_media`, `ig_comments`, `ig_posts`.
+- `012` — Finanças (Pluggy): `fin_items`, `fin_accounts`, `fin_transactions`, `fin_investments`, `fin_rules`, `fin_budgets`.
 
 ### Prospecção
 
@@ -71,3 +74,40 @@ curl -X POST https://dev-bossle.vercel.app/api/orcamentos/bootstrap \
 ## 6. Domínio
 
 Adicione `orcamentos.devbossle.com.br` ao projeto Vercel e aponte o DNS (CNAME para `cname.vercel-dns.com`). O `vercel.json` redireciona `/` desse host para `/orcamentos`.
+
+## 7. Instagram (menu **Instagram**)
+
+Calendário de posts, agendamento (foto, carrossel, Reels, Story), biblioteca com métricas e caixa de comentários com status (sem resposta / respondido / arquivado).
+
+| Variável | Uso |
+|---|---|
+| `CRON_SECRET` | 16+ caracteres. Protege `/api/orcamentos/cron`; a Vercel Cron envia sozinha |
+| `INTEGRATIONS_ENC_KEY` | (recomendado) chave para criptografar tokens no banco; sem ela usa o `ORCAMENTOS_SESSION_SECRET` |
+| `META_APP_ID` / `META_APP_SECRET` | (opcional) botão “Entrar com Instagram” e troca por token de 60 dias |
+| `META_REDIRECT_URI` | (opcional) padrão `https://<ORCAMENTOS_PUBLIC_URL>/api/orcamentos/instagram/oauth-callback` |
+| `META_GRAPH_VERSION` | (opcional) padrão `v24.0` |
+| `BLOB_READ_WRITE_TOKEN` | (opcional) Vercel Blob para enviar fotos/vídeos pelo painel. Sem ele, use URLs públicas |
+
+1. Conta do Instagram **profissional** (Criador ou Empresa).
+2. developers.facebook.com → app Business → produto **Instagram** (API com login do Instagram). Permissões: `instagram_business_basic`, `instagram_business_content_publish`, `instagram_business_manage_comments`, `instagram_business_manage_insights`.
+3. Gere o token e cole em **Instagram → Conta**, ou configure `META_APP_ID`/`META_APP_SECRET` + a URL de redirecionamento no app da Meta e use o botão.
+4. O token é renovado automaticamente (cron diário) antes dos 60 dias.
+
+**Agendamento.** A API do Instagram não agenda sozinha: o painel guarda o post e publica na hora. A Vercel Hobby só permite cron diário (`vercel.json`), então o workflow `.github/workflows/instagram-scheduler.yml` chama `/api/orcamentos/cron?tasks=publish` a cada 10 min. Configure no GitHub (Settings → Secrets → Actions) `APP_URL` e `CRON_SECRET`. No plano Pro dá para trocar o cron do `vercel.json` para `*/5 * * * *`.
+
+Mídias precisam ser URLs públicas: imagem **JPEG** (o upload do painel converte PNG/WebP), vídeo MP4/MOV. Reels levam alguns minutos para processar; o post fica “Publicando” e sai no próximo ciclo.
+
+## 8. Finanças (menu **Finanças**)
+
+Saldo, faturas, investimentos, entradas × saídas por mês, gastos por categoria, orçamentos e regras de categorização.
+
+| Variável | Uso |
+|---|---|
+| `PLUGGY_CLIENT_ID` / `PLUGGY_CLIENT_SECRET` | Credenciais do dashboard da Pluggy (ficam só no servidor) |
+| `PLUGGY_ITEM_IDS` | (opcional) Item IDs separados por vírgula, cadastrados automaticamente no sync |
+
+1. Crie a conta em pluggy.ai → Dashboard → copie Client ID e Client Secret.
+2. Em meu.pluggy.ai conecte seus bancos (Open Finance). No menu ⋮ de cada conexão, **Copiar Item ID**.
+3. Em **Finanças → Contas**, cole o Item ID. O painel importa 12 meses e o cron diário mantém em dia.
+
+Pagamento de fatura e transferência entre contas próprias são ignorados nos totais automaticamente (dá para mudar por transação). Edições manuais de categoria não são sobrescritas pelo sync.

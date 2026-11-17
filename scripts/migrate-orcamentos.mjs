@@ -62,6 +62,10 @@ const sqlFiles = [
   resolve("db/006_session_version.sql"),
   resolve("db/007_contact_leads.sql"),
   resolve("db/008_prospects.sql"),
+  resolve("db/009_prospect_funnel.sql"),
+  resolve("db/010_prospect_scoring.sql"),
+  resolve("db/011_instagram.sql"),
+  resolve("db/012_finance.sql"),
 ];
 const pool = new Pool({ connectionString: url });
 const client = await pool.connect();
