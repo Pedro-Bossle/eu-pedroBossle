@@ -325,6 +325,16 @@ export const orcamentosApi = {
       method: "POST",
       body: JSON.stringify({ itemId }),
     }),
+  finConnectToken: (itemId?: string) =>
+    request<{ accessToken: string }>("/api/orcamentos/finance/connect-token", {
+      method: "POST",
+      body: JSON.stringify(itemId ? { itemId } : {}),
+    }),
+  finWebhook: (method: "GET" | "POST" | "DELETE" = "GET") =>
+    request<{ url: string | null; registered: boolean; hook: { id: string; createdAt?: string } | null }>(
+      "/api/orcamentos/finance/webhook-setup",
+      method === "GET" ? undefined : { method, body: method === "POST" ? "{}" : undefined },
+    ),
   finDeleteItem: (itemId: string) =>
     request<{ ok: boolean }>(
       `/api/orcamentos/finance?itemId=${encodeURIComponent(itemId)}`,

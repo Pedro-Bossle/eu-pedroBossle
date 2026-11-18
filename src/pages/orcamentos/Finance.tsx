@@ -154,7 +154,7 @@ export default function Finance({ showToast }: Props) {
         <div className="border border-sky-500/30 bg-sky-500/10 px-4 py-3 text-sm text-sky-900 dark:text-sky-200">
           Nenhum banco conectado ainda.{" "}
           <button type="button" className="font-semibold underline underline-offset-4" onClick={() => setView("contas")}>
-            Adicione o Item ID do Meu Pluggy
+            Conecte seu primeiro banco
           </button>
           .
         </div>
@@ -1000,6 +1000,33 @@ function Budgets({
 function Accounts({ data, showToast, onChanged }: { data: FinOverview; showToast: (m: string) => void; onChanged: () => Promise<unknown> }) {
   const [itemId, setItemId] = useState("");
   const [busy, setBusy] = useState("");
+  const [hook, setHook] = useState<{ url: string | null; registered: boolean } | null>(null);
+
+  // Estado do webhook (só consulta; setState acontece no retorno do fetch)
+  useEffect(() => {
+    if (!data.configured) return;
+    let cancelled = false;
+    orcamentosApi
+      .finWebhook("GET")
+      .then((r) => !cancelled && setHook(r))
+      .catch(() => !cancelled && setHook(null));
+    return () => {
+      cancelled = true;
+    };
+  }, [data.configured]);
+
+  const toggleWebhook = async (on: boolean) => {
+    setBusy("webhook");
+    try {
+      const r = await orcamentosApi.finWebhook(on ? "POST" : "DELETE");
+      setHook(r);
+      showToast(on ? "Atualização automática ativada" : "Atualização automática desativada");
+    } catch (e) {
+      showToast(e instanceof Error ? e.message : "Erro no webhook");
+    } finally {
+      setBusy("");
+    }
+  };
 
   const add = async () => {
     setBusy("add");
@@ -1011,6 +1038,50 @@ function Accounts({ data, showToast, onChanged }: { data: FinOverview; showToast
     } catch (e) {
       showToast(e instanceof Error ? e.message : "Erro");
     } finally {
+      setBusy("");
+    }
+  };
+
+  /**
+   * Abre o widget oficial Pluggy Connect. O servidor gera um connect token temporário
+   * (o client secret não vem para o navegador). Ao concluir, o item é salvo e sincronizado.
+   * Com `updateItemId`, abre direto a reconexão daquele banco (senha trocada, consentimento vencido).
+   */
+  const openConnect = async (updateItemId?: string) => {
+    setBusy(updateItemId ?? "connect");
+    try {
+      const [{ accessToken }, { PluggyConnect }] = await Promise.all([
+        orcamentosApi.finConnectToken(updateItemId),
+        import("pluggy-connect-sdk"),
+      ]);
+      const widget = new PluggyConnect({
+        connectToken: accessToken,
+        updateItem: updateItemId,
+        countries: ["BR"],
+        language: "pt",
+        theme: document.documentElement.classList.contains("dark") ? "dark" : "light",
+        onSuccess: async ({ item }: { item: { id: string } }) => {
+          setBusy(item.id);
+          try {
+            const { result } = await orcamentosApi.finAddItem(item.id);
+            showToast(
+              result.error
+                ? `Banco conectado, mas a sincronização falhou: ${result.error}`
+                : `Banco conectado: ${result.accounts} contas e ${result.transactions} transações importadas`,
+            );
+            await onChanged();
+          } catch (e) {
+            showToast(e instanceof Error ? e.message : "Erro ao salvar a conexão");
+          } finally {
+            setBusy("");
+          }
+        },
+        onError: ({ message }: { message: string }) => showToast(`Pluggy: ${message}`),
+        onClose: () => setBusy((b) => (b === "connect" || b === updateItemId ? "" : b)),
+      });
+      await widget.init();
+    } catch (e) {
+      showToast(e instanceof Error ? e.message : "Não foi possível abrir a Pluggy");
       setBusy("");
     }
   };
@@ -1045,7 +1116,7 @@ function Accounts({ data, showToast, onChanged }: { data: FinOverview; showToast
                   <p className="truncate font-mono text-[11px] text-muted">{item.id}</p>
                 </div>
                 <span
-                  className={`border px-2 py-0.5 text-[11px] font-medium ${
+                  className={`rounded-full border px-2 py-0.5 text-[11px] font-medium ${
                     ok
                       ? "border-emerald-300 text-emerald-800 dark:border-emerald-800 dark:text-emerald-300"
                       : "border-amber-300 text-amber-800 dark:border-amber-800 dark:text-amber-300"
@@ -1102,6 +1173,11 @@ function Accounts({ data, showToast, onChanged }: { data: FinOverview; showToast
                 <button type="button" className={btnSm} disabled={!!busy} onClick={() => syncOne(item.id)}>
                   {busy === item.id ? "Sincronizando…" : "Sincronizar"}
                 </button>
+                {!ok ? (
+                  <button type="button" className={btnSm} disabled={!!busy} onClick={() => openConnect(item.id)} title="Abre a Pluggy para refazer o login ou renovar o consentimento">
+                    Reconectar
+                  </button>
+                ) : null}
                 <button type="button" className={btnSm} disabled={!!busy} onClick={() => syncOne(item.id, true)} title="Reimporta os últimos 12 meses">
                   Reimportar 12 meses
                 </button>
@@ -1124,32 +1200,70 @@ function Accounts({ data, showToast, onChanged }: { data: FinOverview; showToast
       </div>
 
       <div className={cardClass}>
-        <h3 className="text-base font-semibold">Conectar banco (Meu Pluggy)</h3>
-        <ol className="mt-2 list-decimal space-y-1 pl-5 text-sm text-muted">
-          <li>Em meu.pluggy.ai, conecte seu banco pelo Open Finance.</li>
-          <li>No menu (⋮) da conexão, toque em “Copiar Item ID”.</li>
-          <li>Cole abaixo. O painel importa 12 meses e passa a sincronizar todo dia.</li>
-        </ol>
-        <div className="mt-4 flex flex-col gap-2 sm:flex-row">
-          <input
-            className={`${inputClass} font-mono`}
-            placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
-            value={itemId}
-            onChange={(e) => setItemId(e.target.value)}
-            disabled={!data.configured}
-          />
-          <button
-            type="button"
-            className={btnPrimary}
-            disabled={!data.configured || !/^[0-9a-f-]{36}$/i.test(itemId.trim()) || busy === "add"}
-            onClick={add}
-          >
-            {busy === "add" ? "Importando…" : "Adicionar"}
-          </button>
-        </div>
+        <h3 className="text-base font-semibold">Conectar banco</h3>
+        <p className="mt-1 max-w-prose text-sm text-muted">
+          Abre a janela oficial da Pluggy. Você escolhe o banco e autoriza pelo Open Finance; o painel importa 12 meses e passa
+          a sincronizar todo dia. Sua senha do banco fica só na Pluggy.
+        </p>
+        <button
+          type="button"
+          className={`${btnPrimary} mt-4`}
+          disabled={!data.configured || !!busy}
+          onClick={() => openConnect()}
+        >
+          {busy === "connect" ? "Abrindo a Pluggy…" : "Conectar banco"}
+        </button>
         {!data.configured ? (
           <p className="mt-2 text-xs text-amber-800 dark:text-amber-300">Configure PLUGGY_CLIENT_ID e PLUGGY_CLIENT_SECRET na Vercel primeiro.</p>
         ) : null}
+
+        {data.configured ? (
+          <div className="mt-5 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-sunken/70 p-4">
+            <div className="min-w-0">
+              <p className="text-sm font-medium">
+                Atualização automática {hook?.registered ? <span className="text-accent-text">ativada</span> : <span className="text-muted">desativada</span>}
+              </p>
+              <p className="mt-0.5 text-xs text-muted">
+                {hook?.registered
+                  ? "A Pluggy avisa o painel quando o banco tem novidade e as transações entram sozinhas."
+                  : hook && !hook.url
+                    ? "Precisa de um endereço https público (ORCAMENTOS_PUBLIC_URL) para a Pluggy chamar."
+                    : "Sem isso, os dados atualizam uma vez por dia ou quando você clica em Sincronizar."}
+              </p>
+            </div>
+            <button
+              type="button"
+              className={hook?.registered ? btnSm : `${btnPrimary} min-h-8 px-3 py-1 text-xs`}
+              disabled={busy === "webhook" || (!hook?.registered && !hook?.url)}
+              onClick={() => toggleWebhook(!hook?.registered)}
+            >
+              {busy === "webhook" ? "Salvando…" : hook?.registered ? "Desativar" : "Ativar"}
+            </button>
+          </div>
+        ) : null}
+
+        <details className="mt-5 border-t border-line pt-4">
+          <summary className="text-sm font-medium text-muted">Já tenho um Item ID (Meu Pluggy)</summary>
+          <p className="mt-2 text-sm text-muted">No meu.pluggy.ai, menu ⋮ da conexão → “Copiar Item ID”.</p>
+          <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+            <input
+              className={`${inputClass} font-mono`}
+              placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+              value={itemId}
+              onChange={(e) => setItemId(e.target.value)}
+              disabled={!data.configured}
+              aria-label="Item ID da Pluggy"
+            />
+            <button
+              type="button"
+              className={btn}
+              disabled={!data.configured || !/^[0-9a-f-]{36}$/i.test(itemId.trim()) || busy === "add"}
+              onClick={add}
+            >
+              {busy === "add" ? "Importando…" : "Adicionar"}
+            </button>
+          </div>
+        </details>
       </div>
     </div>
   );

@@ -51,6 +51,10 @@ const loaders: Record<string, () => Promise<{ default: RouteHandler }>> = {
   // Finanças (012)
   finance: () => import("./_handlers/finance/index.js"),
   "finance/sync": () => import("./_handlers/finance/sync.js"),
+  "finance/connect-token": () => import("./_handlers/finance/connectToken.js"),
+  // Webhook público da Pluggy (header secreto) + registro pelo painel
+  "finance/webhook": () => import("./_handlers/finance/webhook.js"),
+  "finance/webhook-setup": () => import("./_handlers/finance/webhookSetup.js"),
   "finance/transactions": () => import("./_handlers/finance/transactions.js"),
   "finance/rules": () => import("./_handlers/finance/rules.js"),
   // Vercel Cron / GitHub Actions (Bearer CRON_SECRET)

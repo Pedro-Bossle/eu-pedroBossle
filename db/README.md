@@ -104,10 +104,18 @@ Saldo, faturas, investimentos, entradas × saídas por mês, gastos por categori
 | Variável | Uso |
 |---|---|
 | `PLUGGY_CLIENT_ID` / `PLUGGY_CLIENT_SECRET` | Credenciais do dashboard da Pluggy (ficam só no servidor) |
+| `PLUGGY_WEBHOOK_SECRET` | (opcional) segredo do webhook; sem ele é derivado do `ORCAMENTOS_SESSION_SECRET` |
+| `PLUGGY_WEBHOOK_URL` | (opcional) URL pública do webhook; padrão `<ORCAMENTOS_PUBLIC_URL>/api/orcamentos/finance/webhook` |
 | `PLUGGY_ITEM_IDS` | (opcional) Item IDs separados por vírgula, cadastrados automaticamente no sync |
 
-1. Crie a conta em pluggy.ai → Dashboard → copie Client ID e Client Secret.
-2. Em meu.pluggy.ai conecte seus bancos (Open Finance). No menu ⋮ de cada conexão, **Copiar Item ID**.
-3. Em **Finanças → Contas**, cole o Item ID. O painel importa 12 meses e o cron diário mantém em dia.
+1. Em dashboard.pluggy.ai copie Client ID e Client Secret e coloque na Vercel.
+2. **Finanças → Contas → Conectar banco**: abre o widget oficial Pluggy Connect (o servidor gera um connect token de 30 min; o secret nunca vai ao navegador). Ao concluir, o painel importa 12 meses.
+   Alternativa: colar o Item ID de uma conexão do Meu Pluggy em “Já tenho um Item ID”.
+3. **Atualização automática → Ativar**: registra na Pluggy um webhook (`event: all`) para `/api/orcamentos/finance/webhook`, com o header `x-webhook-secret`. O painel responde na hora e sincroniza em segundo plano (`waitUntil`).
+   - `item/updated`, `item/created`, `transactions/created|updated` → sincroniza o banco
+   - `item/error`, `item/waiting_user_input` → marca a conexão com erro (botão **Reconectar** abre o widget)
+   - `transactions/deleted` → apaga as transações; `item/deleted` → marca a conexão como removida
+   - A Pluggy precisa alcançar a URL: em previews com Deployment Protection ligado, o webhook não chega; use o domínio de produção.
+4. O cron diário continua como rede de segurança.
 
 Pagamento de fatura e transferência entre contas próprias são ignorados nos totais automaticamente (dá para mudar por transação). Edições manuais de categoria não são sobrescritas pelo sync.
