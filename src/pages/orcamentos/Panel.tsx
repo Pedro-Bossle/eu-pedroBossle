@@ -61,9 +61,21 @@ import {
 } from "./panelStyles";
 import Instagram from "./Instagram";
 import Select from "./ui/Select";
+import Sheet from "./ui/Sheet";
+import QuickMenu from "./ui/QuickMenu";
+import ClientList from "./crm/ClientList";
+import ClientSheet from "./crm/ClientSheet";
+import CommandPalette, { type PaletteCommand } from "./crm/CommandPalette";
+import TaskEditor from "./crm/TaskEditor";
+import { draftFromTask, type TaskDraft } from "./crm/model";
+import Tasks from "./crm/Tasks";
+import Today, { type TodayNav } from "./crm/Today";
+import type { CrmSearchResult, CrmTask } from "../../types/orcamentos";
 import Finance from "./Finance";
 
 type Tab =
+  | "today"
+  | "tasks"
   | "dashboard"
   | "inbox"
   | "prospects"
@@ -210,6 +222,8 @@ function Field({
 }
 
 const navIcons: Record<Tab, string[]> = {
+  today: ["M12 3v2M12 19v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M3 12h2M19 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4", "M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8"],
+  tasks: ["M9 11l3 3 8-8", "M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"],
   dashboard: ["M3 12l9-9 9 9", "M5 10v10h14V10"],
   inbox: [
     "M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z",
@@ -271,12 +285,19 @@ function Panel({
   const [tab, setTab] = useState<Tab>(() => {
     // ?tab=instagram (volta do login do Instagram) ou ?tab=finance
     const t = new URLSearchParams(window.location.search).get("tab");
-    return t === "instagram" || t === "finance" ? t : "dashboard";
+    return t === "instagram" || t === "finance" || t === "tasks" ? t : "today";
   });
   const [toast, setToast] = useState("");
   const [busy, setBusy] = useState(false);
   const [editing, setEditing] = useState<OrcamentoProposal | null>(null);
   const [clientForm, setClientForm] = useState<OrcamentoClient | null>(null);
+  // CRM: editor de tarefa, ficha do cliente, busca global e menus do celular
+  const [taskDraft, setTaskDraft] = useState<TaskDraft | null>(null);
+  const [taskVersion, setTaskVersion] = useState(0);
+  const [sheetClientId, setSheetClientId] = useState<string | null>(null);
+  const [paletteOpen, setPaletteOpen] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(false);
+  const [quickOpen, setQuickOpen] = useState(false);
   const [presetForm, setPresetForm] = useState<OrcamentoPreset | null>(null);
   const [presetSectionFilter, setPresetSectionFilter] =
     useState<PresetSection | "todos">("todos");
@@ -438,6 +459,8 @@ function Panel({
   };
 
   const go = (next: Tab) => {
+    setMoreOpen(false);
+    setQuickOpen(false);
     setEditing(null);
     setEditStep("projeto");
     setClientForm(null);
@@ -844,18 +867,102 @@ function Panel({
     }
   };
 
-  const nav: { id: Tab; label: string; short: string }[] = [
-    { id: "dashboard", label: "Visão geral", short: "Início" },
-    { id: "inbox", label: "Inbox", short: "Inbox" },
-    { id: "prospects", label: "Funil", short: "Funil" },
-    { id: "instagram", label: "Instagram", short: "Insta" },
-    { id: "finance", label: "Finanças", short: "Finanças" },
-    { id: "clients", label: "Clientes", short: "Clientes" },
-    { id: "proposals", label: "Orçamentos", short: "Orçam." },
-    { id: "presets", label: "Presets", short: "Presets" },
-    { id: "profile", label: "Meus dados", short: "Dados" },
-    { id: "settings", label: "Backup / seed", short: "Backup" },
+  const nav: { id: Tab; label: string; short: string; group: string }[] = [
+    { id: "today", label: "Hoje", short: "Hoje", group: "Rotina" },
+    { id: "tasks", label: "Tarefas", short: "Tarefas", group: "Rotina" },
+    { id: "inbox", label: "Inbox", short: "Inbox", group: "Rotina" },
+    { id: "prospects", label: "Funil", short: "Funil", group: "Vendas" },
+    { id: "clients", label: "Clientes", short: "Clientes", group: "Vendas" },
+    { id: "proposals", label: "Orçamentos", short: "Orçam.", group: "Vendas" },
+    { id: "dashboard", label: "Resultados", short: "Resultados", group: "Vendas" },
+    { id: "instagram", label: "Instagram", short: "Insta", group: "Marketing" },
+    { id: "finance", label: "Finanças", short: "Finanças", group: "Pessoal" },
+    { id: "presets", label: "Presets", short: "Presets", group: "Ajustes" },
+    { id: "profile", label: "Meus dados", short: "Dados", group: "Ajustes" },
+    { id: "settings", label: "Backup / seed", short: "Backup", group: "Ajustes" },
   ];
+  /** Barra inferior do celular: 4 atalhos + "Mais". */
+  const mobileNav: Tab[] = ["today", "tasks", "clients", "prospects"];
+
+  const openTask = useCallback((d: TaskDraft | CrmTask) => {
+    setTaskDraft("doneAt" in d ? draftFromTask(d as CrmTask) : (d as TaskDraft));
+  }, []);
+  const openProposalById = useCallback(
+    (id: string) => {
+      const p = proposals.find((x) => x.id === id);
+      if (p) {
+        setSheetClientId(null);
+        setEditStep("projeto");
+        setEditing(p);
+      }
+    },
+    [proposals],
+  );
+  const newClient = () => {
+    setTab("clients");
+    setEditing(null);
+    setClientForm({
+      id: uid(),
+      name: "",
+      company: "",
+      phone: "",
+      email: "",
+      link: "",
+      notes: "",
+      legalName: "",
+      document: "",
+      address: "",
+      status: "ativo",
+      tags: [],
+    });
+  };
+
+  const sheetClient = sheetClientId ? clients.find((c) => c.id === sheetClientId) ?? null : null;
+  const quickItems = [
+    { label: "Tarefa", hint: "N", icon: navIcons.tasks.join(""), run: () => openTask({ title: "", dueAt: new Date().toISOString() }) },
+    { label: "Orçamento", icon: navIcons.proposals.join(""), run: () => openProposal(blankProposal()) },
+    { label: "Cliente", icon: navIcons.clients.join(""), run: newClient },
+    { label: "Post no Instagram", icon: navIcons.instagram.join(""), run: () => go("instagram") },
+  ];
+
+  const paletteCommands: PaletteCommand[] = [
+    { id: "new-task", label: "Nova tarefa", hint: "N", icon: navIcons.tasks.join(""), run: () => openTask({ title: "", dueAt: new Date().toISOString() }), keywords: "criar adicionar lembrete follow-up" },
+    { id: "new-proposal", label: "Novo orçamento", icon: navIcons.proposals.join(""), run: () => openProposal(blankProposal()), keywords: "proposta criar" },
+    { id: "new-client", label: "Novo cliente", icon: navIcons.clients.join(""), run: newClient, keywords: "cadastrar criar" },
+    { id: "new-post", label: "Agendar post no Instagram", icon: navIcons.instagram.join(""), run: () => go("instagram"), keywords: "publicar" },
+    { id: "theme", label: dark ? "Usar tema claro" : "Usar tema escuro", icon: "M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z", run: () => setDark((d) => !d), keywords: "dark modo noite" },
+    ...nav.map((n) => ({ id: `go-${n.id}`, label: `Ir para ${n.label}`, hint: n.group, icon: navIcons[n.id].join(""), run: () => go(n.id), keywords: n.short })),
+  ];
+
+  const onPaletteResult = (r: CrmSearchResult) => {
+    if (r.type === "client") setSheetClientId(r.id);
+    else if (r.type === "proposal") openProposalById(r.id);
+    else if (r.type === "lead") go("prospects");
+    else go("tasks");
+  };
+
+  // Atalhos: Ctrl/⌘+K abre a busca; N cria tarefa (fora de campos de texto)
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const el = e.target as HTMLElement | null;
+      const typing = el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.isContentEditable);
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        setPaletteOpen((o) => !o);
+      } else if (!typing && !e.metaKey && !e.ctrlKey && !e.altKey && document.querySelectorAll("[role=dialog]").length === 0) {
+        if (e.key === "n" || e.key === "N") {
+          e.preventDefault();
+          setTaskDraft({ title: "", dueAt: new Date().toISOString() });
+        } else if (e.key === "/") {
+          e.preventDefault();
+          setPaletteOpen(true);
+        }
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
 
   useEffect(() => {
     if (tab !== "inbox") return;
@@ -1081,8 +1188,18 @@ function Panel({
               / orçamentos
             </span>
           </Link>
-          <div className="flex items-center gap-3">
-            <span className="hidden max-w-[160px] truncate text-xs text-muted sm:inline xl:max-w-[280px]">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <button
+              type="button"
+              onClick={() => setPaletteOpen(true)}
+              aria-label="Buscar (Ctrl + K)"
+              className={`flex min-h-9 items-center gap-2 rounded-full border border-line bg-surface/70 px-3 text-sm text-faint transition-colors hover:border-line-strong hover:text-muted md:w-60 lg:w-72 ${focusRing}`}
+            >
+              <Icon d="M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16M21 21l-4.35-4.35" />
+              <span className="hidden flex-1 text-left md:inline">Buscar…</span>
+              <kbd className="hidden rounded-md border border-line px-1.5 text-[10px] md:inline">Ctrl K</kbd>
+            </button>
+            <span className="hidden max-w-[160px] truncate text-xs text-muted xl:inline xl:max-w-[200px]">
               {username}
             </span>
             <button
@@ -1099,37 +1216,39 @@ function Panel({
                 height={24}
               />
             </button>
-            <button
-              type="button"
-              className={`${btnPrimary} hidden sm:inline-flex`}
-              onClick={() => openProposal(blankProposal())}
-            >
-              + Novo
-            </button>
+            <div className="relative hidden sm:block">
+              <button type="button" className={btnPrimary} aria-haspopup="menu" aria-expanded={quickOpen} onClick={() => setQuickOpen((o) => !o)}>
+                + Novo
+              </button>
+              {quickOpen ? <QuickMenu onClose={() => setQuickOpen(false)} items={quickItems} align="right" /> : null}
+            </div>
           </div>
         </div>
       </header>
 
       <div className={`${shellClass} grid md:grid-cols-[210px_1fr] xl:grid-cols-[230px_1fr]`}>
         <aside className="hidden py-6 pr-3 md:sticky md:top-[65px] md:flex md:h-[calc(100dvh-65px)] md:flex-col md:pl-4 xl:pr-5 xl:pl-5">
-          <p className={`${labelClass} px-3`}>Menu</p>
-          <nav className="mt-3 flex flex-1 flex-col gap-0.5">
-            {nav.map((item) => {
+          <nav className="flex flex-1 flex-col gap-0.5 overflow-y-auto" aria-label="Menu principal">
+            {nav.map((item, idx) => {
               const active = tab === item.id && !editing;
+              const header = idx === 0 || nav[idx - 1]!.group !== item.group ? item.group : "";
               return (
-                <button
-                  key={item.id}
-                  type="button"
-                  onClick={() => go(item.id)}
-                  className={`flex items-center gap-2.5 rounded-[10px] px-3 py-2.5 text-left text-sm transition-colors xl:py-2.5 ${focusRing} ${
-                    active
-                      ? "bg-surface font-medium text-ink shadow-[0_1px_2px_rgb(24_32_42/0.06)] ring-1 ring-line [&_svg]:text-accent"
-                      : "text-muted hover:bg-surface/60 hover:text-ink"
-                  }`}
-                >
-                  <Icon paths={navIcons[item.id]} />
-                  {item.label}
-                </button>
+                <div key={item.id}>
+                  {header ? <p className={`${labelClass} px-3 pb-1 text-xs ${idx ? "pt-4" : ""}`}>{header}</p> : null}
+                  <button
+                    type="button"
+                    onClick={() => go(item.id)}
+                    aria-current={active ? "page" : undefined}
+                    className={`flex w-full items-center gap-2.5 rounded-[10px] px-3 py-2 text-left text-sm transition-colors ${focusRing} ${
+                      active
+                        ? "bg-surface font-medium text-ink shadow-[0_1px_2px_rgb(24_32_42/0.06)] ring-1 ring-line [&_svg]:text-accent"
+                        : "text-muted hover:bg-surface/60 hover:text-ink"
+                    }`}
+                  >
+                    <Icon paths={navIcons[item.id]} />
+                    {item.label}
+                  </button>
+                </div>
               );
             })}
           </nav>
@@ -1138,7 +1257,23 @@ function Panel({
           </button>
         </aside>
 
-        <main className="min-w-0 px-4 py-6 pb-24 sm:px-6 md:py-8 md:pb-10 lg:px-8 xl:px-10 xl:py-10 2xl:px-12 2xl:py-12">
+        <main key={editing ? "editing" : tab} className="adm-view min-w-0 px-4 py-6 pb-28 sm:px-6 md:py-8 md:pb-10 lg:px-8 xl:px-10 xl:py-10 2xl:px-12 2xl:py-12">
+          {!editing && tab === "today" ? (
+            <Today
+              name={profile.name || username}
+              version={taskVersion}
+              onNavigate={(t: TodayNav) => go(t)}
+              onOpenClient={setSheetClientId}
+              onOpenProposal={openProposalById}
+              onOpenTask={openTask}
+              showToast={showToast}
+            />
+          ) : null}
+
+          {!editing && tab === "tasks" ? (
+            <Tasks clients={clients} version={taskVersion} onOpenTask={openTask} onOpenClient={setSheetClientId} showToast={showToast} />
+          ) : null}
+
           {editing ? (
             <section className="space-y-4">
               <div className="flex flex-wrap items-start justify-between gap-3">
@@ -2104,24 +2239,7 @@ function Panel({
                     {clients.length === 1 ? "" : "s"}
                   </p>
                 </div>
-                <button
-                  type="button"
-                  className={btnPrimary}
-                  onClick={() =>
-                    setClientForm({
-                      id: uid(),
-                      name: "",
-                      company: "",
-                      phone: "",
-                      email: "",
-                      link: "",
-                      notes: "",
-                      legalName: "",
-                      document: "",
-                      address: "",
-                    })
-                  }
-                >
+                <button type="button" className={btnPrimary} onClick={newClient}>
                   + Cliente
                 </button>
               </div>
@@ -2223,64 +2341,18 @@ function Panel({
                 </div>
               ) : null}
 
-              <div className="space-y-2">
-                {clients.map((c) => (
-                  <div
-                    key={c.id}
-                    className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-line bg-surface p-4"
-                  >
-                    <div className="min-w-0">
-                      <p className="font-medium">
-                        {c.name}
-                        {c.company ? (
-                          <span className="text-xs font-normal text-muted">
-                            {" "}
-                            · {c.company}
-                          </span>
-                        ) : null}
-                      </p>
-                      <p className="mt-0.5 text-xs text-muted">
-                        {[c.phone ? maskPhoneBr(c.phone) : "", c.email]
-                          .filter(Boolean)
-                          .join(" · ") || "Sem contato"}
-                      </p>
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      <button
-                        type="button"
-                        className={btnPrimary}
-                        onClick={() => openProposal(blankProposal(c.id))}
-                      >
-                        Novo orçamento
-                      </button>
-                      <button
-                        type="button"
-                        className={btn}
-                        onClick={() => setClientForm(c)}
-                      >
-                        Editar
-                      </button>
-                      <button
-                        type="button"
-                        className={btnDanger}
-                        onClick={async () => {
-                          if (!window.confirm("Excluir cliente?")) return;
-                          await orcamentosApi.deleteClient(c.id);
-                          await reload();
-                          showToast("Cliente excluído");
-                        }}
-                      >
-                        Excluir
-                      </button>
-                    </div>
-                  </div>
-                ))}
-                {!clients.length ? (
-                  <div className="border border-dashed border-line-strong px-4 py-10 text-center text-sm text-muted">
-                    Nenhum cliente. Cadastre o primeiro para emitir propostas.
-                  </div>
-                ) : null}
-              </div>
+              <ClientList
+                clients={clients}
+                proposals={proposals}
+                onOpen={(c) => setSheetClientId(c.id)}
+                onNewProposal={(id) => openProposal(blankProposal(id))}
+                onDelete={async (c) => {
+                  if (!window.confirm(`Excluir ${c.name}? O histórico e as tarefas ligadas a ele também saem.`)) return;
+                  await orcamentosApi.deleteClient(c.id);
+                  await reload();
+                  showToast("Cliente excluído");
+                }}
+              />
             </section>
           ) : null}
 
@@ -2741,37 +2813,140 @@ function Panel({
       </div>
 
       {!editing ? (
-        <nav className="fixed inset-x-0 bottom-0 z-30 flex overflow-x-auto border-t border-line bg-surface/90 backdrop-blur-md pb-[max(0.35rem,env(safe-area-inset-bottom))] pt-1 backdrop-blur md:hidden">
-          {nav
-            .filter((n) => n.id !== "settings" && n.id !== "presets")
-            .map((item) => {
-              const active = tab === item.id;
+        <>
+          {/* Botão flutuante: criar rápido */}
+          <div className="fixed right-4 bottom-[calc(4.75rem+env(safe-area-inset-bottom))] z-30 md:hidden">
+            {quickOpen ? <QuickMenu onClose={() => setQuickOpen(false)} items={quickItems} align="right" up /> : null}
+            <button
+              type="button"
+              aria-label="Criar"
+              aria-haspopup="menu"
+              aria-expanded={quickOpen}
+              onClick={() => setQuickOpen((o) => !o)}
+              className={`grid size-14 place-items-center rounded-full bg-accent text-accent-ink shadow-float transition-transform active:scale-95 ${focusRing}`}
+            >
+              <svg viewBox="0 0 24 24" className={`size-6 transition-transform duration-200 ${quickOpen ? "rotate-45" : ""}`} fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden>
+                <path d="M12 5v14M5 12h14" />
+              </svg>
+            </button>
+          </div>
+          <nav
+            aria-label="Navegação"
+            className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-5 border-t border-line bg-surface/90 pt-1 pb-[max(0.35rem,env(safe-area-inset-bottom))] backdrop-blur-md md:hidden"
+          >
+            {mobileNav.map((id) => {
+              const item = nav.find((n) => n.id === id)!;
+              const active = tab === id;
               return (
                 <button
-                  key={item.id}
+                  key={id}
                   type="button"
-                  onClick={() => go(item.id)}
-                  className={`flex min-h-12 min-w-14 flex-1 shrink-0 flex-col items-center justify-center gap-0.5 px-1 py-2 text-[10px] font-medium ${focusRing} ${
-                    active
-                      ? "text-ink"
-                      : "text-faint"
+                  onClick={() => go(id)}
+                  aria-current={active ? "page" : undefined}
+                  className={`relative flex min-h-12 flex-col items-center justify-center gap-0.5 px-1 py-1.5 text-[10px] font-medium transition-colors ${focusRing} ${
+                    active ? "text-accent-text" : "text-faint"
                   }`}
                 >
-                  <Icon paths={navIcons[item.id]} />
+                  <span className={`grid h-7 w-12 place-items-center rounded-full transition-colors ${active ? "bg-accent-soft" : ""}`}>
+                    <Icon paths={navIcons[id]} />
+                  </span>
                   {item.short}
                 </button>
               );
             })}
-          <button
-            type="button"
-            onClick={onLogout}
-            className={`flex min-h-12 flex-1 flex-col items-center justify-center gap-0.5 px-1 py-2 text-[10px] font-medium text-faint ${focusRing}`}
-          >
-            <Icon d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" />
-            Sair
-          </button>
-        </nav>
+            <button
+              type="button"
+              onClick={() => setMoreOpen(true)}
+              aria-haspopup="dialog"
+              className={`flex min-h-12 flex-col items-center justify-center gap-0.5 px-1 py-1.5 text-[10px] font-medium ${focusRing} ${
+                !mobileNav.includes(tab) ? "text-accent-text" : "text-faint"
+              }`}
+            >
+              <span className={`grid h-7 w-12 place-items-center rounded-full ${!mobileNav.includes(tab) ? "bg-accent-soft" : ""}`}>
+                <Icon d="M4 6h16M4 12h16M4 18h16" />
+              </span>
+              Mais
+            </button>
+          </nav>
+        </>
       ) : null}
+
+      {moreOpen ? (
+        <Sheet title="Menu" onClose={() => setMoreOpen(false)}>
+          {["Rotina", "Vendas", "Marketing", "Pessoal", "Ajustes"].map((g) => (
+            <div key={g} className="mb-4">
+              <p className={`${labelClass} mb-1.5 text-xs`}>{g}</p>
+              <div className="grid grid-cols-3 gap-2">
+                {nav
+                  .filter((n) => n.group === g)
+                  .map((n) => (
+                    <button
+                      key={n.id}
+                      type="button"
+                      onClick={() => go(n.id)}
+                      className={`flex flex-col items-center gap-1.5 rounded-2xl border px-2 py-3 text-xs font-medium transition-colors ${focusRing} ${
+                        tab === n.id ? "border-accent bg-accent-soft text-accent-text" : "border-line text-muted hover:text-ink"
+                      }`}
+                    >
+                      <Icon paths={navIcons[n.id]} />
+                      {n.label}
+                    </button>
+                  ))}
+              </div>
+            </div>
+          ))}
+          <div className="mt-2 grid grid-cols-2 gap-2 border-t border-line pt-4">
+            <button type="button" className={btn} onClick={() => { setMoreOpen(false); setPaletteOpen(true); }}>
+              Buscar
+            </button>
+            <button type="button" className={btnDanger} onClick={onLogout}>
+              Sair
+            </button>
+          </div>
+        </Sheet>
+      ) : null}
+
+      {taskDraft ? (
+        <TaskEditor
+          initial={taskDraft}
+          clients={clients}
+          onClose={() => setTaskDraft(null)}
+          onSaved={() => setTaskVersion((v) => v + 1)}
+          onDeleted={() => setTaskVersion((v) => v + 1)}
+          showToast={showToast}
+        />
+      ) : null}
+
+      {sheetClient ? (
+        <ClientSheet
+          key={sheetClient.id}
+          client={sheetClient}
+          proposals={proposals}
+          taskVersion={taskVersion}
+          onClose={() => setSheetClientId(null)}
+          onEdit={(c) => {
+            setSheetClientId(null);
+            setTab("clients");
+            setClientForm(c);
+          }}
+          onNewProposal={(id) => {
+            setSheetClientId(null);
+            openProposal(blankProposal(id));
+          }}
+          onOpenProposal={openProposalById}
+          onOpenTask={openTask}
+          onSaved={() => reload()}
+          showToast={showToast}
+        />
+      ) : null}
+
+      <CommandPalette
+        open={paletteOpen}
+        onClose={() => setPaletteOpen(false)}
+        commands={paletteCommands}
+        clients={clients}
+        onPick={onPaletteResult}
+      />
 
       {toast ? (
         <div
@@ -2786,7 +2961,7 @@ function Panel({
       {pdfSource ? (
         <div
           aria-hidden
-          className="pointer-events-none fixed top-0 left-[-10000px] bg-surface"
+          className="pointer-events-none fixed top-0 left-[-10000px] bg-white"
           style={{ width: 680 }}
         >
           <div ref={pdfRef} style={{ width: 680 }}>
@@ -2802,7 +2977,7 @@ function Panel({
       {contractSource ? (
         <div
           aria-hidden
-          className="pointer-events-none fixed top-0 left-[-10000px] bg-surface"
+          className="pointer-events-none fixed top-0 left-[-10000px] bg-white"
           style={{ width: 680 }}
         >
           <div ref={contractRef} style={{ width: 680 }}>

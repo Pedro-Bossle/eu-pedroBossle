@@ -303,3 +303,70 @@ body {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Painel lateral (desktop) / folha inferior (celular) */
+@keyframes adm-sheet-right {
+  from {
+    transform: translateX(24px);
+    opacity: 0;
+  }
+}
+
+@keyframes adm-sheet-up {
+  from {
+    transform: translateY(32px);
+    opacity: 0;
+  }
+}
+
+@keyframes adm-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+/* Troca de tela: entra com leve subida (uma vez por navegação) */
+@keyframes adm-view {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+.adm-backdrop {
+  animation: adm-fade 180ms ease-out;
+}
+
+.adm-sheet {
+  animation: adm-sheet-up 240ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+@media (min-width: 768px) {
+  .adm-sheet {
+    animation-name: adm-sheet-right;
+  }
+}
+
+.adm-view {
+  animation: adm-view 220ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+/* Concluir tarefa: o check “salta” */
+@keyframes adm-check {
+  40% {
+    transform: scale(1.18);
+  }
+}
+
+.adm-check {
+  animation: adm-check 260ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .adm-backdrop,
+  .adm-sheet,
+  .adm-view,
+  .adm-check {
+    animation: none;
+  }
+}
