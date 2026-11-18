@@ -1017,7 +1017,7 @@ function Panel({
       if (tabRef.current === "today") return;
       orcamentosApi
         .crmCounts()
-        .then(({ counts }) => !cancelled && setBadges(remember("counts", counts as Partial<Record<Tab, number>>)))
+        .then(({ counts }) => !cancelled && setBadges(remember("counts", (counts ?? {}) as Partial<Record<Tab, number>>)))
         .catch(() => undefined);
     };
     tick();
