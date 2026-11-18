@@ -72,6 +72,7 @@ import Tasks from "./crm/Tasks";
 import Today, { type TodayNav } from "./crm/Today";
 import Results from "./crm/Results";
 import Projects from "./crm/Projects";
+import Agenda from "./crm/Agenda";
 import { CLIENT_CREATED, convertToClient } from "./crm/events";
 import type { CrmSearchResult, CrmTask, CrmToday } from "../../types/orcamentos";
 
@@ -83,6 +84,7 @@ const Finance = lazy(() => import("./Finance"));
 type Tab =
   | "today"
   | "tasks"
+  | "agenda"
   | "dashboard"
   | "inbox"
   | "prospects"
@@ -244,6 +246,7 @@ const navIcons: Record<Tab, string[]> = {
   today: ["M12 3v2M12 19v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M3 12h2M19 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4", "M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8"],
   tasks: ["M9 11l3 3 8-8", "M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"],
   projects: ["M3 3h7v9H3z", "M14 3h7v5h-7z", "M14 12h7v9h-7z", "M3 16h7v5H3z"],
+  agenda: ["M8 2v4", "M16 2v4", "M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z", "M3 10h18", "M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01"],
   dashboard: ["M3 12l9-9 9 9", "M5 10v10h14V10"],
   inbox: [
     "M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z",
@@ -895,6 +898,7 @@ function Panel({
   const nav: { id: Tab; label: string; short: string; group: string }[] = [
     { id: "today", label: "Hoje", short: "Hoje", group: "Rotina" },
     { id: "tasks", label: "Tarefas", short: "Tarefas", group: "Rotina" },
+    { id: "agenda", label: "Agenda", short: "Agenda", group: "Rotina" },
     { id: "inbox", label: "Inbox", short: "Inbox", group: "Rotina" },
     { id: "prospects", label: "Funil", short: "Funil", group: "Vendas" },
     { id: "clients", label: "Clientes", short: "Clientes", group: "Vendas" },
@@ -993,22 +997,27 @@ function Panel({
     });
   }, []);
 
-  // Atualiza os contadores ao abrir, a cada 5 min e quando tarefas mudam (a tela Hoje já avisa sozinha)
+  // Contadores: ao abrir, a cada 5 min e quando tarefas mudam. Na tela Hoje quem avisa é ela mesma.
+  const tabRef = useRef(tab);
   useEffect(() => {
-    if (tab === "today") return;
+    tabRef.current = tab;
+  }, [tab]);
+  useEffect(() => {
     let cancelled = false;
-    const tick = () =>
+    const tick = () => {
+      if (tabRef.current === "today") return;
       orcamentosApi
         .crmToday()
         .then((d) => !cancelled && applyBadges(d))
         .catch(() => undefined);
+    };
     tick();
     const id = window.setInterval(tick, 5 * 60_000);
     return () => {
       cancelled = true;
       window.clearInterval(id);
     };
-  }, [tab, taskVersion, applyBadges]);
+  }, [taskVersion, applyBadges]);
 
   // Cliente criado no funil/inbox: recarrega os dados e abre a ficha
   useEffect(() => {
@@ -1363,6 +1372,10 @@ function Panel({
               showToast={showToast}
               onData={applyBadges}
             />
+          ) : null}
+
+          {!editing && tab === "agenda" ? (
+            <Agenda version={taskVersion} onOpenTask={openTask} onOpenClient={setSheetClientId} onNavigate={(t) => go(t)} showToast={showToast} />
           ) : null}
 
           {!editing && tab === "projects" ? (

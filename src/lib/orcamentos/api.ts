@@ -7,6 +7,7 @@ import type {
   OrcamentoProposal,
   BotToken,
   CrmActivity,
+  CrmAgendaItem,
   CrmActivityKind,
   CrmPayment,
   CrmProject,
@@ -443,6 +444,8 @@ export const orcamentosApi = {
     request<{ project: CrmProject }>("/api/orcamentos/crm/projects", { method: "PATCH", body: JSON.stringify({ id, stage }) }),
   crmDeleteProject: (id: string) =>
     request<{ ok: boolean }>(`/api/orcamentos/crm/projects?id=${encodeURIComponent(id)}`, { method: "DELETE" }),
+  crmAgenda: (from: string, to: string) =>
+    request<{ items: CrmAgendaItem[] }>(`/api/orcamentos/crm/agenda?from=${from}&to=${to}`),
   crmSearch: (q: string) =>
     request<{ results: CrmSearchResult[] }>(`/api/orcamentos/crm/search?q=${encodeURIComponent(q)}`),
 };

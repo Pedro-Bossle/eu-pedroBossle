@@ -490,6 +490,19 @@ export type CrmToday = {
   } | null;
 };
 
+export type CrmAgendaItem = {
+  key: string;
+  type: "task" | "delivery" | "payment" | "post" | "contact";
+  day: string;
+  time: string | null;
+  title: string;
+  sub: string;
+  done: boolean;
+  ref: string;
+  clientId: string | null;
+  task?: CrmTask;
+};
+
 export type CrmProjectStage = "briefing" | "layout" | "desenvolvimento" | "revisao" | "publicado" | "pausado";
 
 export type CrmProject = {
