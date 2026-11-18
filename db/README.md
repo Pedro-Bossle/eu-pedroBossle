@@ -31,7 +31,7 @@ Além do Neon, configure (Production + Preview):
 
 ## 3. Schema + RLS
 
-No SQL Editor do Neon, rode os arquivos `001`…`012` (nesta ordem), **ou**:
+No SQL Editor do Neon, rode os arquivos `001`…`016` (nesta ordem), **ou**:
 
 ```bash
 # com DATABASE_URL no ambiente
@@ -46,6 +46,10 @@ npm run db:migrate
 - `009`/`010` — funil de prospecção e nota do lead.
 - `011` — Instagram: `integration_credentials` (token criptografado), `ig_media`, `ig_comments`, `ig_posts`.
 - `012` — Finanças (Pluggy): `fin_items`, `fin_accounts`, `fin_transactions`, `fin_investments`, `fin_rules`, `fin_budgets`.
+- `013` — CRM: status/etiquetas/origem/próximo contato/valor mensal do cliente, `crm_tasks`, `crm_activities`.
+- `014` — Gatilho em `proposals`: follow-up automático ao enviar, kickoff/cobrança e cliente ativo ao aprovar.
+- `015` — Tarefas recorrentes (`crm_tasks.repeat`).
+- `016` — Cobranças (`crm_payments`).
 
 ### Prospecção
 
@@ -119,3 +123,15 @@ Saldo, faturas, investimentos, entradas × saídas por mês, gastos por categori
 4. O cron diário continua como rede de segurança.
 
 Pagamento de fatura e transferência entre contas próprias são ignorados nos totais automaticamente (dá para mudar por transação). Edições manuais de categoria não são sobrescritas pelo sync.
+
+## 9. CRM (menus **Hoje**, **Tarefas**, **Clientes**, **Resultados**)
+
+- **Hoje** é a tela inicial: tarefas atrasadas/hoje/7 dias, indicadores (recorrente, em negociação, fechado no mês, a receber) e o que pede atenção (contatos, propostas paradas, cobranças, funil, inbox, Instagram, faturas).
+- **Tarefas** com tipo, prioridade, cliente, horário e recorrência (dia, dias úteis, semana, mês).
+- **Ficha do cliente**: status, origem, próximo contato, valor mensal, etiquetas, linha do tempo, tarefas, orçamentos e **cobranças** (parcelas, recebido, lembrete no WhatsApp).
+- **Automações** (`014`): proposta Enviada cria follow-up em 3 dias; Aprovada ativa o cliente e cria a tarefa de kickoff/cobrança; Recusada fecha os follow-ups.
+- **Resumo diário por e-mail** às 06:23 (cron da Vercel) via Resend. Destino: `CRM_DIGEST_EMAIL` > `CONTACT_NOTIFY_EMAIL` > e-mail de Meus dados. `CRM_DIGEST=off` desliga. Teste: Ctrl+K → “Enviar resumo do dia por e-mail”.
+- **Atalhos**: Ctrl/⌘+K ou `/` busca, `N` nova tarefa, `?` ajuda.
+- **App instalável**: `public/orcamentos.webmanifest` (abre em /orcamentos, tela cheia).
+
+Pendências de configuração: ver `docs/PENDENCIAS.md`.
