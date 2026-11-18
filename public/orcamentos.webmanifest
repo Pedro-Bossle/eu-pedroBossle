@@ -4,7 +4,7 @@
   "description": "Painel da Dev Bossle: tarefas do dia, clientes, funil, orçamentos, Instagram e finanças.",
   "id": "/orcamentos",
   "start_url": "/orcamentos",
-  "scope": "/",
+  "scope": "/orcamentos",
   "display": "standalone",
   "orientation": "portrait",
   "lang": "pt-BR",

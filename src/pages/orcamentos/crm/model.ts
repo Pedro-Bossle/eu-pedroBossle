@@ -99,8 +99,7 @@ export const telLink = (phone: string) => {
   return d.length >= 10 ? `tel:+55${d.replace(/^55/, "")}` : null;
 };
 
-const brl = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
-export const money = (n: number) => brl.format(n);
+export { money } from "../money";
 
 /** Valor inicial do editor (nova tarefa ou edição). */
 export type TaskDraft = CrmTaskInput & { id?: string };

@@ -119,6 +119,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       if (!UUID.test(id)) return json(res, 400, { error: "id inválido" });
       const paid = Boolean(b?.paid);
       const { rows } = await withAuth(async (db) => {
+        const before = await db.query(`SELECT paid_at FROM crm_payments WHERE id = $1`, [id]);
+        const wasPaid = Boolean(before.rows[0]?.paid_at);
         const r = await db.query(
           `UPDATE crm_payments SET paid_at = CASE WHEN $2 THEN COALESCE(paid_at, now()) ELSE NULL END,
              method = COALESCE(NULLIF($3, ''), method), updated_at = now()
@@ -126,7 +128,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           [id, paid, String(b?.method ?? "")],
         );
         const p = r.rows[0];
-        if (p && paid) {
+        if (p && paid && !wasPaid) {
           await db.query(`INSERT INTO crm_activities (client_id, kind, body) VALUES ($1, 'pagamento', $2)`, [
             p.client_id,
             `Recebido ${brl(Number(p.amount))} — ${p.description}${b?.method ? ` (${b.method})` : ""}.`,

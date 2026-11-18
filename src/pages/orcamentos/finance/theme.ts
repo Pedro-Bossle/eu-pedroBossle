@@ -15,9 +15,8 @@ export const CAT_OTHER = "var(--cat-other)";
 export const C_IN = "var(--fin-in)";
 export const C_OUT = "var(--fin-out)";
 
-const brl = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
+export { money } from "../money";
 const brlShort = new Intl.NumberFormat("pt-BR", { notation: "compact", maximumFractionDigits: 1 });
-export const money = (n: number) => brl.format(n);
 export const moneyShort = (n: number) => `R$ ${brlShort.format(n)}`;
 
 /** Cor estável por categoria: as 6 maiores dos últimos 6 meses ganham cor, o resto é "Outros". */

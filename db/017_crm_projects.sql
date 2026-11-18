@@ -39,6 +39,11 @@ BEGIN
   IF TG_OP = 'UPDATE' AND NEW.status IS NOT DISTINCT FROM OLD.status THEN
     RETURN NEW;
   END IF;
+  -- Em INSERT só o envio conta: importar seed/backup com propostas aprovadas não pode
+  -- recriar kickoff, histórico e projeto a cada importação.
+  IF TG_OP = 'INSERT' AND NEW.status IS DISTINCT FROM 'Enviado' THEN
+    RETURN NEW;
+  END IF;
 
   PERFORM set_config('app.authenticated', 'true', true);
 

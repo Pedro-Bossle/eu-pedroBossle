@@ -118,18 +118,27 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
               : `(${base} + ${NEXT_DUE[String(p.repeat)] ?? "interval '1 day'"})`;
           const ins = await db.query(
             `INSERT INTO crm_tasks (title, notes, kind, priority, due_at, all_day, client_id, proposal_id, lead_id, repeat)
-             SELECT title, notes, kind, priority,
+             SELECT src.title, src.notes, src.kind, src.priority,
                     -- concluída com atraso e a próxima data já passou: vai para amanhã, mesmo horário
                     CASE WHEN ${nextDue} > now() THEN ${nextDue}
                       ELSE (date_trunc('day', now() AT TIME ZONE 'America/Sao_Paulo') + interval '1 day'
                             + COALESCE((due_at AT TIME ZONE 'America/Sao_Paulo')::time, time '09:00')) AT TIME ZONE 'America/Sao_Paulo'
                     END,
-                    all_day, client_id, proposal_id, lead_id, repeat
-             FROM crm_tasks WHERE id = $1 RETURNING id`,
+                    src.all_day, src.client_id, src.proposal_id, src.lead_id, src.repeat
+             FROM crm_tasks src WHERE src.id = $1
+               -- reabrir e concluir de novo não pode criar outra cópia: já existe a próxima aberta?
+               AND NOT EXISTS (
+                 SELECT 1 FROM crm_tasks o
+                 WHERE o.id <> src.id AND o.done_at IS NULL AND o.repeat = src.repeat AND o.title = src.title
+                   AND o.client_id IS NOT DISTINCT FROM src.client_id AND o.due_at > COALESCE(src.due_at, now() - interval '1 day')
+               )
+             RETURNING id`,
             [id],
           );
-          const n = await db.query(`SELECT ${TASK_COLS} FROM ${TASK_FROM} WHERE t.id = $1`, [ins.rows[0]!.id]);
-          next = n.rows[0] ?? null;
+          if (ins.rows[0]) {
+            const n = await db.query(`SELECT ${TASK_COLS} FROM ${TASK_FROM} WHERE t.id = $1`, [ins.rows[0].id]);
+            next = n.rows[0] ?? null;
+          }
         }
         const r = await db.query(`SELECT ${TASK_COLS} FROM ${TASK_FROM} WHERE t.id = $1`, [id]);
         return { rows: r.rows, next };

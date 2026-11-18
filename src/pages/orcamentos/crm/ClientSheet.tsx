@@ -1,10 +1,11 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { orcamentosApi } from "../../../lib/orcamentos/api";
 import type { ClientStatus, CrmActivity, CrmActivityKind, CrmTask, OrcamentoClient, OrcamentoProposal } from "../../../types/orcamentos";
 import { btn, btnPrimary, btnSm, focusRing, inputClass, labelClass, textareaClass } from "../panelStyles";
 import Icon from "../ui/Icon";
 import Select from "../ui/Select";
 import Sheet from "../ui/Sheet";
+import { parseMoney } from "../money";
 import Payments from "./Payments";
 import TaskRow from "./TaskRow";
 import { ACTIVITY_ICON, ACTIVITY_KINDS, ACTIVITY_LABEL, CLIENT_STATUSES, addDays, clientStatus, money, relTime, telLink, waLink, ymd, type TaskDraft } from "./model";
@@ -88,9 +89,17 @@ export default function ClientSheet({
   }, [load, taskVersion]);
 
   /** Salva campos de CRM do cliente (status, próximo contato, etiquetas…). */
+  // Última versão conhecida do cliente: edições seguidas partem dela, não do prop (que só
+  // atualiza depois do reload) — senão a segunda edição apagaria a primeira.
+  const latest = useRef(client);
+  useEffect(() => {
+    latest.current = { ...latest.current, ...client };
+  }, [client]);
+
   const patch = async (p: Partial<OrcamentoClient>, toast?: string) => {
+    latest.current = { ...latest.current, ...p };
     try {
-      const { client: saved } = await orcamentosApi.saveClient({ ...client, ...p });
+      const { client: saved } = await orcamentosApi.saveClient(latest.current);
       onSaved(saved);
       if (toast) showToast(toast);
     } catch (e) {
@@ -164,6 +173,7 @@ export default function ClientSheet({
   const tel = telLink(client.phone);
   const openTasks = (tasks ?? []).filter((t) => !t.doneAt);
   const tags = client.tags ?? [];
+  const latestTags = () => latest.current.tags ?? [];
 
   const quickNext = [
     { label: "Amanhã", v: ymd(addDays(new Date(), 1)) },
@@ -286,7 +296,7 @@ export default function ClientSheet({
             value={monthly}
             onChange={(e) => setMonthly(e.target.value)}
             onBlur={() => {
-              const v = Number(monthly.replace(/[^\d,.-]/g, "").replace(/\./g, "").replace(",", ".")) || 0;
+              const v = parseMoney(monthly);
               if (v !== (client.monthlyValue ?? 0)) patch({ monthlyValue: v }, "Valor mensal salvo");
             }}
             aria-label="Valor mensal recorrente"
@@ -298,7 +308,7 @@ export default function ClientSheet({
             {tags.map((t) => (
               <span key={t} className="inline-flex items-center gap-1 rounded-full bg-surface px-2.5 py-1 text-xs shadow-[0_1px_1px_rgb(0_0_0/0.04)]">
                 {t}
-                <button type="button" aria-label={`Remover etiqueta ${t}`} className="text-faint hover:text-danger" onClick={() => patch({ tags: tags.filter((x) => x !== t) })}>
+                <button type="button" aria-label={`Remover etiqueta ${t}`} className="text-faint hover:text-danger" onClick={() => patch({ tags: latestTags().filter((x) => x !== t) })}>
                   ×
                 </button>
               </span>
@@ -309,7 +319,7 @@ export default function ClientSheet({
               onKeyDown={(e) => {
                 if ((e.key === "Enter" || e.key === ",") && tagDraft.trim()) {
                   e.preventDefault();
-                  if (!tags.includes(tagDraft.trim())) patch({ tags: [...tags, tagDraft.trim()] });
+                  if (!latestTags().includes(tagDraft.trim())) patch({ tags: [...latestTags(), tagDraft.trim()] });
                   setTagDraft("");
                 }
               }}

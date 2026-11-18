@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { orcamentosApi } from "../../../lib/orcamentos/api";
 import type { CrmPayment, OrcamentoClient, OrcamentoProposal } from "../../../types/orcamentos";
 import { btn, btnPrimary, btnSm, focusRing, inputClass, labelClass } from "../panelStyles";
+import { parseMoney } from "../money";
 import Icon from "../ui/Icon";
 import Select from "../ui/Select";
 import { addDays, money, waLink, ymd } from "./model";
@@ -63,7 +64,7 @@ export default function Payments({
   const openTotal = open.reduce((s, p) => s + p.amount, 0);
   const paidTotal = paid.reduce((s, p) => s + p.amount, 0);
 
-  const parse = (v: string) => Number(v.replace(/[^\d,.-]/g, "").replace(/\./g, "").replace(",", ".")) || 0;
+  const parse = parseMoney;
 
   const addSingle = async () => {
     const v = parse(amount);

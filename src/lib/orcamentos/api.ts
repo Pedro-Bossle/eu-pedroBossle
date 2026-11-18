@@ -446,6 +446,7 @@ export const orcamentosApi = {
     request<{ ok: boolean }>(`/api/orcamentos/crm/projects?id=${encodeURIComponent(id)}`, { method: "DELETE" }),
   crmAgenda: (from: string, to: string) =>
     request<{ items: CrmAgendaItem[] }>(`/api/orcamentos/crm/agenda?from=${from}&to=${to}`),
+  crmCounts: () => request<{ counts: Record<string, number> }>("/api/orcamentos/crm/counts"),
   crmSearch: (q: string) =>
     request<{ results: CrmSearchResult[] }>(`/api/orcamentos/crm/search?q=${encodeURIComponent(q)}`),
 };

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState, type DragEvent } from "react
 import { orcamentosApi } from "../../../lib/orcamentos/api";
 import type { CrmProject, CrmProjectStage, OrcamentoClient } from "../../../types/orcamentos";
 import { btn, btnDanger, btnPrimary, focusRing, inputClass, labelClass, pill, textareaClass } from "../panelStyles";
+import { parseMoney } from "../money";
 import Icon from "../ui/Icon";
 import Select from "../ui/Select";
 import Sheet from "../ui/Sheet";
@@ -228,7 +229,7 @@ function ProjectEditor({
         clientId: f.clientId || null,
         stage: f.stage,
         dueDate: f.dueDate || null,
-        value: Number(f.value.replace(/[^\d,.-]/g, "").replace(/\./g, "").replace(",", ".")) || 0,
+        value: parseMoney(f.value),
         link: f.link,
         notes: f.notes,
       });

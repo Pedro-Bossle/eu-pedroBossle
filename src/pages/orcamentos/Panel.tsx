@@ -984,7 +984,15 @@ function Panel({
     if (r.type === "client") setSheetClientId(r.id);
     else if (r.type === "proposal") openProposalById(r.id);
     else if (r.type === "lead") go("prospects");
-    else go("tasks");
+    else
+      orcamentosApi
+        .crmTasks({ scope: "all" })
+        .then(({ tasks }) => {
+          const t = tasks.find((x) => x.id === r.id);
+          if (t) openTask(t);
+          else go("tasks");
+        })
+        .catch(() => go("tasks"));
   };
 
   const applyBadges = useCallback((d: CrmToday) => {
@@ -1007,8 +1015,8 @@ function Panel({
     const tick = () => {
       if (tabRef.current === "today") return;
       orcamentosApi
-        .crmToday()
-        .then((d) => !cancelled && applyBadges(d))
+        .crmCounts()
+        .then(({ counts }) => !cancelled && setBadges(counts as Partial<Record<Tab, number>>))
         .catch(() => undefined);
     };
     tick();
@@ -1017,7 +1025,7 @@ function Panel({
       cancelled = true;
       window.clearInterval(id);
     };
-  }, [taskVersion, applyBadges]);
+  }, [taskVersion]);
 
   // Cliente criado no funil/inbox: recarrega os dados e abre a ficha
   useEffect(() => {
@@ -1039,7 +1047,13 @@ function Panel({
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
         e.preventDefault();
         setPaletteOpen((o) => !o);
-      } else if (!typing && !e.metaKey && !e.ctrlKey && !e.altKey && document.querySelectorAll("[role=dialog]").length === 0) {
+      } else if (
+        !typing &&
+        !e.metaKey &&
+        !e.ctrlKey &&
+        !e.altKey &&
+        !document.querySelector("[role=dialog], [role=listbox], [role=menu]")
+      ) {
         if (e.key === "n" || e.key === "N") {
           e.preventDefault();
           setTaskDraft({ title: "", dueAt: new Date().toISOString() });
