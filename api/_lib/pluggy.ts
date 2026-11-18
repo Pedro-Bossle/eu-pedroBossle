@@ -191,32 +191,28 @@ const ymd = (d: Date) => d.toISOString().slice(0, 10);
 
 /**
  * GET /v2/transactions (paginação por cursor). O /transactions antigo foi descontinuado.
- * `next` vem como URL (com ?after=…) ou como o próprio cursor; os dois formatos são aceitos.
+ * A próxima página é GET /v2/transactions{next}: `next` já é a query pronta (ex. "?after=…").
+ * Os filtros da primeira chamada são mantidos e o que vier em `next` prevalece.
  */
 async function allTransactions(accountId: string, from: string, to: string) {
   const out: PTransaction[] = [];
-  let after: string | null = null;
+  let qs = new URLSearchParams({ accountId, dateFrom: from, dateTo: to });
   for (let page = 0; page < 200; page += 1) {
-    const qs = new URLSearchParams({ accountId, dateFrom: from, dateTo: to });
-    if (after) qs.set("after", after);
     const r = await pluggy<{ results?: PTransaction[]; next?: string | null }>(`/v2/transactions?${qs.toString()}`);
     out.push(...(r.results ?? []));
-    after = nextCursor(r.next);
-    if (!after) break;
+    if (!r.next) break;
+    qs = mergeNext(qs, r.next);
   }
   return out;
 }
 
-function nextCursor(next: string | null | undefined): string | null {
-  if (!next) return null;
-  if (/^https?:\/\/|^\//.test(next)) {
-    try {
-      return new URL(next, "https://api.pluggy.ai").searchParams.get("after");
-    } catch {
-      return null;
-    }
-  }
-  return next;
+function mergeNext(base: URLSearchParams, next: string): URLSearchParams {
+  const merged = new URLSearchParams(base);
+  merged.delete("after");
+  const query = next.includes("?") ? next.slice(next.indexOf("?") + 1) : next.startsWith("after=") ? next : "";
+  for (const [k, v] of new URLSearchParams(query)) merged.set(k, v);
+  if (!merged.has("after")) throw new Error(`Pluggy devolveu um 'next' sem cursor: ${next.slice(0, 80)}`);
+  return merged;
 }
 
 export async function loadRules(db: PoolClient): Promise<Rule[]> {
