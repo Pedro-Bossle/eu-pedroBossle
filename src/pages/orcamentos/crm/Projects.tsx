@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState, type DragEvent } from "react";
 import { orcamentosApi } from "../../../lib/orcamentos/api";
+import { peek, remember } from "../../../lib/orcamentos/cache";
 import type { CrmProject, CrmProjectStage, OrcamentoClient } from "../../../types/orcamentos";
 import { btn, btnDanger, btnPrimary, focusRing, inputClass, labelClass, pill, textareaClass } from "../panelStyles";
 import { parseMoney } from "../money";
@@ -28,14 +29,14 @@ type Props = {
 
 /** Quadro de projetos por etapa. Arraste o cartão (desktop) ou use o menu de etapa (celular). */
 export default function Projects({ clients, onOpenClient, onOpenTask, showToast }: Props) {
-  const [projects, setProjects] = useState<CrmProject[] | null>(null);
+  const [projects, setProjects] = useState<CrmProject[] | null>(() => peek<CrmProject[]>("projects"));
   const [editing, setEditing] = useState<Partial<CrmProject> | null>(null);
   const [dragOver, setDragOver] = useState("");
   const [showPaused, setShowPaused] = useState(false);
 
   const load = useCallback(async () => {
     try {
-      setProjects((await orcamentosApi.crmProjects()).projects);
+      setProjects(remember("projects", (await orcamentosApi.crmProjects()).projects));
     } catch (e) {
       showToast(e instanceof Error ? e.message : "Erro ao carregar projetos");
       setProjects([]);

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState, type DragEvent } from "react";
 import { orcamentosApi } from "../../../lib/orcamentos/api";
+import { peek, remember } from "../../../lib/orcamentos/cache";
 import type { CrmAgendaItem, CrmTask } from "../../../types/orcamentos";
 import { btnSm, cardClass, focusRing, pill } from "../panelStyles";
 import Icon from "../ui/Icon";
@@ -29,7 +30,10 @@ export default function Agenda({ version, onOpenTask, onOpenClient, onNavigate, 
     return new Date(d.getFullYear(), d.getMonth(), 1);
   });
   const [mode, setMode] = useState<"mes" | "lista">(() => (window.matchMedia("(min-width: 1024px)").matches ? "mes" : "lista"));
-  const [items, setItems] = useState<CrmAgendaItem[] | null>(null);
+  const [items, setItems] = useState<CrmAgendaItem[] | null>(() => {
+    const d = new Date();
+    return peek<CrmAgendaItem[]>(`agenda:${d.getFullYear()}-${d.getMonth()}`);
+  });
   const [hidden, setHidden] = useState<Set<string>>(new Set());
   const [dragOver, setDragOver] = useState("");
 
@@ -44,12 +48,14 @@ export default function Agenda({ version, onOpenTask, onOpenClient, onNavigate, 
 
   const load = useCallback(async () => {
     try {
-      setItems((await orcamentosApi.crmAgenda(ymd(days[0]!), ymd(days.at(-1)!))).items);
+      const key = `agenda:${cursor.getFullYear()}-${cursor.getMonth()}`;
+      setItems((prev) => peek<CrmAgendaItem[]>(key) ?? prev);
+      setItems(remember(key, (await orcamentosApi.crmAgenda(ymd(days[0]!), ymd(days.at(-1)!))).items));
     } catch (e) {
       showToast(e instanceof Error ? e.message : "Erro ao carregar a agenda");
       setItems([]);
     }
-  }, [days, showToast]);
+  }, [days, cursor, showToast]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect

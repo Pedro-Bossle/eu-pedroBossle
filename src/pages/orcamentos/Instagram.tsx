@@ -3,6 +3,7 @@ import { upload } from "@vercel/blob/client";
 import Select from "./ui/Select";
 import InstagramIcon from "../../components/icons/InstagramIcon";
 import { orcamentosApi } from "../../lib/orcamentos/api";
+import { peek, remember } from "../../lib/orcamentos/cache";
 import type {
   IgComment,
   IgMedia,
@@ -710,15 +711,15 @@ export default function Instagram({ showToast }: Props) {
   const [view, setView] = useState<View>(() =>
     new URLSearchParams(window.location.search).get("ig") === "erro" ? "conta" : "calendario",
   );
-  const [data, setData] = useState<IgOverview | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [data, setData] = useState<IgOverview | null>(() => peek<IgOverview>("ig"));
+  const [loading, setLoading] = useState(() => !peek("ig"));
   const [syncing, setSyncing] = useState(false);
   const [composer, setComposer] = useState<IgPostInput | null>(null);
   const [mediaOpen, setMediaOpen] = useState<IgMedia | null>(null);
 
   const load = useCallback(async () => {
     try {
-      setData(await orcamentosApi.igOverview());
+      setData(remember("ig", await orcamentosApi.igOverview()));
     } catch (e) {
       showToast(e instanceof Error ? e.message : "Erro ao carregar o Instagram");
     } finally {

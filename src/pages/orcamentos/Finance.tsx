@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { orcamentosApi } from "../../lib/orcamentos/api";
+import { peek, remember } from "../../lib/orcamentos/cache";
 import type { FinAccount, FinAnalytics, FinMonth, FinOverview, FinTransaction } from "../../types/orcamentos";
 import { CategoriesView, Overview } from "./finance/Analysis";
 import { C_IN, C_OUT, FIN_PALETTE_CSS } from "./finance/theme";
@@ -46,18 +47,18 @@ const isCredit = (a: FinAccount) => a.type === "CREDIT";
 
 export default function Finance({ showToast }: Props) {
   const [view, setView] = useState<View>("visao");
-  const [data, setData] = useState<FinOverview | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [data, setData] = useState<FinOverview | null>(() => peek<FinOverview>("fin"));
+  const [loading, setLoading] = useState(() => !peek("fin"));
   const [syncing, setSyncing] = useState(false);
   const [month, setMonth] = useState(monthKey());
-  const [txs, setTxs] = useState<FinTransaction[]>([]);
+  const [txs, setTxs] = useState<FinTransaction[]>(() => peek<FinTransaction[]>(`fin:tx:${monthKey()}`) ?? []);
   const [txLoading, setTxLoading] = useState(false);
   const [categoryFilter, setCategoryFilter] = useState("");
-  const [analytics, setAnalytics] = useState<FinAnalytics | null>(null);
+  const [analytics, setAnalytics] = useState<FinAnalytics | null>(() => peek<FinAnalytics>(`fin:an:${monthKey()}`));
 
   const load = useCallback(async () => {
     try {
-      setData(await orcamentosApi.finOverview());
+      setData(remember("fin", await orcamentosApi.finOverview()));
     } catch (e) {
       showToast(e instanceof Error ? e.message : "Erro ao carregar finanças");
     } finally {
@@ -68,8 +69,10 @@ export default function Finance({ showToast }: Props) {
   const loadTxs = useCallback(async () => {
     setTxLoading(true);
     try {
+      const cachedTx = peek<FinTransaction[]>(`fin:tx:${month}`);
+      if (cachedTx) setTxs(cachedTx);
       const r = await orcamentosApi.finTransactions({ month });
-      setTxs(r.transactions);
+      setTxs(remember(`fin:tx:${month}`, r.transactions));
     } catch (e) {
       showToast(e instanceof Error ? e.message : "Erro nas transações");
     } finally {
@@ -79,7 +82,9 @@ export default function Finance({ showToast }: Props) {
 
   const loadAnalytics = useCallback(async () => {
     try {
-      setAnalytics(await orcamentosApi.finAnalytics(month));
+      const cachedAn = peek<FinAnalytics>(`fin:an:${month}`);
+      if (cachedAn) setAnalytics(cachedAn);
+      setAnalytics(remember(`fin:an:${month}`, await orcamentosApi.finAnalytics(month)));
     } catch (e) {
       showToast(e instanceof Error ? e.message : "Erro na análise");
     }

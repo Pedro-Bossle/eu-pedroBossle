@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { orcamentosApi } from "../../../lib/orcamentos/api";
+import { peek, remember } from "../../../lib/orcamentos/cache";
 import type { CrmTask, OrcamentoClient } from "../../../types/orcamentos";
 import { btnPrimary, cardClass, inputClass, pill } from "../panelStyles";
 import Select from "../ui/Select";
@@ -29,14 +30,14 @@ const ORDER = ["Atrasadas", "Hoje", "Amanhã", "Próximos 7 dias", "Mais tarde",
 
 export default function Tasks({ clients, version, onOpenTask, onOpenClient, showToast }: Props) {
   const [scope, setScope] = useState<"open" | "done">("open");
-  const [tasks, setTasks] = useState<CrmTask[] | null>(null);
+  const [tasks, setTasks] = useState<CrmTask[] | null>(() => peek<CrmTask[]>("tasks:open"));
   const [kind, setKind] = useState("");
   const [clientId, setClientId] = useState("");
   const [q, setQ] = useState("");
 
   const load = useCallback(async () => {
     try {
-      setTasks((await orcamentosApi.crmTasks({ scope })).tasks);
+      setTasks(remember(`tasks:${scope}`, (await orcamentosApi.crmTasks({ scope })).tasks));
     } catch (e) {
       showToast(e instanceof Error ? e.message : "Erro ao carregar tarefas");
       setTasks([]);

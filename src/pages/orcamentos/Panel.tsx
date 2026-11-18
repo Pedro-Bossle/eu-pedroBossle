@@ -14,6 +14,7 @@ import MailIcon from "../../components/icons/MailIcon";
 import WhatsAppIcon from "../../components/icons/WhatsAppIcon";
 import { buildContractPayload } from "../../lib/orcamentos/contractData";
 import { orcamentosApi } from "../../lib/orcamentos/api";
+import { peek, remember } from "../../lib/orcamentos/cache";
 import {
   itemsFromTimeline,
   PRESET_SECTIONS,
@@ -324,7 +325,7 @@ function Panel({
   const [fabOpen, setFabOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
   /** Contadores do menu: tarefas de hoje+atrasadas, inbox não lido, comentários do Instagram. */
-  const [badges, setBadges] = useState<Partial<Record<Tab, number>>>({});
+  const [badges, setBadges] = useState<Partial<Record<Tab, number>>>(() => peek<Partial<Record<Tab, number>>>("counts") ?? {});
   const [presetForm, setPresetForm] = useState<OrcamentoPreset | null>(null);
   const [presetSectionFilter, setPresetSectionFilter] =
     useState<PresetSection | "todos">("todos");
@@ -1016,7 +1017,7 @@ function Panel({
       if (tabRef.current === "today") return;
       orcamentosApi
         .crmCounts()
-        .then(({ counts }) => !cancelled && setBadges(counts as Partial<Record<Tab, number>>))
+        .then(({ counts }) => !cancelled && setBadges(remember("counts", counts as Partial<Record<Tab, number>>)))
         .catch(() => undefined);
     };
     tick();

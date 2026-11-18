@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import { orcamentosApi } from "../../../lib/orcamentos/api";
+import { peek, remember } from "../../../lib/orcamentos/cache";
 import type { CrmTask, CrmToday } from "../../../types/orcamentos";
 import { btnSm, cardClass, focusRing, labelClass } from "../panelStyles";
 import Icon from "../ui/Icon";
@@ -52,14 +53,14 @@ function parseQuick(text: string): { title: string; date: string | null } {
 }
 
 export default function Today({ name, version, onNavigate, onOpenClient, onOpenProposal, onOpenTask, showToast, onData }: Props) {
-  const [data, setData] = useState<CrmToday | null>(null);
+  const [data, setData] = useState<CrmToday | null>(() => peek<CrmToday>("today"));
   const [error, setError] = useState("");
   const [quick, setQuick] = useState("");
   const [adding, setAdding] = useState(false);
 
   const load = useCallback(async () => {
     try {
-      const d = await orcamentosApi.crmToday();
+      const d = remember("today", await orcamentosApi.crmToday());
       setData(d);
       onData?.(d);
       setError("");
