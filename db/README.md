@@ -31,7 +31,7 @@ Além do Neon, configure (Production + Preview):
 
 ## 3. Schema + RLS
 
-No SQL Editor do Neon, rode os arquivos `001`…`017` (nesta ordem), **ou**:
+No SQL Editor do Neon, rode os arquivos `001`…`018` (nesta ordem), **ou**:
 
 ```bash
 # com DATABASE_URL no ambiente
@@ -51,6 +51,7 @@ npm run db:migrate
 - `015` — Tarefas recorrentes (`crm_tasks.repeat`).
 - `016` — Cobranças (`crm_payments`).
 - `017` — Projetos (`crm_projects`); proposta aprovada vira projeto em Briefing.
+- `018` — Índices de desempenho (inclui `pg_trgm` para busca por texto).
 
 ### Prospecção
 
