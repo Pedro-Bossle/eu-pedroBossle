@@ -39,6 +39,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const itemId = String(body?.itemId ?? "");
   if (!event || !ITEM_ID.test(itemId)) return json(res, 200, { ok: true, ignored: true });
 
+  // Aparece em Vercel → Logs; útil para conferir que a Pluggy está chamando
+  console.log("pluggy webhook:", event, "eventId:", body?.eventId ?? "-", "item:", itemId);
+
   const work = async () => {
     // Só mexe em conexões deste painel (item/created de um widget daqui entra automaticamente)
     const known = await withAuth(async (db) => {
