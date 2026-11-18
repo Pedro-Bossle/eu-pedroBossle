@@ -17,6 +17,8 @@ type Props = {
   onOpenProposal: (id: string) => void;
   onOpenTask: (draft: TaskDraft | CrmTask) => void;
   showToast: (m: string) => void;
+  /** Avisa o Panel a cada carga (contadores do menu). */
+  onData?: (d: CrmToday) => void;
 };
 
 const ICONS = {
@@ -45,7 +47,7 @@ function parseQuick(text: string): { title: string; date: string | null } {
   return { title: t, date: ymd(new Date()) };
 }
 
-export default function Today({ name, version, onNavigate, onOpenClient, onOpenProposal, onOpenTask, showToast }: Props) {
+export default function Today({ name, version, onNavigate, onOpenClient, onOpenProposal, onOpenTask, showToast, onData }: Props) {
   const [data, setData] = useState<CrmToday | null>(null);
   const [error, setError] = useState("");
   const [quick, setQuick] = useState("");
@@ -53,12 +55,14 @@ export default function Today({ name, version, onNavigate, onOpenClient, onOpenP
 
   const load = useCallback(async () => {
     try {
-      setData(await orcamentosApi.crmToday());
+      const d = await orcamentosApi.crmToday();
+      setData(d);
+      onData?.(d);
       setError("");
     } catch (e) {
       setError(e instanceof Error ? e.message : "Erro ao carregar o dia");
     }
-  }, []);
+  }, [onData]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect

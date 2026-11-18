@@ -72,7 +72,7 @@ import Tasks from "./crm/Tasks";
 import Today, { type TodayNav } from "./crm/Today";
 import Results from "./crm/Results";
 import { CLIENT_CREATED, convertToClient } from "./crm/events";
-import type { CrmSearchResult, CrmTask } from "../../types/orcamentos";
+import type { CrmSearchResult, CrmTask, CrmToday } from "../../types/orcamentos";
 import Finance from "./Finance";
 
 type Tab =
@@ -301,6 +301,9 @@ function Panel({
   const [moreOpen, setMoreOpen] = useState(false);
   const [quickOpen, setQuickOpen] = useState(false);
   const [fabOpen, setFabOpen] = useState(false);
+  const [helpOpen, setHelpOpen] = useState(false);
+  /** Contadores do menu: tarefas de hoje+atrasadas, inbox não lido, comentários do Instagram. */
+  const [badges, setBadges] = useState<Partial<Record<Tab, number>>>({});
   const [presetForm, setPresetForm] = useState<OrcamentoPreset | null>(null);
   const [presetSectionFilter, setPresetSectionFilter] =
     useState<PresetSection | "todos">("todos");
@@ -948,6 +951,7 @@ function Panel({
       },
       keywords: "email digest teste",
     },
+    { id: "help", label: "Atalhos do teclado", hint: "?", icon: "M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3M12 17h.01M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20z", run: () => setHelpOpen(true), keywords: "ajuda teclas" },
     { id: "theme", label: dark ? "Usar tema claro" : "Usar tema escuro", icon: "M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z", run: () => setDark((d) => !d), keywords: "dark modo noite" },
     ...nav.map((n) => ({ id: `go-${n.id}`, label: `Ir para ${n.label}`, hint: n.group, icon: navIcons[n.id].join(""), run: () => go(n.id), keywords: n.short })),
   ];
@@ -958,6 +962,32 @@ function Panel({
     else if (r.type === "lead") go("prospects");
     else go("tasks");
   };
+
+  const applyBadges = useCallback((d: CrmToday) => {
+    setBadges({
+      today: (d.tasks?.overdue.length ?? 0) + (d.tasks?.dueToday.length ?? 0),
+      inbox: d.inbox?.unread ?? 0,
+      instagram: d.instagram?.newComments ?? 0,
+      prospects: (d.funnel?.awaiting ?? 0) + (d.funnel?.followups ?? 0),
+    });
+  }, []);
+
+  // Atualiza os contadores ao abrir, a cada 5 min e quando tarefas mudam (a tela Hoje já avisa sozinha)
+  useEffect(() => {
+    if (tab === "today") return;
+    let cancelled = false;
+    const tick = () =>
+      orcamentosApi
+        .crmToday()
+        .then((d) => !cancelled && applyBadges(d))
+        .catch(() => undefined);
+    tick();
+    const id = window.setInterval(tick, 5 * 60_000);
+    return () => {
+      cancelled = true;
+      window.clearInterval(id);
+    };
+  }, [tab, taskVersion, applyBadges]);
 
   // Cliente criado no funil/inbox: recarrega os dados e abre a ficha
   useEffect(() => {
@@ -986,6 +1016,9 @@ function Panel({
         } else if (e.key === "/") {
           e.preventDefault();
           setPaletteOpen(true);
+        } else if (e.key === "?") {
+          e.preventDefault();
+          setHelpOpen(true);
         }
       }
     };
@@ -1276,7 +1309,17 @@ function Panel({
                     }`}
                   >
                     <Icon paths={navIcons[item.id]} />
-                    {item.label}
+                    <span className="flex-1">{item.label}</span>
+                    {badges[item.id] ? (
+                      <span
+                        className={`min-w-5 rounded-full px-1.5 py-px text-center text-[11px] font-semibold tabular-nums ${
+                          item.id === "today" ? "bg-accent text-accent-ink" : "bg-sunken text-muted"
+                        }`}
+                        aria-label={`${badges[item.id]} pendentes`}
+                      >
+                        {badges[item.id]}
+                      </span>
+                    ) : null}
                   </button>
                 </div>
               );
@@ -1297,6 +1340,7 @@ function Panel({
               onOpenProposal={openProposalById}
               onOpenTask={openTask}
               showToast={showToast}
+              onData={applyBadges}
             />
           ) : null}
 
@@ -2893,8 +2937,13 @@ function Panel({
                     active ? "text-accent-text" : "text-faint"
                   }`}
                 >
-                  <span className={`grid h-7 w-12 place-items-center rounded-full transition-colors ${active ? "bg-accent-soft" : ""}`}>
+                  <span className={`relative grid h-7 w-12 place-items-center rounded-full transition-colors ${active ? "bg-accent-soft" : ""}`}>
                     <Icon paths={navIcons[id]} />
+                    {badges[id] ? (
+                      <span className="absolute -top-1 right-1.5 min-w-4 rounded-full bg-accent px-1 text-center text-[9px] leading-4 font-bold text-accent-ink tabular-nums">
+                        {badges[id]}
+                      </span>
+                    ) : null}
                   </span>
                   {item.short}
                 </button>
@@ -2908,8 +2957,11 @@ function Panel({
                 !mobileNav.includes(tab) ? "text-accent-text" : "text-faint"
               }`}
             >
-              <span className={`grid h-7 w-12 place-items-center rounded-full ${!mobileNav.includes(tab) ? "bg-accent-soft" : ""}`}>
+              <span className={`relative grid h-7 w-12 place-items-center rounded-full ${!mobileNav.includes(tab) ? "bg-accent-soft" : ""}`}>
                 <Icon d="M4 6h16M4 12h16M4 18h16" />
+                {(Object.keys(badges) as Tab[]).some((k) => !mobileNav.includes(k) && badges[k]) ? (
+                  <span className="absolute top-0 right-3 size-2 rounded-full bg-accent ring-2 ring-surface" aria-label="Há novidades" />
+                ) : null}
               </span>
               Mais
             </button>
@@ -2936,6 +2988,7 @@ function Panel({
                     >
                       <Icon paths={navIcons[n.id]} />
                       {n.label}
+                      {badges[n.id] ? <span className="rounded-full bg-accent px-1.5 text-[10px] font-bold text-accent-ink tabular-nums">{badges[n.id]}</span> : null}
                     </button>
                   ))}
               </div>
@@ -2984,6 +3037,28 @@ function Panel({
           onSaved={() => reload()}
           showToast={showToast}
         />
+      ) : null}
+
+      {helpOpen ? (
+        <Sheet title="Atalhos do teclado" onClose={() => setHelpOpen(false)}>
+          <dl className="divide-y divide-line text-sm">
+            {[
+              ["Ctrl K  ou  /", "Buscar clientes, orçamentos, leads e ações"],
+              ["N", "Nova tarefa"],
+              ["?", "Mostrar estes atalhos"],
+              ["Esc", "Fechar painel, menu ou busca"],
+              ["Ctrl Enter", "Registrar no histórico do cliente"],
+              ["↑ ↓  Enter", "Navegar e escolher em menus e na busca"],
+            ].map(([k, v]) => (
+              <div key={k} className="flex items-center justify-between gap-4 py-3">
+                <dt className="text-muted">{v}</dt>
+                <dd>
+                  <kbd className="rounded-md border border-line bg-sunken px-2 py-1 font-sans text-xs whitespace-nowrap">{k}</kbd>
+                </dd>
+              </div>
+            ))}
+          </dl>
+        </Sheet>
       ) : null}
 
       <CommandPalette
