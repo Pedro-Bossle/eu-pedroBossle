@@ -154,7 +154,7 @@ function LeadForm({
         }
       }}
     >
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <Labeled label="Nome do negócio">{input("name", "Ex.: Mecânica Zanella")}</Labeled>
         <Labeled label="Nicho">{input("niche", "Ex.: oficina mecânica")}</Labeled>
         <Labeled label="Cidade">{input("city")}</Labeled>
@@ -383,7 +383,7 @@ function LeadCard({
         />
       </div>
 
-      <div className="grid gap-2 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
         {best ? (
           <a
             href={whatsappUrl(best.wa, draft)}
@@ -662,7 +662,7 @@ function Prospects({ senderName, showToast }: Props) {
 
       {/* Importar / exportar */}
       {panel === "import" ? (
-        <div className={`${cardClass} mb-4 grid gap-6 lg:grid-cols-[1.4fr_1fr]`}>
+        <div className={`${cardClass} mb-4 grid grid-cols-1 gap-6 lg:grid-cols-[1.4fr_1fr]`}>
           <div className="space-y-3">
             <h2 className="text-lg font-semibold tracking-tight">Importar leads</h2>
             <p className="text-sm text-neutral-500 dark:text-neutral-400">
@@ -734,7 +734,7 @@ function Prospects({ senderName, showToast }: Props) {
 
       {/* Filtros */}
       <div className="mb-4 flex flex-wrap items-center gap-2">
-        <div className="flex gap-2 overflow-x-auto pb-1 sm:pb-0">
+        <div className="flex gap-2 relative overflow-x-auto pb-1 sm:pb-0">
           <button type="button" className={`${chip(siteFilter === "todos")} shrink-0`} onClick={() => setSiteFilter("todos")}>
             Todos · {counts.todos}
           </button>
@@ -804,7 +804,7 @@ function Prospects({ senderName, showToast }: Props) {
         </div>
       ) : null}
 
-      <div className="grid gap-3 lg:grid-cols-2 2xl:grid-cols-3">
+      <div className="grid grid-cols-1 gap-3 lg:grid-cols-2 2xl:grid-cols-3">
         {visible.map((lead) =>
           editingId === lead.id ? (
             <div key={lead.id} className={`${cardClass} lg:col-span-2 2xl:col-span-3`}>

@@ -100,7 +100,7 @@ export default function Tasks({ clients, version, onOpenTask, onOpenClient, show
         <button type="button" className={pill(scope === "done")} aria-pressed={scope === "done"} onClick={() => setScope("done")}>
           Concluídas
         </button>
-        <div className="ml-auto grid w-full gap-2 sm:w-auto sm:grid-cols-[200px_180px_220px]">
+        <div className="ml-auto grid grid-cols-1 w-full gap-2 sm:w-auto sm:grid-cols-[200px_180px_220px]">
           <input className={`${inputClass} min-h-9 py-1.5`} placeholder="Buscar tarefa…" value={q} onChange={(e) => setQ(e.target.value)} aria-label="Buscar tarefa" />
           <Select size="sm" ariaLabel="Tipo" value={kind} onChange={setKind} options={[{ value: "", label: "Todos os tipos" }, ...TASK_KINDS.map((k) => ({ value: k.value, label: k.label }))]} />
           <Select

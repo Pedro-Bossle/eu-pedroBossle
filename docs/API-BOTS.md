@@ -45,6 +45,7 @@ Saídas (o lead para de andar, mas fica registrado para não ser pesquisado de n
 |---|---|---|
 | `prospector` | `encontrado` | `aguardando`, `descartado`, `banco_b`, `revisar` |
 | `prospector` | `aguardando` | `descartado`, `banco_b`, `revisar` |
+| `prospector` | `revisar` | `aguardando`, `descartado`, `banco_b` |
 | `executor` | `aprovado` | `enviado`, `invalido` |
 | `executor` | `enviado` | `followup`, `respondeu`, `nao_contatar`, `invalido` |
 | `executor` | `followup` | `respondeu`, `nao_contatar`, `sem_resposta`, `invalido` |
@@ -79,14 +80,14 @@ Se `exists` for `true`, **não pesquise nem cadastre de novo**, qualquer que sej
 
 ### 3.2 Cadastrar ou atualizar — `POST /bot/leads`
 
-Cria o lead; se já existir (mesmo nome + cidade, ou mesmo WhatsApp), atualiza. Só é possível atualizar leads que ainda estão em `encontrado` ou `aguardando`; em qualquer outra etapa a resposta é `409` com `{"error":"duplicado","id":"…","stage":"…"}`.
+Cria o lead; se já existir (mesmo nome + cidade, ou mesmo WhatsApp), atualiza. Só é possível atualizar leads que ainda estão em `encontrado`, `aguardando` ou `revisar` (reenviar um lead de `revisar` com `stage: "aguardando"` move ele para aprovação); em qualquer outra etapa a resposta é `409` com `{"error":"duplicado","id":"…","stage":"…"}`.
 
 Campos:
 
 | Campo | Tipo | Obrigatório | Observação |
 |---|---|---|---|
 | `name` | texto (200) | sim | Nome do negócio. |
-| `city` | texto (120) | sim | Só **Caxias do Sul**, **Farroupilha** ou **São Marcos**; outra cidade devolve `400`. |
+| `city` | texto (120) | sim | Precisa estar na área definida no painel (**Funil → ⋯ → Regras do funil**). Lista vazia = qualquer cidade. Fora da área devolve `400`. |
 | `stage` | texto | não | `encontrado` (padrão), `aguardando`, `descartado`, `banco_b` ou `revisar`. |
 | `note` | texto (500) | se `stage` for `descartado`, `banco_b` ou `revisar` | Motivo. |
 | `niche` | texto (120) | não | Ex.: "oficina mecânica". |
@@ -97,20 +98,20 @@ Campos:
 | `instagram` | texto | não | `@perfil` ou URL do perfil. |
 | `problems` | texto (2000) | não | Problemas do site, separados por `;`. |
 | `pitch` | texto (2000) | não | Argumento de venda. |
-| `message` | texto (2000) | para `aguardando` | Mensagem pronta para o WhatsApp. |
+| `message` | texto (2000) | para `aguardando` | Mensagem pronta (WhatsApp ou e-mail, conforme o canal). |
 | `mapsUrl` | texto | não | Só links do Google Maps são aceitos. |
 | `score` | número 0–100 | para `aguardando` | Nota do lead. |
 | `scoreBreakdown` | lista | não | `[{ "label": "Sem site", "points": 30, "max": 30 }]` (até 12 itens). |
 | `phoneSources` | lista de textos | para `aguardando` | Fontes do telefone, ex.: `["Google Maps", "Site oficial"]` (até 6). |
-| `siteCheck` | texto (500) | para `aguardando` | Descrição das 3 checagens de site. |
+| `siteCheck` | texto (500) | para `aguardando` | Descrição das checagens de site. Se o lead tem site, diga o problema (fora do ar, erro de SSL, modelo pronto…). |
 | `activity` | texto (500) | não | Sinais de que o negócio está ativo. |
 | `detail` | texto (300) | não | Observação curta. |
 | `projectType` | `"landing"` ou `"sistema"` | não | Padrão `landing`. |
 
 **Regras para `stage: "aguardando"`** (o servidor recusa com `400` se qualquer uma falhar):
 
-1. O lead **não pode ter site**.
-2. `phoneSources` com **pelo menos 2** fontes oficiais.
+1. Lead com site só entra se o painel aceitar site ruim (padrão: aceita) e o `siteCheck` explicar o problema.
+2. Canal: com `whatsapp` válido, `phoneSources` precisa de **pelo menos 2** fontes oficiais. Sem WhatsApp, o lead precisa de `email` válido e o contato é por e-mail (o Pedro envia pelo painel; não entra na fila do bot WhatsApp).
 3. `siteCheck` preenchido.
 4. `score` de **70 ou mais** (lead A).
 5. `message` pronta.
@@ -172,7 +173,7 @@ Dentro da janela:
 }
 ```
 
-- `send`: leads **aprovados** pelo Pedro, prontos para a **primeira mensagem**. Respeita o limite de **15 primeiros contatos por dia**; `remaining` é quanto ainda cabe hoje.
+- `send`: leads **aprovados** pelo Pedro que têm WhatsApp, prontos para a **primeira mensagem**. Respeita o limite de **15 primeiros contatos por dia**; `remaining` é quanto ainda cabe hoje.
 - `followups`: leads já `enviado` cujo follow-up o Pedro aprovou.
 - Envie **exatamente** o texto de `message`, sem alterar. É o que o Pedro aprovou.
 - Não envie nada que não esteja nesta fila.
@@ -232,8 +233,8 @@ Não repita automaticamente um `4xx` sem mudar o pedido: ele vai falhar de novo.
 
 **Dev Bossle**
 - Consulte `GET /bot/leads` antes de pesquisar. Lead que já existe, em qualquer etapa, não se repete.
-- Só cidades atendidas: Caxias do Sul, Farroupilha e São Marcos.
-- Só lead A (nota 70+), sem site e com telefone confirmado em 2 fontes vai para `aguardando`.
+- Só cidades da área definida no painel (vazia = qualquer cidade).
+- Só lead A (nota 70+) vai para `aguardando`, com WhatsApp confirmado em 2 fontes ou com e-mail. Site ruim é aceito se o painel permitir.
 - Sempre registre o motivo ao descartar, mandar para o Banco B ou para revisão.
 
 **WhatsApp**

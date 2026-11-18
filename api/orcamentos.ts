@@ -35,6 +35,7 @@ const loaders: Record<string, () => Promise<{ default: RouteHandler }>> = {
   "prospects/stage": () => import("./_handlers/prospects/stage.js"),
   "prospects/followup": () => import("./_handlers/prospects/followup.js"),
   "prospects/bot-tokens": () => import("./_handlers/prospects/botTokens.js"),
+  "prospects/rules": () => import("./_handlers/prospects/rules.js"),
   // Rotas dos bots (Authorization: Bearer dbb_…)
   "bot/leads": () => import("./_handlers/bot/leads.js"),
   "bot/queue": () => import("./_handlers/bot/queue.js"),

@@ -64,7 +64,7 @@ export function Overview({
 
   if (!analytics) {
     return (
-      <div className="grid gap-4 xl:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
         <Skeleton h="h-56 xl:col-span-2" />
         <Skeleton h="h-56" />
         <Skeleton h="h-72 xl:col-span-2" />
@@ -98,7 +98,7 @@ export function Overview({
   return (
     <div className="space-y-4">
       {/* Resultado + patrimônio */}
-      <div className="grid gap-4 xl:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
         <section className={`${cardClass} xl:col-span-2`}>
           <p className={labelClass}>Resultado de {curName}</p>
           <p className={`mt-1 text-3xl font-semibold tracking-tight tabular-nums sm:text-4xl ${result < 0 ? "text-danger" : ""}`}>
@@ -181,7 +181,7 @@ export function Overview({
       </div>
 
       {/* Ritmo de gasto + para onde foi */}
-      <div className="grid gap-4 xl:grid-cols-3 xl:items-start">
+      <div className="grid grid-cols-1 gap-4 xl:grid-cols-3 xl:items-start">
         <Section
           title="Ritmo de gasto"
           className="xl:col-span-2"
@@ -245,7 +245,7 @@ export function Overview({
       </div>
 
       {/* Estabelecimentos + recorrências */}
-      <div className="grid gap-4 xl:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
         <Section title="Onde você mais gastou">
           {a.merchants.length ? (
             <BarList
@@ -292,11 +292,11 @@ export function Overview({
       </div>
 
       {/* 13 meses + dia da semana e entradas */}
-      <div className="grid gap-4 xl:grid-cols-3 xl:items-start">
+      <div className="grid grid-cols-1 gap-4 xl:grid-cols-3 xl:items-start">
         <Section title="Entradas e saídas nos últimos 13 meses" className="xl:col-span-2">
           {monthly}
         </Section>
-        <div className="grid gap-4">
+        <div className="grid grid-cols-1 gap-4">
           <Section title="Gasto médio por dia da semana">
             <WeekdayBars values={a.weekday} />
             <p className="mt-3 text-xs text-faint">Média dos últimos 4 meses, por dia.</p>
@@ -401,7 +401,7 @@ export function CategoriesView({
           ))}
         </div>
       </div>
-      <div className="overflow-x-auto">
+      <div className="relative overflow-x-auto">
         <table className="w-full min-w-[760px] text-sm">
           <thead className="text-left text-xs text-muted">
             <tr className="border-b border-line">

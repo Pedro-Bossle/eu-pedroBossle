@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type MouseEvent, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import WhatsAppIcon from "../../components/icons/WhatsAppIcon";
 import { orcamentosApi } from "../../lib/orcamentos/api";
 import {
@@ -9,8 +9,11 @@ import {
   prospectsToCsv,
   whatsappUrl,
 } from "../../lib/orcamentos/prospects";
-import type { BotToken, ProspectEvent, ProspectInput, ProspectLead } from "../../types/orcamentos";
+import type { BotToken, ProspectEvent, ProspectInput, ProspectLead, ProspectRules } from "../../types/orcamentos";
+import Icon from "./ui/Icon";
+import QuickMenu from "./ui/QuickMenu";
 import Select from "./ui/Select";
+import Sheet from "./ui/Sheet";
 import { convertToClient } from "./crm/events";
 import {
   btn,
@@ -18,11 +21,11 @@ import {
   btnPrimary,
   btnSm,
   btnWhatsApp,
-  cardClass,
   control,
   focusRing,
   labelClass,
   linkClass,
+  pill,
 } from "./panelStyles";
 
 type Props = {
@@ -80,18 +83,19 @@ const STAGE_HINT: Record<string, string> = {
 
 const isExit = (s: string) => (EXITS as readonly string[]).includes(s);
 
+/** Canal do primeiro contato (espelha leadChannel da API). */
+const channelOf = (l: ProspectLead) =>
+  l.whatsapp.replace(/\D/g, "").length >= 10 ? "whatsapp" : /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(l.email.trim()) ? "email" : "none";
+
+const mailtoUrl = (l: ProspectLead, body: string) =>
+  `mailto:${encodeURIComponent(l.email.trim())}?subject=${encodeURIComponent(`Sobre o site da ${l.name}`)}&body=${encodeURIComponent(body)}`;
+
 const inputClass = `${control} w-full min-h-10 px-3 py-2 text-base sm:text-sm`;
 const areaClass = `${control} w-full min-h-40 resize-y px-3.5 py-3 text-base leading-relaxed sm:text-sm`;
 const btnDanger = btnDangerSm;
 const smallLabel = labelClass;
 const badge = "inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold";
 
-const chip = (active: boolean) =>
-  `shrink-0 rounded-full px-3 py-1.5 text-xs font-medium transition ${focusRing} ${
-    active
-      ? "bg-ink text-canvas"
-      : "border border-line text-muted hover:text-ink"
-  }`;
 
 const scoreBadge = (score: number | null) =>
   score == null
@@ -160,10 +164,12 @@ function History({ id }: { id: string }) {
 function LeadCard({
   lead,
   onChange,
+  onEdit,
   showToast,
 }: {
   lead: ProspectLead;
   onChange: (lead: ProspectLead) => void;
+  onEdit: () => void;
   showToast: (msg: string) => void;
 }) {
   const stage = lead.stage;
@@ -210,8 +216,8 @@ function LeadCard({
   const address = [lead.address, lead.neighborhood].filter(Boolean).join(" – ");
 
   return (
-    <article className="flex min-w-0 flex-col gap-4 rounded-xl border border-line bg-surface p-4 sm:p-5">
-      <header className="space-y-2">
+    <article className="flex min-w-0 flex-col gap-5">
+      <header className="flex items-start justify-between gap-3">
         <div className="flex flex-wrap items-center gap-1.5">
           <span className={`${badge} ${scoreBadge(lead.score)}`}>
             {lead.score == null ? "Sem nota" : `Nota ${lead.score}`}
@@ -237,10 +243,9 @@ function LeadCard({
             </span>
           ) : null}
         </div>
-        <h3 className="text-lg font-semibold leading-snug tracking-tight break-words">{lead.name}</h3>
-        <p className="text-sm text-muted">
-          {[lead.niche, lead.city].filter(Boolean).join(" · ")}
-        </p>
+        <button type="button" className={`${btnSm} shrink-0`} onClick={onEdit}>
+          Editar
+        </button>
       </header>
 
       <dl className="grid grid-cols-[96px_1fr] gap-x-3 gap-y-2 text-sm">
@@ -275,6 +280,13 @@ function LeadCard({
             "Não informado"
           )}
         </Row>
+        {lead.email ? (
+          <Row label="E-mail">
+            <a href={`mailto:${lead.email}`} className={`${linkClass} break-all`}>
+              {lead.email}
+            </a>
+          </Row>
+        ) : null}
         {lead.instagram ? (
           <Row label="Instagram">
             <a
@@ -407,7 +419,17 @@ function LeadCard({
             Aprovar mensagem
           </button>
         ) : null}
-        {stage === "aprovado" && best ? (
+        {stage === "aprovado" && channelOf(lead) === "email" ? (
+          <>
+            <a href={mailtoUrl(lead, message)} className={btnPrimary}>
+              Abrir no e-mail
+            </a>
+            <button type="button" className={btn} disabled={busy} onClick={() => move("enviado", { note: "enviado por e-mail" })}>
+              Marcar como enviado
+            </button>
+          </>
+        ) : null}
+        {stage === "aprovado" && channelOf(lead) === "whatsapp" && best ? (
           <a
             href={whatsappUrl(best.wa, message)}
             target="_blank"
@@ -474,7 +496,7 @@ function LeadCard({
       </div>
 
       {/* Mover manualmente */}
-      <div className="grid gap-2 border-t border-line pt-3 sm:grid-cols-[1fr_1fr_auto]">
+      <div className="grid grid-cols-1 gap-2 border-t border-line pt-3 sm:grid-cols-[1fr_1fr_auto]">
         <Select
           ariaLabel="Mover para a etapa"
           placeholder="Mover para…"
@@ -541,16 +563,15 @@ function BotTokens({ showToast }: { showToast: (msg: string) => void }) {
   }, []);
 
   return (
-    <div className={`${cardClass} mb-4 space-y-4`}>
+    <div className="space-y-4">
       <div>
-        <h2 className="text-lg font-semibold tracking-tight">Tokens dos bots</h2>
-        <p className="mt-1 text-sm text-muted">
+        <p className="text-sm text-muted">
           <span className="font-mono">prospector</span> (Dev Bossle) cadastra e qualifica leads;{" "}
           <span className="font-mono">executor</span> (WhatsApp) envia as mensagens aprovadas. O token aparece uma única vez.
         </p>
       </div>
       {fresh ? (
-        <div className="space-y-2 border border-emerald-600/40 bg-emerald-500/5 p-3 text-sm">
+        <div className="space-y-2 rounded-xl border border-accent/40 bg-accent/5 p-3 text-sm">
           <p className="font-medium">Copie agora, ele não será mostrado de novo:</p>
           <p className="font-mono text-[13px] break-all select-all">{fresh}</p>
           <button
@@ -570,7 +591,7 @@ function BotTokens({ showToast }: { showToast: (msg: string) => void }) {
         </div>
       ) : null}
       <form
-        className="grid gap-2 sm:grid-cols-[1fr_auto_auto]"
+        className="grid grid-cols-1 gap-2 sm:grid-cols-[1fr_auto_auto]"
         onSubmit={async (e) => {
           e.preventDefault();
           if (!name.trim()) return;
@@ -741,7 +762,7 @@ function LeadForm({
 
   return (
     <form
-      className={initial ? "space-y-5" : `${cardClass} mb-4 space-y-5`}
+      className="space-y-5"
       onSubmit={async (e) => {
         e.preventDefault();
         if (!String(form.name ?? "").trim()) {
@@ -761,8 +782,8 @@ function LeadForm({
         }
       }}
     >
-      <h2 className="text-lg font-semibold tracking-tight">{initial ? "Editar lead" : "Novo lead"}</h2>
-      <div className="grid gap-3 sm:grid-cols-2">
+      {initial ? <h3 className="text-base font-semibold">Editar lead</h3> : null}
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         {field("name", "Nome do negócio", "Ex.: Mecânica Zanella")}
         {field("niche", "Nicho", "Ex.: oficina mecânica")}
         {field("city", "Cidade")}
@@ -790,7 +811,7 @@ function LeadForm({
         <p className="text-sm text-muted">
           Ao salvar, a nota é recalculada com estes dados. Sem nenhum deles, a nota atual é mantida.
         </p>
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           {num("reviewsCount", "Avaliações no Google")}
           {date("lastReviewAt", "Última avaliação")}
           {num("followers", "Seguidores no Instagram")}
@@ -874,9 +895,9 @@ function ImportExport({
   };
 
   return (
-    <div className={`${cardClass} mb-4 grid gap-6 lg:grid-cols-[1.4fr_1fr]`}>
+    <div className="grid grid-cols-1 gap-8">
       <div className="space-y-3">
-        <h2 className="text-lg font-semibold tracking-tight">Importar leads</h2>
+        <h3 className="text-base font-semibold">Importar leads</h3>
         <p className="text-sm text-muted">
           Cole um CSV ou JSON, ou escolha um arquivo. Colunas: nome, nicho, cidade, endereco, bairro, site, email, whatsapp, telefone, instagram, problemas, argumento. Mesmo nome e cidade atualiza o lead em vez de duplicar.
         </p>
@@ -912,7 +933,7 @@ function ImportExport({
         ) : null}
       </div>
       <div className="space-y-3">
-        <h2 className="text-lg font-semibold tracking-tight">Exportar / backup</h2>
+        <h3 className="text-base font-semibold">Exportar / backup</h3>
         <p className="text-sm text-muted">
           O JSON leva tudo, inclusive etapa, nota e mensagens. Para restaurar, importe o mesmo arquivo.
         </p>
@@ -949,44 +970,11 @@ function ImportExport({
 
 // ---------- Tela ----------
 
-type Owner = "db" | "wa" | "pd";
-
-/** Quem conduz cada etapa: Dev Bossle (db), bot do WhatsApp (wa) ou Pedro (pd). */
-const OWNER: Record<string, Owner> = {
-  encontrado: "db",
-  aguardando: "pd",
-  aprovado: "wa",
-  enviado: "wa",
-  followup: "wa",
-  respondeu: "pd",
-  proposta: "pd",
-  resultado: "pd",
-};
-
-const OWNER_LABEL: Record<Owner, string> = { db: "Dev Bossle", wa: "WhatsApp", pd: "Você" };
-
-const OWNER_BADGE: Record<Owner, string> = {
-  db: "bg-blue-500/10 text-blue-700 dark:text-blue-300",
-  wa: "bg-emerald-500/10 text-accent-text",
-  pd: "bg-ink text-canvas",
-};
-
-const OWNER_BAR: Record<Owner, { track: string; fill: string }> = {
-  db: { track: "border-blue-600 bg-blue-500/10", fill: "bg-blue-600/80" },
-  wa: { track: "border-emerald-600 bg-emerald-500/10", fill: "bg-emerald-600/85" },
-  pd: {
-    track: "border-ink bg-neutral-500/10",
-    fill: "bg-ink/80",
-  },
-};
-
 /** Etapas que esperam uma ação sua. */
-const ATTENTION = ["aguardando", "respondeu"] as const;
-const needsYou = (stage: string) => (ATTENTION as readonly string[]).includes(stage);
+const needsYou = (stage: string) => stage === "aguardando" || stage === "respondeu";
 
 const DAY = 864e5;
-const ageDays = (iso: string | null) =>
-  iso ? Math.max(0, Math.floor((Date.now() - new Date(iso).getTime()) / DAY)) : 0;
+const ageDays = (iso: string | null) => (iso ? Math.max(0, Math.floor((Date.now() - new Date(iso).getTime()) / DAY)) : 0);
 const ageText = (iso: string | null) => {
   const d = ageDays(iso);
   return d === 0 ? "hoje" : d === 1 ? "há 1 dia" : `há ${d} dias`;
@@ -1008,179 +996,174 @@ const isLate = (l: ProspectLead) =>
   (l.stage === "aguardando" && ageDays(l.stageChangedAt ?? l.created) >= 2) ||
   (l.stage === "respondeu" && ageDays(l.stageChangedAt ?? l.created) >= 1);
 
-const neutralBadge = `${badge} bg-sunken text-muted`;
-
-function BoardCard({
+/** Linha da lista: nome, nota, contexto e a ação principal quando há uma. */
+function LeadRow({
   lead,
   busy,
+  showStage,
   onOpen,
   onApprove,
   onReject,
 }: {
   lead: ProspectLead;
   busy: boolean;
+  showStage: boolean;
   onOpen: () => void;
   onApprove: () => void;
   onReject: () => void;
 }) {
-  const { onlyLandline } = contactInfo(lead);
   const since = lead.stageChangedAt ?? lead.created;
-  const place = [lead.niche, [lead.neighborhood, lead.city].filter(Boolean).join(", ")].filter(Boolean).join(" · ");
-  const sources = Math.max(1, lead.phoneSources.length);
-  const stop = (fn: () => void) => (e: MouseEvent<HTMLButtonElement>) => {
-    e.stopPropagation();
-    fn();
-  };
+  const meta = [lead.niche, lead.neighborhood ? `${lead.neighborhood}, ${lead.city}` : lead.city, lead.website ? "site com problema" : "sem site", channelOf(lead) === "email" ? "por e-mail" : ""]
+    .filter(Boolean)
+    .join(" · ");
+  const preview =
+    lead.stage === "aguardando"
+      ? lead.message
+      : lead.stage === "respondeu"
+        ? lead.replyText || "Respondeu"
+        : isExit(lead.stage)
+          ? lead.exitReason
+          : "";
 
   return (
-    <div
-      role="button"
-      tabIndex={0}
-      aria-label={`Abrir ${lead.name}`}
-      onClick={onOpen}
-      onKeyDown={(e) => {
-        if (e.target === e.currentTarget && (e.key === "Enter" || e.key === " ")) {
-          e.preventDefault();
-          onOpen();
-        }
-      }}
-      className={`grid w-full min-w-0 cursor-pointer gap-2 rounded-xl border border-line bg-surface p-3 text-left transition-colors hover:border-line-strong ${focusRing}`}
-    >
-      <div className="flex items-start justify-between gap-2">
-        <h4 className="min-w-0 text-sm leading-snug font-bold break-words">{lead.name}</h4>
-        {lead.score != null ? (
-          <span className={`${badge} shrink-0 ${scoreBadge(lead.score)}`}>{lead.score}</span>
-        ) : null}
-      </div>
-      <p className="text-xs break-words text-muted">{place || "Sem nicho ou cidade"}</p>
-
-      {lead.stage === "aguardando" && lead.message ? (
-        <p className="line-clamp-4 border-l-2 border-emerald-600 bg-canvas px-2.5 py-2 text-xs leading-relaxed">
-          {lead.message}
-        </p>
-      ) : null}
-      {lead.stage === "respondeu" ? (
-        <p className="line-clamp-3 border-l-2 border-ink bg-canvas px-2.5 py-2 text-xs leading-relaxed">
-          {lead.replyText || "Respondeu"}
-        </p>
-      ) : null}
-      {lead.stage === "resultado" && lead.result ? (
-        <div>
-          <span
-            className={`${badge} ${
-              lead.result === "fechado"
-                ? "bg-emerald-500/15 text-accent-text"
-                : "bg-red-500/10 text-red-700 dark:text-red-300"
-            }`}
-          >
-            {lead.result}
+    <li className="adm-pop rounded-xl border border-line bg-surface transition-colors hover:border-line-strong">
+      <button type="button" onClick={onOpen} className={`block w-full min-w-0 rounded-xl p-3.5 text-left ${focusRing}`}>
+        <span className="flex items-start gap-3">
+          <span className="min-w-0 flex-1">
+            <span className="block font-semibold leading-snug break-words">{lead.name}</span>
+            <span className="mt-0.5 block text-xs break-words text-muted">{meta || "Sem nicho ou bairro"}</span>
           </span>
-        </div>
-      ) : null}
-      {!needsYou(lead.stage) && lead.stage !== "resultado" ? (
-        <div className="flex flex-wrap gap-1">
-          <span
-            className={
-              lead.website ? neutralBadge : `${badge} bg-emerald-500/10 text-accent-text`
-            }
-          >
-            {lead.website ? "com site" : "sem site"}
-          </span>
-          <span className={neutralBadge}>
-            {lead.whatsapp.trim() || lead.phone.trim()
-              ? `tel. ${sources} fonte${sources > 1 ? "s" : ""}`
-              : "sem telefone"}
-          </span>
-          {onlyLandline ? (
-            <span className={`${badge} bg-amber-500/10 text-amber-800 dark:text-amber-300`}>só fixo</span>
+          {lead.score != null ? (
+            <span className={`${badge} shrink-0 tabular-nums ${scoreBadge(lead.score)}`} title="Nota do lead">
+              {lead.score}
+            </span>
           ) : null}
-        </div>
-      ) : null}
-
-      <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] text-muted">
-        <span className={isLate(lead) ? "font-bold text-danger" : ""}>
-          {ageText(since)} nesta etapa
         </span>
-        {lead.stage === "aguardando" ? (
-          <span className="flex gap-1.5">
-            <button
-              type="button"
-              className={`${btnDanger} !min-h-8 !px-2.5 !py-1 text-xs`}
-              disabled={busy}
-              onClick={stop(onReject)}
-            >
-              Recusar
-            </button>
-            <button
-              type="button"
-              className="inline-flex min-h-8 cursor-pointer items-center bg-emerald-700 px-2.5 py-1 text-xs font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-50 dark:bg-emerald-500"
-              disabled={busy}
-              onClick={stop(onApprove)}
-            >
-              Aprovar
-            </button>
+        {preview ? (
+          <span className="mt-2.5 line-clamp-3 block rounded-lg bg-sunken/60 px-3 py-2 text-[13px] leading-relaxed text-ink/90">
+            {preview}
           </span>
         ) : null}
+        <span className="mt-2.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-faint">
+          {showStage ? <span className="font-medium text-muted">{STAGE_LABEL[lead.stage] ?? lead.stage}</span> : null}
+          <span className={isLate(lead) ? "font-semibold text-danger" : ""}>{ageText(since)}</span>
+          {lead.result ? (
+            <span className={lead.result === "fechado" ? "font-semibold text-accent-text" : "font-semibold text-danger"}>{lead.result}</span>
+          ) : null}
+        </span>
+      </button>
+      {lead.stage === "aguardando" ? (
+        <div className="grid grid-cols-2 gap-2 border-t border-line p-2.5">
+          <button type="button" className={btnDanger} disabled={busy} onClick={onReject}>
+            Recusar
+          </button>
+          <button type="button" className={btnPrimary} disabled={busy} onClick={onApprove}>
+            Aprovar
+          </button>
+        </div>
+      ) : null}
+    </li>
+  );
+}
+
+const SERRA = ["Caxias do Sul", "Farroupilha", "São Marcos"];
+
+/** Regras que a API aplica aos leads dos bots. */
+function RulesPanel({ onClose, showToast }: { onClose: () => void; showToast: (msg: string) => void }) {
+  const [rules, setRules] = useState<ProspectRules | null>(null);
+  const [text, setText] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    orcamentosApi
+      .prospectRules()
+      .then(({ rules: r }) => {
+        setRules(r);
+        setText(r.cities.join("\n"));
+      })
+      .catch((e) => showToast(e instanceof Error ? e.message : "Falha ao carregar as regras"));
+  }, [showToast]);
+
+  const cities = text
+    .split(/[\n;,]+/)
+    .map((c) => c.trim())
+    .filter(Boolean);
+
+  const save = async () => {
+    if (!rules) return;
+    setBusy(true);
+    try {
+      const { rules: saved } = await orcamentosApi.saveProspectRules({ cities, allowWebsite: rules.allowWebsite });
+      setRules(saved);
+      showToast("Regras salvas. Valem para os próximos envios dos bots.");
+      onClose();
+    } catch (e) {
+      showToast(e instanceof Error ? e.message : "Falha ao salvar");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  if (!rules) return <p className="text-sm text-muted">Carregando…</p>;
+  return (
+    <div className="space-y-6">
+      <div className="space-y-2">
+        <label htmlFor="rules-cities" className={labelClass}>
+          Cidades atendidas
+        </label>
+        <textarea
+          id="rules-cities"
+          className={`${areaClass} min-h-32`}
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          placeholder={"Uma por linha. Vazio = qualquer cidade.\nEx.: Passo Fundo"}
+        />
+        <p className="text-xs text-muted">
+          {cities.length ? `${cities.length} cidade${cities.length > 1 ? "s" : ""}. Lead de outra cidade é recusado pela API.` : "Sem lista: o bot pode cadastrar leads de qualquer cidade."}
+        </p>
+        <div className="flex flex-wrap gap-2">
+          <button type="button" className={btnSm} onClick={() => setText("")}>
+            Qualquer cidade
+          </button>
+          <button type="button" className={btnSm} onClick={() => setText(SERRA.join("\n"))}>
+            Só Caxias, Farroupilha e São Marcos
+          </button>
+        </div>
+      </div>
+
+      <label className="flex items-start gap-3 rounded-xl border border-line p-3.5 text-sm">
+        <input
+          type="checkbox"
+          className="mt-0.5 size-4 accent-emerald-700"
+          checked={rules.allowWebsite}
+          onChange={(e) => setRules({ ...rules, allowWebsite: e.target.checked })}
+        />
+        <span>
+          <span className="font-medium">Aceitar lead com site ruim</span>
+          <span className="mt-0.5 block text-muted">
+            Site fora do ar, com erro de SSL, modelo pronto ou abandonado. O bot precisa descrever o problema na checagem.
+          </span>
+        </span>
+      </label>
+
+      <p className="text-xs text-muted">
+        Sempre valem: nota 70 ou mais, mensagem pronta e um canal: WhatsApp confirmado em 2 fontes ou e-mail. Leads só com
+        e-mail você envia pela ficha (Abrir no e-mail).
+      </p>
+
+      <div className="flex justify-end gap-2">
+        <button type="button" className={btn} onClick={onClose}>
+          Cancelar
+        </button>
+        <button type="button" className={btnPrimary} disabled={busy} onClick={save}>
+          {busy ? "Salvando…" : "Salvar regras"}
+        </button>
       </div>
     </div>
   );
 }
 
-function LeadDrawer({
-  lead,
-  editing,
-  onEdit,
-  onClose,
-  children,
-}: {
-  lead: ProspectLead;
-  editing: boolean;
-  onEdit: () => void;
-  onClose: () => void;
-  children: ReactNode;
-}) {
-  const closeRef = useRef<HTMLButtonElement>(null);
-  const out = isExit(lead.stage);
-
-  useEffect(() => {
-    closeRef.current?.focus();
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [onClose]);
-
-  return (
-    <>
-      <div className="fixed inset-0 z-40 bg-black/35" onClick={onClose} aria-hidden="true" />
-      <aside
-        role="dialog"
-        aria-modal="true"
-        aria-label={lead.name}
-        className="fixed inset-y-0 right-0 z-50 flex w-full max-w-xl flex-col border-l border-line bg-[#f6f6f6]"
-      >
-        <div className="flex items-center justify-between gap-3 border-b border-line bg-surface px-4 py-3">
-          <span className="flex min-w-0 items-center gap-2">
-            <span className={out ? neutralBadge : `${badge} ${OWNER_BADGE[OWNER[lead.stage]]}`}>
-              {out ? "Fora do funil" : OWNER_LABEL[OWNER[lead.stage]]}
-            </span>
-            <span className="truncate text-sm font-semibold">{STAGE_LABEL[lead.stage] ?? lead.stage}</span>
-          </span>
-          <span className="flex gap-2">
-            {editing ? null : (
-              <button type="button" className={btnSm} onClick={onEdit}>
-                Editar
-              </button>
-            )}
-            <button ref={closeRef} type="button" className={btnSm} onClick={onClose}>
-              Fechar
-            </button>
-          </span>
-        </div>
-        <div className="flex-1 overflow-y-auto p-3 sm:p-4">{children}</div>
-      </aside>
-    </>
-  );
-}
+type Panel = "" | "new" | "import" | "tokens" | "rules";
 
 function Funnel({ showToast }: Props) {
   const [leads, setLeads] = useState<ProspectLead[]>([]);
@@ -1189,12 +1172,14 @@ function Funnel({ showToast }: Props) {
   const [city, setCity] = useState("");
   const [niche, setNiche] = useState("");
   const [query, setQuery] = useState("");
+  /** Etapa aberta na lista; "saidas" mostra quem saiu do funil. */
+  const [stage, setStage] = useState<string>("");
   const [exitStage, setExitStage] = useState("");
   const [openId, setOpenId] = useState("");
   const [editing, setEditing] = useState(false);
   const [busyId, setBusyId] = useState("");
-  const [showTokens, setShowTokens] = useState(false);
-  const [panel, setPanel] = useState<"" | "import" | "new">("");
+  const [panel, setPanel] = useState<Panel>("");
+  const [menu, setMenu] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -1250,23 +1235,29 @@ function Funnel({ showToast }: Props) {
   }, [filtered]);
 
   const reached = useMemo(() => FUNNEL.map((_, i) => filtered.filter((l) => reachedIndex(l) >= i).length), [filtered]);
-
+  const exitCount = EXITS.reduce((n, e) => n + (byStage[e]?.length ?? 0), 0);
   const waiting = byStage.aguardando?.length ?? 0;
   const replied = byStage.respondeu?.length ?? 0;
   const won = (byStage.resultado ?? []).filter((l) => l.result === "fechado").length;
+
+  // Etapa padrão: a que espera você; senão a primeira com gente.
+  const current =
+    stage ||
+    (waiting ? "aguardando" : replied ? "respondeu" : FUNNEL.find((s) => byStage[s]?.length) ?? "encontrado");
+  const searching = query.trim().length > 0;
+
+  const list = useMemo(() => {
+    if (searching) return filtered;
+    if (current === "saidas") return exitStage ? (byStage[exitStage] ?? []) : EXITS.flatMap((e) => byStage[e] ?? []);
+    return byStage[current] ?? [];
+  }, [searching, filtered, current, exitStage, byStage]);
+
   const openLead = leads.find((l) => l.id === openId);
-  const exitLeads = exitStage ? (byStage[exitStage] ?? []) : [];
   const closeDrawer = useCallback(() => {
     setOpenId("");
     setEditing(false);
   }, []);
-  const open = (id: string) => {
-    setOpenId(id);
-    setEditing(false);
-  };
-
-  const jump = (stageId: string) =>
-    document.getElementById(`col-${stageId}`)?.scrollIntoView({ behavior: "smooth", inline: "start", block: "nearest" });
+  const closePanel = useCallback(() => setPanel(""), []);
 
   const quickMove = async (lead: ProspectLead, to: string, extra: { note?: string; message?: string }, done: string) => {
     setBusyId(lead.id);
@@ -1286,77 +1277,50 @@ function Funnel({ showToast }: Props) {
     if (note) void quickMove(lead, "descartado", { note }, "Recusado e movido para Descartado");
   };
 
+  const idx = (FUNNEL as readonly string[]).indexOf(current);
+  const conversion = idx > 0 && reached[idx - 1] ? Math.round((reached[idx] / reached[idx - 1]) * 100) : null;
+
   return (
-    <section className="grid gap-5">
-      <header className="flex flex-wrap items-end justify-between gap-x-5 gap-y-3">
-        <div>
-          <p className="text-sm font-medium opacity-60">Vendas</p>
-          <h1 className="mt-1 text-2xl font-semibold tracking-tight sm:text-3xl">Funil de prospecção</h1>
-          <p className="mt-2 text-sm text-muted">
-            {leads.length} leads. Os bots movem os leads entre as etapas; você aprova mensagens e acompanha o resultado.
+    <section className="grid grid-cols-1 gap-5" aria-labelledby="funnel-title">
+      <header className="flex items-end justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-sm font-medium text-muted">Vendas</p>
+          <h1 id="funnel-title" className="mt-1 text-2xl font-semibold tracking-tight sm:text-3xl">
+            Funil
+          </h1>
+          <p className="mt-1 text-sm text-muted">
+            {leads.length} leads · {won} fechado{won === 1 ? "" : "s"}
           </p>
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="relative flex shrink-0 gap-2">
           <button
             type="button"
-            className={btn}
-            onClick={() => setPanel(panel === "import" ? "" : "import")}
-            aria-expanded={panel === "import"}
+            className={`${btn} !px-3`}
+            aria-haspopup="menu"
+            aria-expanded={menu}
+            aria-label="Mais opções do funil"
+            onClick={() => setMenu((v) => !v)}
           >
-            Importar / exportar
-          </button>
-          <button type="button" className={btn} onClick={() => setShowTokens((v) => !v)} aria-expanded={showTokens}>
-            Tokens dos bots
+            <Icon d="M5 12h.01M12 12h.01M19 12h.01" className="size-5" />
           </button>
           <button type="button" className={btnPrimary} onClick={() => setPanel("new")}>
-            + Novo lead
+            + Lead
           </button>
+          {menu ? (
+            <QuickMenu
+              onClose={() => setMenu(false)}
+              items={[
+                { label: "Importar / exportar", icon: "M12 3v12m0 0-4-4m4 4 4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2", run: () => setPanel("import") },
+                { label: "Regras do funil", icon: "M4 6h16M7 12h10M10 18h4", run: () => setPanel("rules") },
+                { label: "Tokens dos bots", icon: "M15 7a2 2 0 1 1 0 4 2 2 0 0 1 0-4ZM3 21l7.5-7.5M13 11l-2 2m-4 4 2 2", run: () => setPanel("tokens") },
+              ]}
+            />
+          ) : null}
         </div>
       </header>
 
-      {panel === "new" ? (
-        <LeadForm
-          showToast={showToast}
-          onCancel={() => setPanel("")}
-          onSaved={(lead) => {
-            replaceLead(lead);
-            setPanel("");
-          }}
-        />
-      ) : null}
-      {panel === "import" ? <ImportExport leads={leads} onImported={setLeads} /> : null}
-      {showTokens ? <BotTokens showToast={showToast} /> : null}
-
-      <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Filtros">
-        <button type="button" className={chip(!city)} aria-pressed={!city} onClick={() => setCity("")}>
-          Todas as cidades
-        </button>
-        {cities.map((c) => (
-          <button key={c} type="button" className={chip(city === c)} aria-pressed={city === c} onClick={() => setCity(c)}>
-            {c}
-          </button>
-        ))}
-        <div className="w-48">
-          <Select
-            size="sm"
-            ariaLabel="Nicho"
-            value={niche}
-            onChange={setNiche}
-            options={[{ value: "", label: "Todos os nichos" }, ...niches.map((n) => ({ value: n, label: n }))]}
-          />
-        </div>
-        <input
-          className={`${inputClass} !min-h-9 !py-1.5 sm:!w-60`}
-          type="search"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Buscar negócio"
-          aria-label="Buscar negócio"
-        />
-      </div>
-
       {loadError ? (
-        <div className="border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-800 dark:text-amber-300">
+        <div className="rounded-xl border border-danger/30 bg-danger-soft px-4 py-3 text-sm text-danger">
           {loadError}
           {/relation|column|does not exist|undefined_table|009/i.test(loadError) ? (
             <>
@@ -1367,212 +1331,131 @@ function Funnel({ showToast }: Props) {
         </div>
       ) : null}
 
-      {/* Funil: quantos chegaram a cada etapa e a conversão da anterior */}
-      <section className={`${cardClass} grid gap-3 !p-4`} aria-labelledby="funnel-title">
-        <div className="flex flex-wrap items-baseline justify-between gap-2">
-          <h2 id="funnel-title" className="text-base font-bold">
-            Funil
-          </h2>
-          <span className="text-xs text-muted">
-            Leads que chegaram a cada etapa · {won} fechado{won === 1 ? "" : "s"}
-          </span>
-        </div>
-        <div className="grid grid-cols-4 gap-x-1 gap-y-4 md:grid-cols-8">
-          {FUNNEL.map((s, i) => {
-            const n = reached[i];
-            const pct = i ? (reached[i - 1] ? Math.round((n / reached[i - 1]) * 100) : 0) : null;
-            const now = byStage[s]?.length ?? 0;
-            const h = Math.max(6, Math.round((n / (reached[0] || 1)) * 100));
-            const bar = OWNER_BAR[OWNER[s]];
+      {/* Filtros */}
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-[minmax(0,1fr)_200px_200px]">
+        <input
+          className={`${inputClass} col-span-2 sm:col-span-1`}
+          type="search"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Buscar negócio, nicho ou bairro"
+          aria-label="Buscar negócio"
+        />
+        <Select
+          ariaLabel="Cidade"
+          value={city}
+          onChange={setCity}
+          options={[{ value: "", label: "Todas as cidades" }, ...cities.map((c) => ({ value: c, label: c }))]}
+        />
+        <Select
+          ariaLabel="Nicho"
+          value={niche}
+          onChange={setNiche}
+          options={[{ value: "", label: "Todos os nichos" }, ...niches.map((n) => ({ value: n, label: n }))]}
+        />
+      </div>
+
+      {/* Etapas */}
+      {searching ? null : (
+        <nav
+          aria-label="Etapas do funil"
+          className="relative -mx-4 flex gap-1.5 overflow-x-auto px-4 pb-1 [scrollbar-width:none] sm:mx-0 sm:flex-wrap sm:px-0"
+        >
+          {[...FUNNEL, "saidas" as const].map((s) => {
+            const n = s === "saidas" ? exitCount : (byStage[s]?.length ?? 0);
+            const active = current === s;
+            const attn = needsYou(s) && n > 0;
             return (
               <button
                 key={s}
                 type="button"
-                onClick={() => jump(s)}
-                aria-label={`${STAGE_LABEL[s]}: ${n} no total, ${now} agora`}
-                className={`grid min-w-0 cursor-pointer content-start gap-1.5 text-left ${focusRing}`}
+                aria-pressed={active}
+                onClick={() => {
+                  setStage(s);
+                  setExitStage("");
+                }}
+                className={`${pill(active)} shrink-0`}
               >
-                <div
-                  className={`relative h-12 overflow-hidden border-b-[3px] ${bar.track} ${needsYou(s) && now > 0 ? "outline-2 -outline-offset-2 outline-amber-500" : ""}`}
-                >
-                  <i className={`absolute inset-x-0 bottom-0 ${bar.fill}`} style={{ height: `${h}%` }} />
-                </div>
-                <span className="text-xl leading-none font-bold tabular-nums">{n}</span>
-                <span className="text-[11px] leading-tight font-semibold break-words text-muted">
-                  {STAGE_LABEL[s]}
-                </span>
-                <span className="text-[11px] text-muted tabular-nums">
-                  {pct === null ? (
-                    "base"
-                  ) : (
-                    <>
-                      <b className="font-semibold text-ink">{pct}%</b> da anterior
-                    </>
-                  )}{" "}
-                  · {now} agora
-                </span>
+                {attn && !active ? <span className="size-1.5 rounded-full bg-amber-500" aria-hidden /> : null}
+                {s === "saidas" ? "Saídas" : STAGE_LABEL[s]}
+                <span className={`tabular-nums ${active ? "opacity-70" : "text-faint"}`}>{n}</span>
               </button>
             );
           })}
-        </div>
-        <div className="flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-muted">
-          {(Object.keys(OWNER_LABEL) as Owner[]).map((o) => (
-            <span key={o} className="inline-flex items-center gap-1.5">
-              <i className={`inline-block size-2.5 ${OWNER_BAR[o].fill}`} />
-              {OWNER_LABEL[o]}
-            </span>
-          ))}
-          <span>% = quantos passaram da etapa anterior para esta</span>
-        </div>
-      </section>
+        </nav>
+      )}
 
-      {waiting || replied ? (
-        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm">
-          <p>
-            {[
-              waiting ? `${waiting} mensage${waiting > 1 ? "ns" : "m"} esperando sua aprovação` : "",
-              replied ? `${replied} lead${replied > 1 ? "s" : ""} respondeu e espera você` : "",
-            ]
-              .filter(Boolean)
-              .join(" · ")}
+      {/* Lista */}
+      <div className="grid grid-cols-1 gap-3">
+        <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+          <h2 className="text-base font-semibold">
+            {searching ? `Resultados para “${query.trim()}”` : current === "saidas" ? "Saídas do funil" : STAGE_LABEL[current]}
+          </h2>
+          <p className="text-xs text-muted">
+            {searching
+              ? `${list.length} lead${list.length === 1 ? "" : "s"}`
+              : current === "saidas"
+                ? STAGE_HINT[exitStage] ?? "Fora do funil, ficam registrados para não repetir."
+                : [STAGE_HINT[current], conversion != null ? `${conversion}% passaram da etapa anterior` : ""]
+                    .filter(Boolean)
+                    .join(" · ")}
           </p>
-          <button type="button" className={btnPrimary} onClick={() => jump(waiting ? "aguardando" : "respondeu")}>
-            {waiting ? "Revisar mensagens" : "Ver respostas"}
-          </button>
         </div>
-      ) : null}
 
-      {/* Quadro por etapa */}
-      <div className="overflow-x-auto pb-1.5">
-        <div className="grid min-w-min auto-cols-[minmax(260px,1fr)] grid-flow-col gap-2.5">
-          {FUNNEL.map((s) => {
-            const items = byStage[s] ?? [];
-            const owner = OWNER[s];
-            const attn = needsYou(s) && items.length > 0;
-            return (
-              <section
-                key={s}
-                id={`col-${s}`}
-                aria-label={STAGE_LABEL[s]}
-                className={`flex min-h-60 min-w-0 flex-col border bg-canvas ${attn ? "border-amber-500/55" : "border-line"}`}
+        {!searching && current === "saidas" ? (
+          <div className="flex flex-wrap gap-1.5">
+            {EXITS.filter((e) => byStage[e]?.length || exitStage === e).map((e) => (
+              <button
+                key={e}
+                type="button"
+                aria-pressed={exitStage === e}
+                onClick={() => setExitStage(exitStage === e ? "" : e)}
+                className={pill(exitStage === e)}
               >
-                <header
-                  className={`flex items-center justify-between gap-2 border-b px-3 py-2.5 ${attn ? "border-amber-500/55 bg-amber-500/10" : "border-line bg-surface"}`}
-                >
-                  <h3 className="text-xs font-bold tracking-wide">{STAGE_LABEL[s]}</h3>
-                  <span className="flex items-center gap-1.5">
-                    <span className={`px-1.5 py-0.5 text-[10px] font-bold tracking-wide ${OWNER_BADGE[owner]}`}>
-                      {OWNER_LABEL[owner]}
-                    </span>
-                    <span className="text-xs font-bold text-muted tabular-nums">
-                      {items.length}
-                    </span>
-                  </span>
-                </header>
-                <div className="grid max-h-[70vh] content-start gap-2 overflow-y-auto p-2.5">
-                  {items.length ? (
-                    items.map((lead) => (
-                      <BoardCard
-                        key={lead.id}
-                        lead={lead}
-                        busy={busyId === lead.id}
-                        onOpen={() => open(lead.id)}
-                        onApprove={() =>
-                          quickMove(
-                            lead,
-                            "aprovado",
-                            { message: lead.message },
-                            "Aprovado. O bot do WhatsApp envia na próxima janela.",
-                          )
-                        }
-                        onReject={() => reject(lead)}
-                      />
-                    ))
-                  ) : (
-                    <p className="px-1 py-2.5 text-xs text-muted">
-                      {loading ? "Carregando…" : "Nada aqui agora."}
-                    </p>
-                  )}
-                </div>
-              </section>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Saídas do funil */}
-      <section className="grid gap-2.5" aria-labelledby="exits-title">
-        <h2 id="exits-title" className="text-base font-bold">
-          Saídas do funil
-        </h2>
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
-          {EXITS.map((e) => (
-            <button
-              key={e}
-              type="button"
-              aria-pressed={exitStage === e}
-              onClick={() => setExitStage(exitStage === e ? "" : e)}
-              className={`grid cursor-pointer content-start gap-0.5 border bg-surface p-3 text-left transition-colors hover:border-line-strong ${focusRing} ${
-                exitStage === e ? "border-ink" : "border-line"
-              }`}
-            >
-              <b className="text-xl tabular-nums">{byStage[e]?.length ?? 0}</b>
-              <span className="text-xs font-semibold">{STAGE_LABEL[e]}</span>
-              <small className="text-[11px] text-muted">{STAGE_HINT[e]}</small>
-            </button>
-          ))}
-        </div>
-        {exitStage ? (
-          <div className="overflow-x-auto rounded-xl border border-line bg-surface">
-            <table className="w-full border-collapse text-sm">
-              <thead>
-                <tr className="text-left text-[11px] text-muted">
-                  {["Negócio", "Cidade", "Motivo", "Quando"].map((h) => (
-                    <th key={h} className="border-b border-line px-3 py-2 font-semibold">
-                      {h}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {exitLeads.length ? (
-                  exitLeads.map((l) => (
-                    <tr
-                      key={l.id}
-                      tabIndex={0}
-                      onClick={() => open(l.id)}
-                      onKeyDown={(e) => e.key === "Enter" && open(l.id)}
-                      className={`cursor-pointer hover:bg-sunken ${focusRing}`}
-                    >
-                      <td className="border-b border-line px-3 py-2 font-medium whitespace-nowrap">
-                        {l.name}
-                      </td>
-                      <td className="border-b border-line px-3 py-2 whitespace-nowrap">
-                        {l.city}
-                      </td>
-                      <td className="min-w-56 border-b border-line px-3 py-2">
-                        {l.exitReason || "—"}
-                      </td>
-                      <td className="border-b border-line px-3 py-2 whitespace-nowrap text-muted">
-                        {fmtWhen(l.stageChangedAt)}
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan={4} className="px-3 py-3 text-muted">
-                      Nenhum lead em {STAGE_LABEL[exitStage]} com estes filtros.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
+                {STAGE_LABEL[e]} <span className="tabular-nums text-faint">{byStage[e]?.length ?? 0}</span>
+              </button>
+            ))}
           </div>
         ) : null}
-      </section>
+
+        {loading ? (
+          <div className="grid grid-cols-1 gap-2 md:grid-cols-2 xl:grid-cols-3" aria-hidden>
+            {[0, 1, 2].map((i) => (
+              <div key={i} className="h-24 animate-pulse rounded-xl bg-sunken/60 motion-reduce:animate-none" />
+            ))}
+          </div>
+        ) : list.length ? (
+          <ul key={searching ? "q" : `${current}-${exitStage}`} className="grid grid-cols-1 items-start gap-2 md:grid-cols-2 xl:grid-cols-3">
+            {list.map((lead) => (
+              <LeadRow
+                key={lead.id}
+                lead={lead}
+                busy={busyId === lead.id}
+                showStage={searching || current === "saidas"}
+                onOpen={() => {
+                  setOpenId(lead.id);
+                  setEditing(false);
+                }}
+                onApprove={() =>
+                  quickMove(lead, "aprovado", { message: lead.message }, "Aprovado. O bot do WhatsApp envia na próxima janela.")
+                }
+                onReject={() => reject(lead)}
+              />
+            ))}
+          </ul>
+        ) : (
+          <p className="rounded-xl border border-dashed border-line px-4 py-10 text-center text-sm text-muted">
+            {searching ? "Nenhum lead encontrado." : "Nenhum lead nesta etapa agora."}
+          </p>
+        )}
+      </div>
 
       {openLead ? (
-        <LeadDrawer lead={openLead} editing={editing} onEdit={() => setEditing(true)} onClose={closeDrawer}>
+        <Sheet
+          title={openLead.name}
+          subtitle={[STAGE_LABEL[openLead.stage] ?? openLead.stage, [openLead.niche, openLead.city].filter(Boolean).join(" · ")].filter(Boolean).join(" · ")}
+          onClose={closeDrawer}
+        >
           {editing ? (
             <LeadForm
               key={openLead.id}
@@ -1589,10 +1472,40 @@ function Funnel({ showToast }: Props) {
               key={`${openLead.id}-${openLead.updated}`}
               lead={openLead}
               onChange={replaceLead}
+              onEdit={() => setEditing(true)}
               showToast={showToast}
             />
           )}
-        </LeadDrawer>
+        </Sheet>
+      ) : null}
+
+      {panel === "new" ? (
+        <Sheet title="Novo lead" onClose={closePanel}>
+          <LeadForm
+            showToast={showToast}
+            onCancel={closePanel}
+            onSaved={(lead) => {
+              replaceLead(lead);
+              setPanel("");
+              setStage(lead.stage);
+            }}
+          />
+        </Sheet>
+      ) : null}
+      {panel === "import" ? (
+        <Sheet title="Importar / exportar" onClose={closePanel}>
+          <ImportExport leads={leads} onImported={setLeads} />
+        </Sheet>
+      ) : null}
+      {panel === "rules" ? (
+        <Sheet title="Regras do funil" subtitle="O que a API aceita dos bots" onClose={closePanel}>
+          <RulesPanel onClose={closePanel} showToast={showToast} />
+        </Sheet>
+      ) : null}
+      {panel === "tokens" ? (
+        <Sheet title="Tokens dos bots" onClose={closePanel}>
+          <BotTokens showToast={showToast} />
+        </Sheet>
       ) : null}
     </section>
   );

@@ -1335,7 +1335,7 @@ function Panel({
         </div>
       </header>
 
-      <div className={`${shellClass} grid md:grid-cols-[210px_1fr] xl:grid-cols-[230px_1fr]`}>
+      <div className={`${shellClass} grid grid-cols-1 md:grid-cols-[210px_1fr] xl:grid-cols-[230px_1fr]`}>
         <aside className="hidden py-6 pr-3 md:sticky md:top-[65px] md:flex md:h-[calc(100dvh-65px)] md:flex-col md:pl-4 xl:pr-5 xl:pl-5">
           <nav className="flex flex-1 flex-col gap-0.5 overflow-y-auto" aria-label="Menu principal">
             {nav.map((item, idx) => {
@@ -1500,7 +1500,7 @@ function Panel({
               </div>
 
               <nav
-                className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0"
+                className="-mx-4 flex gap-2 relative overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0"
                 aria-label="Etapas do orçamento"
               >
                 {EDIT_STEPS.map((step, index) => {
@@ -1537,7 +1537,7 @@ function Panel({
               </nav>
 
               {editStep === "projeto" ? (
-                <div className={`${cardClass} grid gap-5 sm:grid-cols-2`}>
+                <div className={`${cardClass} grid grid-cols-1 gap-5 sm:grid-cols-2`}>
                   <div className="sm:col-span-2">
                     <h2 className="text-lg font-semibold tracking-tight">
                       Dados do projeto
@@ -1603,7 +1603,7 @@ function Panel({
               ) : null}
 
               {editStep === "conteudo" ? (
-                <div className={`${cardClass} grid gap-5`}>
+                <div className={`${cardClass} grid grid-cols-1 gap-5`}>
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div>
                       <h2 className="text-lg font-semibold tracking-tight">
@@ -1694,7 +1694,7 @@ function Panel({
                     {editing.items.map((item, index) => (
                       <div
                         key={index}
-                        className="grid gap-3 rounded-xl border border-line bg-canvas p-4 sm:grid-cols-[1fr_1fr_140px]"
+                        className="grid grid-cols-1 gap-3 rounded-xl border border-line bg-canvas p-4 sm:grid-cols-[1fr_1fr_140px]"
                       >
                         <input
                           className={inputClass}
@@ -1796,7 +1796,7 @@ function Panel({
               ) : null}
 
               {editStep === "extras" ? (
-                <div className={`${cardClass} grid gap-5`}>
+                <div className={`${cardClass} grid grid-cols-1 gap-5`}>
                   <div>
                     <h2 className="text-lg font-semibold tracking-tight">
                       Extras
@@ -2654,7 +2654,7 @@ function Panel({
 
               {presetForm ? (
                 <div className={`${cardClass} mb-4 space-y-4`}>
-                  <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <Field label="Seção">
                       <Select
                         ariaLabel="Seção"
@@ -2819,7 +2819,7 @@ function Panel({
                   Salvar
                 </button>
               </div>
-              <div className={`${cardClass} grid gap-3 sm:grid-cols-2`}>
+              <div className={`${cardClass} grid grid-cols-1 gap-3 sm:grid-cols-2`}>
                 {(
                   [
                     ["name", "Nome"],
@@ -2949,7 +2949,7 @@ function Panel({
                   Baixar backup
                 </a>
               </div>
-              <div className="mt-4 grid gap-4 sm:grid-cols-2">
+              <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div className={cardClass}>
                   <h3 className="font-semibold">Mesclar seed</h3>
                   <p className="mt-2 text-sm text-muted">

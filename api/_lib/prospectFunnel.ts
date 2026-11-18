@@ -58,6 +58,7 @@ const BOT_TRANSITIONS: Record<BotRole, Partial<Record<Stage, readonly Stage[]>>>
   prospector: {
     encontrado: ["aguardando", "descartado", "banco_b", "revisar"],
     aguardando: ["descartado", "banco_b", "revisar"],
+    revisar: ["aguardando", "descartado", "banco_b"],
   },
   executor: {
     aprovado: ["enviado", "invalido"],
@@ -67,7 +68,7 @@ const BOT_TRANSITIONS: Record<BotRole, Partial<Record<Stage, readonly Stage[]>>>
 };
 
 /** Etapas em que o Dev Bossle pode criar ou reescrever um lead. */
-export const PROSPECTOR_EDITABLE: readonly Stage[] = ["encontrado", "aguardando"];
+export const PROSPECTOR_EDITABLE: readonly Stage[] = ["encontrado", "aguardando", "revisar"];
 
 /** Etapas em que o Dev Bossle pode criar um lead novo. */
 export const PROSPECTOR_CREATE: readonly Stage[] = [
@@ -86,7 +87,7 @@ export function canMove(actor: Actor, from: Stage, to: Stage): boolean {
 
 /** Saídas exigem motivo; aprovação exige mensagem e WhatsApp. */
 export function validateMove(
-  lead: { whatsapp: string; message: string; score: number | null },
+  lead: { whatsapp: string; email?: string; message: string; score: number | null },
   to: Stage,
   opts: { note: string; result?: string },
 ): string | null {
@@ -98,7 +99,7 @@ export function validateMove(
   }
   if (to === "aprovado") {
     if (!lead.message.trim()) return "Lead sem mensagem para aprovar";
-    if (lead.whatsapp.replace(/\D/g, "").length < 10) return "Lead sem WhatsApp válido";
+    if (leadChannel(lead) === "none") return "Lead sem WhatsApp nem e-mail válido";
   }
   if (to === "resultado" && opts.result !== "fechado" && opts.result !== "perdido") {
     return "Resultado deve ser fechado ou perdido";
@@ -126,7 +127,7 @@ export type MoveResult =
 /** Move um lead de etapa com trava de linha, validação e registro no histórico. */
 export async function moveLead(db: PoolClient, input: MoveInput): Promise<MoveResult> {
   const { rows } = await db.query(
-    `SELECT id, stage, whatsapp, message, score, followup_approved_at
+    `SELECT id, stage, whatsapp, email, message, score, followup_approved_at
      FROM prospect_leads WHERE id = $1 FOR UPDATE`,
     [input.id],
   );
@@ -135,6 +136,7 @@ export async function moveLead(db: PoolClient, input: MoveInput): Promise<MoveRe
         id: string;
         stage: Stage;
         whatsapp: string;
+        email: string;
         message: string;
         score: number | null;
         followup_approved_at: unknown;
@@ -267,8 +269,42 @@ export async function requireBot(
   return bot;
 }
 
-/** Cidades atendidas pela prospecção. */
-export const ALLOWED_CITIES = ["caxias do sul", "farroupilha", "são marcos", "sao marcos"];
+// ---------- Regras editáveis (019) ----------
+
+export type ProspectRules = { cities: string[]; allowWebsite: boolean };
+
+/** Padrão quando a tabela ainda não existe: qualquer cidade, aceita site ruim. */
+export const DEFAULT_RULES: ProspectRules = { cities: [], allowWebsite: true };
+
+type Queryable = { query: (sql: string, params?: unknown[]) => Promise<{ rows: Record<string, unknown>[] }> };
+
+export async function loadRules(db: Queryable): Promise<ProspectRules> {
+  try {
+    const { rows } = await db.query(`SELECT cities, allow_website FROM prospect_rules WHERE id`);
+    const r = rows[0];
+    if (!r) return DEFAULT_RULES;
+    return { cities: (r.cities as string[]) ?? [], allowWebsite: r.allow_website !== false };
+  } catch {
+    return DEFAULT_RULES;
+  }
+}
+
+const cityKey = (c: string) =>
+  c.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s*[-/,]\s*rs$/i, "").trim().toLowerCase();
+
+/** Lista vazia aceita qualquer cidade; senão compara sem acento e ignora "- RS". */
+export function cityAllowed(rules: ProspectRules, city: string): boolean {
+  if (!rules.cities.length) return true;
+  const k = cityKey(city);
+  return rules.cities.some((c) => cityKey(c) === k);
+}
+
+/** Canal do primeiro contato: WhatsApp quando há número válido, senão e-mail. */
+export function leadChannel(lead: { whatsapp: string; email?: string }): "whatsapp" | "email" | "none" {
+  if (lead.whatsapp.replace(/\D/g, "").length >= 10) return "whatsapp";
+  if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test((lead.email ?? "").trim())) return "email";
+  return "none";
+}
 
 /** Janela de envio: seg–sex, 9h–11h30 e 14h–17h30 em Brasília. */
 export function inSendWindow(date = new Date()): boolean {

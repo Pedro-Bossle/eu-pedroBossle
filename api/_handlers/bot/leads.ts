@@ -2,11 +2,13 @@ import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { json, readBody } from "../../_lib/auth.js";
 import { withAuth } from "../../_lib/db.js";
 import {
-  ALLOWED_CITIES,
   EXIT_STAGES,
   PROSPECTOR_CREATE,
   PROSPECTOR_EDITABLE,
+  cityAllowed,
   isStage,
+  leadChannel,
+  loadRules,
   moveLead,
   phoneKey,
   requireBot,
@@ -69,9 +71,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (!body) return json(res, 400, { error: "JSON inválido" });
     const clean = sanitizeProspect({ ...body, source: "bot", sent: false, replied: false });
     if (!clean.name || !clean.city) return json(res, 400, { error: "Nome e cidade são obrigatórios" });
-    if (!ALLOWED_CITIES.includes(clean.city.toLowerCase())) {
-      return json(res, 400, { error: "Cidade fora da área: Caxias do Sul, Farroupilha ou São Marcos" });
-    }
 
     const stage: Stage = isStage(body.stage) ? body.stage : "encontrado";
     if (!PROSPECTOR_CREATE.includes(stage)) {
@@ -99,16 +98,25 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       projectType: body.projectType === "sistema" ? "sistema" : "landing",
     };
 
-    // Regras do prompt garantidas no servidor: só lead A, confirmado, vai para aprovação
-    if (stage === "aguardando") {
-      if (clean.website) return json(res, 400, { error: "Lead com site não entra no funil" });
-      if (phoneSources.length < 2) return json(res, 400, { error: "Telefone precisa de 2 fontes oficiais" });
-      if (!extra.siteCheck) return json(res, 400, { error: "Descreva as 3 checagens de site (siteCheck)" });
-      if (score == null || score < 70) return json(res, 400, { error: "Só lead A (nota 70 ou mais)" });
-      if (!clean.message) return json(res, 400, { error: "Lead A precisa da mensagem pronta" });
-    }
-
     const result = await withAuth(async (db) => {
+      // Regras editáveis no painel (Funil → Regras do funil)
+      const rules = await loadRules(db);
+      const fail = (error: string) => ({ status: 400, body: { error } });
+      if (!cityAllowed(rules, clean.city)) {
+        return fail(`Cidade fora da área configurada no painel: ${rules.cities.join(", ")}`);
+      }
+
+      // Regras garantidas no servidor: só lead A, confirmado, vai para aprovação
+      if (stage === "aguardando") {
+        if (clean.website && !rules.allowWebsite) return fail("Lead com site não entra no funil (regra do painel)");
+        if (!extra.siteCheck) return fail("Descreva as checagens de site (siteCheck)");
+        if (score == null || score < 70) return fail("Só lead A (nota 70 ou mais)");
+        if (!clean.message) return fail("Lead A precisa da mensagem pronta");
+        const channel = leadChannel(clean);
+        if (channel === "none") return fail("Lead precisa de WhatsApp ou e-mail válido");
+        if (channel === "whatsapp" && phoneSources.length < 2) return fail("Telefone precisa de 2 fontes oficiais");
+      }
+
       const existing = await findExisting(db, clean.name, clean.city, clean.whatsapp);
       if (existing && !PROSPECTOR_EDITABLE.includes(existing.stage)) {
         return { status: 409, body: { error: "duplicado", id: existing.id, stage: existing.stage } };
