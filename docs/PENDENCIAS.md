@@ -72,10 +72,28 @@ A Vercel gratuita só roda tarefa automática 1×/dia (06:23, horário de Brasí
 6. **Ctrl + K** → busque um cliente; **?** mostra os atalhos.
 7. Busca (Ctrl+K) → “Enviar resumo do dia por e-mail” → confira a caixa de entrada.
 8. **Funil** → lead em “Respondeu” → **Virar cliente** → abre a ficha.
+9. Mude uma proposta para **Aprovado** → em **Projetos** surge o projeto em Briefing; arraste até Publicado.
+10. **Agenda** → arraste uma tarefa para outro dia; filtre só Cobranças pela legenda.
+11. **Backup / seed** → **Baixar backup** e guarde o JSON fora do Neon.
 
 ## 8. O que não deu para testar daqui
 
 - Chamadas reais à **Meta** (publicar, métricas, comentários) e à **Pluggy** (widget, webhook): o código segue a documentação, mas sem as suas credenciais não houve teste ponta a ponta. Os nomes dos eventos do webhook da Pluggy foram confirmados pelo exemplo que você colou.
 - **Envio do resumo por e-mail** (Resend): o HTML foi renderizado e conferido; o envio real depende das chaves.
 - **Cron da Vercel e workflow do GitHub**: só rodam depois do merge.
-- O lint ainda acusa 2 avisos antigos no `Panel.tsx` (estado alterado dentro de efeito); não quebram nada.
+- O lint ainda acusa erros antigos em arquivos que já existiam (`Panel.tsx`, `ProposalPdfDocument.tsx`, `Prospects.tsx`); não quebram o build nem o uso.
+
+## 9. O que entrou no painel (para se localizar)
+
+| Menu | Para que serve |
+|---|---|
+| **Hoje** (início) | Tarefas atrasadas/de hoje, indicadores (recorrente, em negociação, fechado no mês, a receber) e o que pede atenção: cobranças, entregas, contatos, propostas paradas, funil, inbox, Instagram, faturas |
+| **Tarefas** | Lista por prazo, tipos (ligação, reunião, entrega, cobrança…), prioridade, recorrência |
+| **Agenda** | Mês ou lista com tarefas, entregas, cobranças, posts e contatos; arraste para reagendar |
+| **Clientes** | Status, etiquetas, origem, próximo contato, valor mensal; ficha com linha do tempo, tarefas, orçamentos e cobranças |
+| **Projetos** | Quadro Briefing → Publicado; aprovou proposta, nasce o projeto |
+| **Resultados** | Ticket médio, conversão, tempo de decisão, orçado × aprovado, melhores clientes |
+| **Instagram** | Calendário, posts agendados, biblioteca com métricas, comentários |
+| **Finanças** | Painel estilo Meu Pluggy: ritmo de gasto, categorias, recorrentes, orçamentos |
+| Atalhos | Ctrl/⌘+K busca tudo · N nova tarefa · ? ajuda · botão + no celular |
+| Automático | Follow-up 3 dias após enviar proposta; kickoff/cobrança ao aprovar; resumo diário por e-mail às 06:23 |
