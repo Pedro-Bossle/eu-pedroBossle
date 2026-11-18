@@ -75,6 +75,8 @@ function routeKey(req: VercelRequest): string {
   for (const raw of candidates) {
     if (!raw) continue;
     const pathOnly = String(raw).split("?")[0] ?? "";
+    // Endereço curto do webhook da Pluggy (rewrite em vercel.json)
+    if (/^\/webhooks\/pluggy\/?$/.test(pathOnly)) return "finance/webhook";
     const marker = "/api/orcamentos/";
     const idx = pathOnly.indexOf(marker);
     if (idx >= 0) {

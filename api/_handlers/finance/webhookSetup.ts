@@ -11,7 +11,7 @@ function webhookUrl(req: VercelRequest): string | null {
   if (env) return env;
   const base = resolvePublicBaseUrl(String(req.headers.host ?? ""));
   if (!base) return null;
-  const url = `${new URL(base).origin}/api/orcamentos/finance/webhook`;
+  const url = `${new URL(base).origin}/webhooks/pluggy`;
   return url.startsWith("https://") ? url : null; // a Pluggy só chama https público
 }
 

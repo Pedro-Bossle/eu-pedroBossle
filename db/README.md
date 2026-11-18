@@ -105,13 +105,13 @@ Saldo, faturas, investimentos, entradas × saídas por mês, gastos por categori
 |---|---|
 | `PLUGGY_CLIENT_ID` / `PLUGGY_CLIENT_SECRET` | Credenciais do dashboard da Pluggy (ficam só no servidor) |
 | `PLUGGY_WEBHOOK_SECRET` | (opcional) segredo do webhook; sem ele é derivado do `ORCAMENTOS_SESSION_SECRET` |
-| `PLUGGY_WEBHOOK_URL` | (opcional) URL pública do webhook; padrão `<ORCAMENTOS_PUBLIC_URL>/api/orcamentos/finance/webhook` |
+| `PLUGGY_WEBHOOK_URL` | (opcional) URL pública do webhook; padrão `https://orcamentos.devbossle.com.br/webhooks/pluggy` (vem do `ORCAMENTOS_PUBLIC_URL`) |
 | `PLUGGY_ITEM_IDS` | (opcional) Item IDs separados por vírgula, cadastrados automaticamente no sync |
 
 1. Em dashboard.pluggy.ai copie Client ID e Client Secret e coloque na Vercel.
 2. **Finanças → Contas → Conectar banco**: abre o widget oficial Pluggy Connect (o servidor gera um connect token de 30 min; o secret nunca vai ao navegador). Ao concluir, o painel importa 12 meses.
    Alternativa: colar o Item ID de uma conexão do Meu Pluggy em “Já tenho um Item ID”.
-3. **Atualização automática → Ativar**: registra na Pluggy um webhook (`event: all`) para `/api/orcamentos/finance/webhook`, com o header `x-webhook-secret`. O painel responde na hora e sincroniza em segundo plano (`waitUntil`).
+3. **Atualização automática → Ativar**: registra na Pluggy um webhook (`event: all`) para `/webhooks/pluggy` (atalho de `/api/orcamentos/finance/webhook`), com o header `x-webhook-secret`. O painel responde na hora e sincroniza em segundo plano (`waitUntil`).
    - `item/updated`, `item/created`, `transactions/created|updated` → sincroniza o banco
    - `item/error`, `item/waiting_user_input` → marca a conexão com erro (botão **Reconectar** abre o widget)
    - `transactions/deleted` → apaga as transações; `item/deleted` → marca a conexão como removida
