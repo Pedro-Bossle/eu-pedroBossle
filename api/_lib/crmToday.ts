@@ -22,7 +22,7 @@ async function safe<T>(fn: (db: PoolClient) => Promise<T>): Promise<T | null> {
  * Usado pela tela Hoje (crm/today) e pelo resumo diário por e-mail.
  */
 export async function loadToday() {
-  const [tasks, contacts, proposals, funnel, inbox, instagram, finance, kpis, payments] = await Promise.all([
+  const [tasks, contacts, proposals, funnel, inbox, instagram, finance, kpis, payments, deliveries] = await Promise.all([
     safe(async (db) => {
       const { rows } = await db.query(
         `SELECT ${TASK_COLS}, (t.due_at AT TIME ZONE '${TZ}')::date AS due_day FROM ${TASK_FROM}
@@ -193,9 +193,31 @@ export async function loadToday() {
         receivedMonth: Number(t.received_month),
       };
     }),
+    safe(async (db) => {
+      const { rows } = await db.query(
+        `SELECT pr.id, pr.title, pr.stage, pr.due_date, c.name AS client_name, pr.client_id,
+                (pr.due_date < ${TODAY}) AS late
+         FROM crm_projects pr LEFT JOIN clients c ON c.id = pr.client_id
+         WHERE pr.stage NOT IN ('publicado', 'pausado') AND pr.due_date IS NOT NULL AND pr.due_date <= ${TODAY} + 7
+         ORDER BY pr.due_date LIMIT 10`,
+      );
+      const active = await db.query(`SELECT count(*)::int AS n FROM crm_projects WHERE stage NOT IN ('publicado', 'pausado')`);
+      return {
+        due: rows.map((r) => ({
+          id: String(r.id),
+          title: String(r.title),
+          stage: String(r.stage),
+          dueDate: iso(r.due_date)?.slice(0, 10) ?? null,
+          clientName: r.client_name ? String(r.client_name) : "",
+          clientId: r.client_id ? String(r.client_id) : null,
+          late: Boolean(r.late),
+        })),
+        active: Number(active.rows[0]!.n),
+      };
+    }),
   ]);
 
-  return { tasks, contacts, proposals, funnel, inbox, instagram, finance, kpis, payments };
+  return { tasks, contacts, proposals, funnel, inbox, instagram, finance, kpis, payments, deliveries };
 }
 
 export type TodayData = Awaited<ReturnType<typeof loadToday>>;

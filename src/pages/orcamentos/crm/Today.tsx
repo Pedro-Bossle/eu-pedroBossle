@@ -6,7 +6,7 @@ import Icon from "../ui/Icon";
 import TaskRow from "./TaskRow";
 import { addDays, greeting, money, relTime, waLink, ymd, type TaskDraft } from "./model";
 
-export type TodayNav = "prospects" | "inbox" | "instagram" | "finance" | "proposals" | "tasks" | "clients";
+export type TodayNav = "prospects" | "inbox" | "instagram" | "finance" | "proposals" | "tasks" | "clients" | "projects";
 
 type Props = {
   name: string;
@@ -31,8 +31,11 @@ const ICONS = {
   sun: "M12 3v2M12 19v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M3 12h2M19 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8z",
   plus: "M12 5v14M5 12h14",
   money: "M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6",
+  box: "M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16zM3.3 7 12 12l8.7-5M12 22V12",
   arrow: "M5 12h14M13 6l6 6-6 6",
 };
+
+const STAGE_NAME: Record<string, string> = { briefing: "Briefing", layout: "Layout", desenvolvimento: "Dev", revisao: "Revisão" };
 
 /** "ligar pro João amanhã" → título sem a palavra de data + a data. */
 function parseQuick(text: string): { title: string; date: string | null } {
@@ -359,6 +362,28 @@ function Attention({
               </li>
             );
           })}
+        </ul>
+      </AttentionCard>,
+    );
+  }
+
+  if (d.deliveries?.due.length) {
+    cards.push(
+      <AttentionCard key="deliveries" icon={ICONS.box} title="Entregas da semana" count={d.deliveries.due.length} action={<GoLink label="Projetos" onClick={() => onNavigate("projects")} />}>
+        <ul className="divide-y divide-line">
+          {d.deliveries.due.slice(0, 5).map((p) => (
+            <li key={p.id} className={row}>
+              <div className="min-w-0 flex-1">
+                <p className="truncate font-medium">{p.title}</p>
+                <p className={`truncate text-xs ${p.late ? "font-medium text-danger" : "text-faint"}`}>
+                  {p.late ? "Atrasada · " : ""}
+                  {p.dueDate ? new Date(`${p.dueDate}T12:00:00`).toLocaleDateString("pt-BR", { weekday: "short", day: "2-digit", month: "short" }).replace(/\./g, "") : ""}
+                  {p.clientName ? ` · ${p.clientName}` : ""}
+                </p>
+              </div>
+              <span className="shrink-0 rounded-full bg-sunken px-2 py-0.5 text-[11px] text-muted">{STAGE_NAME[p.stage] ?? p.stage}</span>
+            </li>
+          ))}
         </ul>
       </AttentionCard>,
     );

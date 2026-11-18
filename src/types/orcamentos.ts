@@ -484,6 +484,28 @@ export type CrmToday = {
     overdue: number;
     receivedMonth: number;
   } | null;
+  deliveries: {
+    due: { id: string; title: string; stage: string; dueDate: string | null; clientName: string; clientId: string | null; late: boolean }[];
+    active: number;
+  } | null;
+};
+
+export type CrmProjectStage = "briefing" | "layout" | "desenvolvimento" | "revisao" | "publicado" | "pausado";
+
+export type CrmProject = {
+  id: string;
+  clientId: string | null;
+  clientName: string | null;
+  proposalId: string | null;
+  title: string;
+  stage: CrmProjectStage;
+  dueDate: string | null;
+  value: number;
+  notes: string;
+  link: string;
+  openTasks: number;
+  stageChangedAt: string | null;
+  created: string | null;
 };
 
 export type CrmPayment = {

@@ -7,7 +7,7 @@ Tudo que foi feito está na branch `claude/peaceful-sagan-d3j20b`. Esta lista é
 ## 1. Colocar no ar (15 min)
 
 - [ ] **Merge da branch na `main`** (GitHub → Pull requests → nova PR de `claude/peaceful-sagan-d3j20b` para `main`, ou me peça para abrir a PR).
-- [ ] **Migrations no banco de produção.** As tabelas novas (011 a 016) já existem na branch de preview do Neon, mas não na `main`.
+- [ ] **Migrations no banco de produção.** As tabelas novas (011 a 017) já existem na branch de preview do Neon, mas não na `main`.
   - Opção A: me mande a connection string da branch `main` do Neon que eu rodo.
   - Opção B: no seu computador, com a URL da `main`: `DATABASE_URL="postgresql://…" npm run db:migrate` (pode rodar mais de uma vez, só cria o que falta).
 - [ ] **Trocar a senha do banco de preview.** A connection string passou pelo chat. Neon → Roles → `neondb_owner` → Reset password.

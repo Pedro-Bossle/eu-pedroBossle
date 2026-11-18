@@ -44,6 +44,13 @@ export function buildDigestHtml(d: TodayData, opts: { name: string; panelUrl: st
       d.payments?.overdue ? danger : ink,
     ),
     section(
+      "Entregas",
+      (d.deliveries?.due ?? []).map(
+        (p) =>
+          `${p.late ? `<span style="color:${danger}">Atrasada:</span> ` : ""}${esc(p.title)}${p.clientName ? ` ${sub(`· ${esc(p.clientName)}`)}` : ""} ${sub(`· ${p.dueDate ? new Date(`${p.dueDate}T12:00:00`).toLocaleDateString("pt-BR", { day: "2-digit", month: "short" }) : ""}`)}`,
+      ),
+    ),
+    section(
       "Retomar contato",
       (d.contacts ?? []).map((c) => `${esc(c.name)}${c.company ? ` ${sub(`· ${esc(c.company)}`)}` : ""}`),
     ),
@@ -121,6 +128,7 @@ export function digestHasContent(d: TodayData) {
       d.tasks?.dueToday.length ||
       d.contacts?.length ||
       d.payments?.due.length ||
+      d.deliveries?.due.length ||
       d.proposals?.length ||
       d.funnel?.awaiting ||
       d.funnel?.followups ||

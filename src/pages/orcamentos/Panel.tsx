@@ -71,6 +71,7 @@ import { draftFromTask, type TaskDraft } from "./crm/model";
 import Tasks from "./crm/Tasks";
 import Today, { type TodayNav } from "./crm/Today";
 import Results from "./crm/Results";
+import Projects from "./crm/Projects";
 import { CLIENT_CREATED, convertToClient } from "./crm/events";
 import type { CrmSearchResult, CrmTask, CrmToday } from "../../types/orcamentos";
 
@@ -89,6 +90,7 @@ type Tab =
   | "finance"
   | "clients"
   | "proposals"
+  | "projects"
   | "presets"
   | "profile"
   | "settings";
@@ -241,6 +243,7 @@ function Field({
 const navIcons: Record<Tab, string[]> = {
   today: ["M12 3v2M12 19v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M3 12h2M19 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4", "M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8"],
   tasks: ["M9 11l3 3 8-8", "M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"],
+  projects: ["M3 3h7v9H3z", "M14 3h7v5h-7z", "M14 12h7v9h-7z", "M3 16h7v5H3z"],
   dashboard: ["M3 12l9-9 9 9", "M5 10v10h14V10"],
   inbox: [
     "M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z",
@@ -896,6 +899,7 @@ function Panel({
     { id: "prospects", label: "Funil", short: "Funil", group: "Vendas" },
     { id: "clients", label: "Clientes", short: "Clientes", group: "Vendas" },
     { id: "proposals", label: "Orçamentos", short: "Orçam.", group: "Vendas" },
+    { id: "projects", label: "Projetos", short: "Projetos", group: "Vendas" },
     { id: "dashboard", label: "Resultados", short: "Resultados", group: "Vendas" },
     { id: "instagram", label: "Instagram", short: "Insta", group: "Marketing" },
     { id: "finance", label: "Finanças", short: "Finanças", group: "Pessoal" },
@@ -944,6 +948,7 @@ function Panel({
     { label: "Tarefa", hint: "N", icon: navIcons.tasks.join(""), run: () => openTask({ title: "", dueAt: new Date().toISOString() }) },
     { label: "Orçamento", icon: navIcons.proposals.join(""), run: () => openProposal(blankProposal()) },
     { label: "Cliente", icon: navIcons.clients.join(""), run: newClient },
+    { label: "Projeto", icon: navIcons.projects.join(""), run: () => go("projects") },
     { label: "Post no Instagram", icon: navIcons.instagram.join(""), run: () => go("instagram") },
   ];
 
@@ -984,6 +989,7 @@ function Panel({
       inbox: d.inbox?.unread ?? 0,
       instagram: d.instagram?.newComments ?? 0,
       prospects: (d.funnel?.awaiting ?? 0) + (d.funnel?.followups ?? 0),
+      projects: d.deliveries?.due.filter((p) => p.late).length ?? 0,
     });
   }, []);
 
@@ -1357,6 +1363,10 @@ function Panel({
               showToast={showToast}
               onData={applyBadges}
             />
+          ) : null}
+
+          {!editing && tab === "projects" ? (
+            <Projects clients={clients} onOpenClient={setSheetClientId} onOpenTask={openTask} showToast={showToast} />
           ) : null}
 
           {!editing && tab === "tasks" ? (

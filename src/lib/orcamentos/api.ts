@@ -9,6 +9,8 @@ import type {
   CrmActivity,
   CrmActivityKind,
   CrmPayment,
+  CrmProject,
+  CrmProjectStage,
   CrmSearchResult,
   CrmTask,
   CrmTaskInput,
@@ -433,6 +435,14 @@ export const orcamentosApi = {
     request<{ payment: CrmPayment }>("/api/orcamentos/crm/payments", { method: "PATCH", body: JSON.stringify({ id, paid, method }) }),
   crmDeletePayment: (id: string) =>
     request<{ ok: boolean }>(`/api/orcamentos/crm/payments?id=${encodeURIComponent(id)}`, { method: "DELETE" }),
+  crmProjects: (clientId?: string) =>
+    request<{ projects: CrmProject[] }>(`/api/orcamentos/crm/projects${clientId ? `?clientId=${encodeURIComponent(clientId)}` : ""}`),
+  crmSaveProject: (p: Partial<CrmProject> & { title: string }) =>
+    request<{ project: CrmProject }>("/api/orcamentos/crm/projects", { method: "POST", body: JSON.stringify(p) }),
+  crmMoveProject: (id: string, stage: CrmProjectStage) =>
+    request<{ project: CrmProject }>("/api/orcamentos/crm/projects", { method: "PATCH", body: JSON.stringify({ id, stage }) }),
+  crmDeleteProject: (id: string) =>
+    request<{ ok: boolean }>(`/api/orcamentos/crm/projects?id=${encodeURIComponent(id)}`, { method: "DELETE" }),
   crmSearch: (q: string) =>
     request<{ results: CrmSearchResult[] }>(`/api/orcamentos/crm/search?q=${encodeURIComponent(q)}`),
 };
