@@ -66,7 +66,7 @@ export default function ClientList({
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-2">
-        <div className="-mx-1 flex max-w-full gap-1.5 overflow-x-auto px-1 pb-1">
+        <div className="-mx-1 flex max-w-full gap-1.5 relative overflow-x-auto px-1 pb-1">
           <button type="button" className={pill(!status)} aria-pressed={!status} onClick={() => setStatus("")}>
             Todos <span className="tabular-nums opacity-60">{clients.length}</span>
           </button>
@@ -77,7 +77,7 @@ export default function ClientList({
             </button>
           ))}
         </div>
-        <div className="ml-auto grid w-full gap-2 sm:w-auto sm:grid-cols-[220px_190px]">
+        <div className="ml-auto grid grid-cols-1 w-full gap-2 sm:w-auto sm:grid-cols-[220px_190px]">
           <input className={`${inputClass} min-h-9 py-1.5`} placeholder="Buscar nome, empresa, etiqueta…" value={q} onChange={(e) => setQ(e.target.value)} aria-label="Buscar cliente" />
           <Select
             size="sm"

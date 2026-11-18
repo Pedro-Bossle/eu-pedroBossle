@@ -306,7 +306,7 @@ function Composer({
 
   return (
     <Modal title={form.id ? "Editar post" : "Novo post"} onClose={onClose} wide>
-      <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_320px]">
         <div className="space-y-5">
           <div>
             <p className={smallLabel}>Formato</p>
@@ -404,7 +404,7 @@ function Composer({
           </div>
 
           {form.kind === "reel" ? (
-            <div className="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
               <label className="block">
                 <span className={smallLabel}>Capa (opcional, JPEG)</span>
                 <input className={`${inputClass} mt-2`} value={form.coverUrl} onChange={(e) => set("coverUrl", e.target.value)} placeholder="https://…" />
@@ -430,7 +430,7 @@ function Composer({
             <p className="text-xs text-muted">Stories não têm legenda pela API.</p>
           )}
 
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <label className="block">
               <span className={smallLabel}>Data e hora</span>
               <input
@@ -1144,7 +1144,7 @@ function MediaDetail({
   ];
   return (
     <Modal title="Post publicado" onClose={onClose} wide>
-      <div className="grid gap-5 md:grid-cols-[minmax(0,380px)_1fr]">
+      <div className="grid grid-cols-1 gap-5 md:grid-cols-[minmax(0,380px)_1fr]">
         {media.mediaType === "VIDEO" && media.mediaUrl ? (
           <video src={media.mediaUrl} poster={media.thumbnailUrl} controls className="w-full bg-black" />
         ) : (
@@ -1415,7 +1415,7 @@ function Account({ data, showToast, onChanged }: { data: IgOverview; showToast: 
   const daysLeft = a.connected && a.expiresAt ? Math.round((new Date(a.expiresAt).getTime() - now) / 86400_000) : null;
 
   return (
-    <div className="grid gap-4 lg:grid-cols-2">
+    <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
       {a.connected ? (
         <div className={cardClass}>
           <div className="flex items-center gap-3">

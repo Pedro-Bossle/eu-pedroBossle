@@ -293,7 +293,7 @@ export function Delta({ value, base, invert = true, className = "" }: { value: n
   const up = pct > 0;
   const bad = invert ? up : !up;
   return (
-    <span className={`inline-flex items-center gap-0.5 text-xs font-medium tabular-nums ${bad ? "text-danger" : "text-accent-text"} ${className}`}>
+    <span className={`relative inline-flex items-center gap-0.5 text-xs font-medium tabular-nums ${bad ? "text-danger" : "text-accent-text"} ${className}`}>
       <span aria-hidden>{up ? "▲" : "▼"}</span>
       {Math.abs(pct) >= 999 ? "+999" : Math.round(Math.abs(pct))}%<span className="sr-only">{up ? " a mais" : " a menos"}</span>
     </span>

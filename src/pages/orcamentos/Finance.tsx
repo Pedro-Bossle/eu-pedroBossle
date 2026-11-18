@@ -568,7 +568,7 @@ function Transactions({
       {rule ? (
         <div className={`${cardClass} space-y-3`}>
           <p className="text-sm font-medium">Nova regra: quando a descrição contiver…</p>
-          <div className="grid gap-2 sm:grid-cols-[1.5fr_1fr_auto_auto] sm:items-center">
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-[1.5fr_1fr_auto_auto] sm:items-center">
             <input className={inputClass} value={rule.pattern} onChange={(e) => setRule({ ...rule, pattern: e.target.value })} />
             <Select
               ariaLabel="Categoria da regra"
@@ -639,7 +639,7 @@ function Transactions({
         {!list.length ? <li className="px-3 py-8 text-center text-sm text-muted">Nenhuma transação.</li> : null}
       </ul>
 
-      <div className="hidden overflow-x-auto rounded-xl border border-line sm:block">
+      <div className="hidden relative overflow-x-auto rounded-xl border border-line sm:block">
         <table className="w-full min-w-[720px] text-sm">
           <thead className="bg-sunken/50 text-left text-xs text-muted dark:bg-sunken/50">
             <tr>
@@ -754,7 +754,7 @@ function Budgets({
   const unbudgeted = stats.categories.filter((c) => !data.budgets.some((b) => b.category === c.category));
 
   return (
-    <div className="grid gap-4 xl:grid-cols-2">
+    <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
       <div className={cardClass}>
         <div className="flex items-baseline justify-between">
           <h3 className="text-base font-semibold">Orçamento mensal</h3>
@@ -806,7 +806,7 @@ function Budgets({
             );
           })}
         </ul>
-        <div className="mt-5 grid gap-2 border-t border-line pt-4 sm:grid-cols-[1fr_140px_auto]">
+        <div className="mt-5 grid grid-cols-1 gap-2 border-t border-line pt-4 sm:grid-cols-[1fr_140px_auto]">
           <Select
             ariaLabel="Categoria do orçamento"
             placeholder="Categoria"
@@ -854,7 +854,7 @@ function Budgets({
         <p className="mt-1 text-sm text-muted">
           Quando a descrição contém o texto, a transação ganha a categoria (ou é ignorada nos totais). Pagamento de fatura e transferência entre suas contas já são ignorados.
         </p>
-        <div className="mt-4 grid gap-2 sm:grid-cols-2">
+        <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2">
           <input className={inputClass} placeholder="Texto (ex. UBER)" value={rule.pattern} onChange={(e) => setRule({ ...rule, pattern: e.target.value })} />
           <Select
             ariaLabel="Categoria da regra"
@@ -1019,7 +1019,7 @@ function Accounts({ data, showToast, onChanged }: { data: FinOverview; showToast
 
   return (
     <div className="space-y-4">
-      <div className="grid gap-4 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         {data.items.map((item) => {
           const accounts = data.accounts.filter((a) => a.itemId === item.id);
           const inv = data.investments.filter((i) => i.itemId === item.id);

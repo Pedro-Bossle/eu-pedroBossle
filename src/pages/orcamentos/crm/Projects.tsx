@@ -105,7 +105,7 @@ export default function Projects({ clients, onOpenClient, onOpenTask, showToast 
       {!projects ? (
         <div className="h-72 animate-pulse rounded-2xl bg-sunken/70 motion-reduce:animate-none" />
       ) : (
-        <div className="-mx-4 flex snap-x gap-3 overflow-x-auto px-4 pb-2 sm:mx-0 sm:px-0 lg:grid lg:grid-cols-5 lg:overflow-visible">
+        <div className="-mx-4 flex snap-x gap-3 relative overflow-x-auto px-4 pb-2 sm:mx-0 sm:px-0 lg:grid lg:grid-cols-5 lg:overflow-visible">
           {(showPaused ? [...STAGES, { value: "pausado" as const, label: "Pausado", hint: "Esperando o cliente" }] : STAGES).map((s) => {
             const list = byStage.get(s.value) ?? [];
             return (
@@ -301,7 +301,7 @@ function ProjectEditor({
           <span className={labelClass}>Projeto</span>
           <input autoFocus className={`${inputClass} mt-2`} value={f.title} onChange={(e) => set({ title: e.target.value })} placeholder="Ex.: Site institucional da Cafeteria Grão" />
         </label>
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
             <span className={labelClass}>Cliente</span>
             <div className="mt-2">

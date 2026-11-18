@@ -273,7 +273,7 @@ function ClientProposal({ token }: Props) {
           </p>
         ) : null}
 
-        <div className="overflow-x-auto border border-[#dfe5e0] bg-white p-4 sm:p-6">
+        <div className="relative overflow-x-auto border border-[#dfe5e0] bg-white p-4 sm:p-6">
           <div className="mx-auto w-full max-w-[740px]">
             <ProposalPdfDocument
               proposal={proposal}

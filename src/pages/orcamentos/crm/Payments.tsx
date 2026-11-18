@@ -182,7 +182,7 @@ export default function Payments({
               </div>
             </>
           ) : (
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <label className="block">
                 <span className={labelClass}>Descrição</span>
                 <input className={`${inputClass} mt-2`} value={desc} onChange={(e) => setDesc(e.target.value)} placeholder="Ex.: Hospedagem anual" />

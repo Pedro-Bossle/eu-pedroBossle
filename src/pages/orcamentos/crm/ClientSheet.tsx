@@ -243,7 +243,7 @@ export default function ClientSheet({
       </dl>
 
       {/* Relacionamento */}
-      <div className="mt-5 grid gap-4 sm:grid-cols-2">
+      <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div>
           <span className={labelClass}>Status</span>
           <div className="mt-2">
