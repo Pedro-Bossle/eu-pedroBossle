@@ -39,7 +39,7 @@ const btnBase = `inline-flex cursor-pointer items-center justify-center gap-2 ro
 export const btn = `${btnBase} min-h-10 border border-line bg-surface px-4 py-2 text-sm text-ink hover:border-line-strong hover:bg-sunken/60`;
 export const btnPrimary = `${btnBase} min-h-10 bg-accent px-4 py-2 text-sm font-semibold text-accent-ink hover:brightness-110`;
 export const btnGhost = `${btnBase} min-h-10 px-3 py-2 text-sm text-muted hover:bg-sunken hover:text-ink`;
-export const btnSm = `${btnBase} min-h-8 border border-line bg-surface px-2.5 py-1 text-xs text-ink hover:border-line-strong hover:bg-sunken/60`;
+export const btnSm = `${btnBase} min-h-10 sm:min-h-8 border border-line bg-surface px-2.5 py-1 text-xs text-ink hover:border-line-strong hover:bg-sunken/60`;
 export const btnDanger = `${btnBase} min-h-10 border border-line bg-surface px-4 py-2 text-sm text-danger hover:border-danger/40 hover:bg-danger-soft`;
 export const btnDangerSm = `${btnSm} text-danger hover:border-danger/40 hover:bg-danger-soft`;
 export const btnWhatsApp = `${btnBase} min-h-9 bg-[#1f9d55] px-3 py-1.5 text-sm font-semibold text-white hover:brightness-110`;
@@ -64,6 +64,6 @@ export const tabItem = (active: boolean) =>
 
 /** Botão de filtro (pílula com estado). */
 export const pill = (active: boolean) =>
-  `inline-flex min-h-8 items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition-colors ${focusRing} ${
+  `inline-flex min-h-10 sm:min-h-8 items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition-colors ${focusRing} ${
     active ? "border-transparent bg-ink text-canvas" : "border-line bg-surface text-muted hover:text-ink hover:border-line-strong"
   }`;

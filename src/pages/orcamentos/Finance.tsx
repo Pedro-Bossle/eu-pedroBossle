@@ -510,7 +510,7 @@ function Transactions({
 
   return (
     <div className="space-y-4">
-      <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-[1.5fr_1fr_1fr_auto]">
+      <div className="grid grid-cols-2 gap-2 lg:grid-cols-[1.5fr_1fr_1fr_auto] [&>*:first-child]:col-span-2 lg:[&>*:first-child]:col-span-1">
         <div className="flex gap-2">
           <input
             className={inputClass}
@@ -595,7 +595,51 @@ function Transactions({
         </div>
       ) : null}
 
-      <div className="overflow-x-auto rounded-xl border border-line">
+      {/* Celular: cartões */}
+      <ul className="divide-y divide-line overflow-hidden rounded-2xl border border-line bg-surface sm:hidden">
+        {list.map((t) => (
+          <li key={t.id} className={`p-3 ${t.ignored ? "opacity-50" : ""}`}>
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <p className="truncate text-sm font-medium">{t.merchant || t.description}</p>
+                <p className="truncate text-xs text-faint">
+                  {fmtDay(t.date)} · {accName.get(t.accountId)}
+                  {t.status === "PENDING" ? " · pendente" : ""}
+                </p>
+              </div>
+              <span className={`shrink-0 text-sm font-semibold tabular-nums ${t.amount > 0 ? "text-accent-text" : ""}`}>
+                {t.amount > 0 ? "+" : "−"}
+                {money(Math.abs(t.amount))}
+              </span>
+            </div>
+            <div className="mt-2 flex items-center gap-2">
+              <div className="min-w-0 flex-1">
+                <Select
+                  size="sm"
+                  creatable
+                  ariaLabel={`Categoria de ${t.merchant || t.description}`}
+                  value={t.category}
+                  onChange={(v) => v !== t.category && onPatch(t, { category: v })}
+                  options={data.categories.map((c) => ({ value: c, label: c }))}
+                />
+              </div>
+              <button type="button" className={btnSm} onClick={() => onPatch(t, { ignored: !t.ignored })}>
+                {t.ignored ? "Contar" : "Ignorar"}
+              </button>
+              <button
+                type="button"
+                className={btnSm}
+                onClick={() => setRule({ pattern: (t.merchant || t.description).split(/\s+/).slice(0, 3).join(" "), category: t.category, ignore: t.ignored })}
+              >
+                Regra
+              </button>
+            </div>
+          </li>
+        ))}
+        {!list.length ? <li className="px-3 py-8 text-center text-sm text-muted">Nenhuma transação.</li> : null}
+      </ul>
+
+      <div className="hidden overflow-x-auto rounded-xl border border-line sm:block">
         <table className="w-full min-w-[720px] text-sm">
           <thead className="bg-sunken/50 text-left text-xs text-muted dark:bg-sunken/50">
             <tr>

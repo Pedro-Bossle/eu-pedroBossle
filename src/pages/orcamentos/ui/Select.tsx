@@ -176,7 +176,7 @@ export default function Select<T extends string>({
     }
   };
 
-  const h = size === "sm" ? "min-h-9 px-3 text-sm" : "min-h-11 px-3.5 text-base sm:text-sm";
+  const h = size === "sm" ? "min-h-10 px-3 text-sm sm:min-h-9" : "min-h-11 px-3.5 text-base sm:text-sm";
   const listId = `${id}-list`;
   const optId = (i: number) => `${id}-opt-${i}`;
 

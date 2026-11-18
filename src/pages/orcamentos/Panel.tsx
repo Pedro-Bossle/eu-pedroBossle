@@ -323,6 +323,7 @@ function Panel({
   const [moreOpen, setMoreOpen] = useState(false);
   const [quickOpen, setQuickOpen] = useState(false);
   const [fabOpen, setFabOpen] = useState(false);
+  const [editorMenuOpen, setEditorMenuOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
   /** Contadores do menu: tarefas de hoje+atrasadas, inbox não lido, comentários do Instagram. */
   const [badges, setBadges] = useState<Partial<Record<Tab, number>>>(() => peek<Partial<Record<Tab, number>>>("counts") ?? {});
@@ -1414,7 +1415,25 @@ function Panel({
                       : "Novo orçamento"}
                   </h1>
                 </div>
-                <div className="flex flex-wrap gap-2">
+                {/* Celular: ações secundárias num menu; Salvar fica na barra fixa de baixo */}
+                <div className="relative sm:hidden">
+                  <button type="button" className={btn} aria-haspopup="menu" aria-expanded={editorMenuOpen} onClick={() => setEditorMenuOpen((o) => !o)}>
+                    Mais ações
+                  </button>
+                  {editorMenuOpen ? (
+                    <QuickMenu
+                      onClose={() => setEditorMenuOpen(false)}
+                      items={[
+                        { label: pdfBusy ? "Gerando PDF…" : "Baixar PDF", icon: navIcons.proposals.join(""), run: () => exportPdf(editing) },
+                        { label: sendBusyId ? "Enviando…" : "Enviar por e-mail", icon: "M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2zM22 6l-10 7L2 6", run: () => sendProposalEmail(editing) },
+                        ...(/aprov/i.test(editing.status) ? [{ label: "Gerar contrato", icon: navIcons.proposals.join(""), run: () => exportContract(editing) }] : []),
+                        { label: "Importar modelo", icon: navIcons.settings.join(""), run: () => pickTemplateFile("current") },
+                        { label: "Exportar modelo", icon: navIcons.settings.join(""), run: () => exportTemplate(editing) },
+                      ]}
+                    />
+                  ) : null}
+                </div>
+                <div className="hidden flex-wrap gap-2 sm:flex">
                   <button
                     type="button"
                     className={btn}
@@ -1481,7 +1500,7 @@ function Panel({
               </div>
 
               <nav
-                className="flex flex-wrap gap-2"
+                className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0"
                 aria-label="Etapas do orçamento"
               >
                 {EDIT_STEPS.map((step, index) => {
@@ -1492,7 +1511,7 @@ function Panel({
                       key={step.id}
                       type="button"
                       onClick={() => setEditStep(step.id)}
-                      className={`inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-lg border px-3.5 py-2 text-sm font-medium transition-colors ${focusRing} ${
+                      className={`inline-flex min-h-11 shrink-0 cursor-pointer items-center gap-2 rounded-lg border px-3.5 py-2 text-sm font-medium whitespace-nowrap transition-colors ${focusRing} ${
                         active
                           ? "border-ink bg-ink text-canvas"
                           : done
@@ -2966,10 +2985,28 @@ function Panel({
         </main>
       </div>
 
+      {editing ? (
+        <div className="fixed inset-x-0 bottom-0 z-30 flex gap-2 border-t border-line bg-surface/95 px-4 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] backdrop-blur-md sm:hidden">
+          <button
+            type="button"
+            className={`${btn} flex-1`}
+            onClick={() => {
+              setEditing(null);
+              setEditStep("projeto");
+            }}
+          >
+            Cancelar
+          </button>
+          <button type="button" className={`${btnPrimary} flex-[2]`} disabled={busy || Boolean(sendBusyId)} onClick={saveProposal}>
+            {busy ? "Salvando…" : "Salvar orçamento"}
+          </button>
+        </div>
+      ) : null}
+
       {!editing ? (
         <>
-          {/* Botão flutuante: criar rápido */}
-          <div className="fixed right-4 bottom-[calc(4.75rem+env(safe-area-inset-bottom))] z-30 md:hidden">
+          {/* Botão flutuante: criar rápido (some enquanto um formulário está aberto) */}
+          <div className={`fixed right-4 bottom-[calc(4.75rem+env(safe-area-inset-bottom))] z-30 md:hidden ${clientForm || presetForm ? "hidden" : ""}`}>
             {fabOpen ? <QuickMenu onClose={() => setFabOpen(false)} items={quickItems} align="right" up /> : null}
             <button
               type="button"
