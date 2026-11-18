@@ -70,6 +70,7 @@ import TaskEditor from "./crm/TaskEditor";
 import { draftFromTask, type TaskDraft } from "./crm/model";
 import Tasks from "./crm/Tasks";
 import Today, { type TodayNav } from "./crm/Today";
+import { CLIENT_CREATED, convertToClient } from "./crm/events";
 import type { CrmSearchResult, CrmTask } from "../../types/orcamentos";
 import Finance from "./Finance";
 
@@ -940,6 +941,18 @@ function Panel({
     else if (r.type === "lead") go("prospects");
     else go("tasks");
   };
+
+  // Cliente criado no funil/inbox: recarrega os dados e abre a ficha
+  useEffect(() => {
+    const onCreated = async (e: Event) => {
+      const id = (e as CustomEvent<string>).detail;
+      const data = await orcamentosApi.data();
+      onRefresh(data);
+      setSheetClientId(id);
+    };
+    window.addEventListener(CLIENT_CREATED, onCreated);
+    return () => window.removeEventListener(CLIENT_CREATED, onCreated);
+  }, [onRefresh]);
 
   // Atalhos: Ctrl/⌘+K abre a busca; N cria tarefa (fora de campos de texto)
   useEffect(() => {
@@ -2208,6 +2221,20 @@ function Panel({
                         >
                           Responder
                         </a>
+                        <button
+                          type="button"
+                          className={btn}
+                          onClick={async () => {
+                            try {
+                              showToast(await convertToClient("contact", lead.id));
+                              setLeads((prev) => prev.map((l) => (l.id === lead.id ? { ...l, readAt: l.readAt ?? new Date().toISOString() } : l)));
+                            } catch (e) {
+                              showToast(e instanceof Error ? e.message : "Erro ao criar cliente");
+                            }
+                          }}
+                        >
+                          Virar cliente
+                        </button>
                       </div>
                     </div>
                     <p className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-muted">

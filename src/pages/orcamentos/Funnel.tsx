@@ -11,6 +11,7 @@ import {
 } from "../../lib/orcamentos/prospects";
 import type { BotToken, ProspectEvent, ProspectInput, ProspectLead } from "../../types/orcamentos";
 import Select from "./ui/Select";
+import { convertToClient } from "./crm/events";
 import {
   btn,
   btnDangerSm,
@@ -441,6 +442,23 @@ function LeadCard({
               Perdido
             </button>
           </>
+        ) : null}
+        {["respondeu", "proposta", "resultado", "followup", "enviado"].includes(stage) ? (
+          <button
+            type="button"
+            className={btn}
+            disabled={busy}
+            title="Cria o cliente com os dados deste lead e abre a ficha"
+            onClick={async () => {
+              try {
+                showToast(await convertToClient("lead", lead.id));
+              } catch (e) {
+                showToast(e instanceof Error ? e.message : "Erro ao criar cliente");
+              }
+            }}
+          >
+            Virar cliente
+          </button>
         ) : null}
         {stage === "aguardando" || stage === "encontrado" ? (
           <button

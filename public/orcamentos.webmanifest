@@ -1,0 +1,24 @@
+{
+  "name": "Dev Bossle · CRM",
+  "short_name": "Dev Bossle",
+  "description": "Painel da Dev Bossle: tarefas do dia, clientes, funil, orçamentos, Instagram e finanças.",
+  "id": "/orcamentos",
+  "start_url": "/orcamentos",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "lang": "pt-BR",
+  "theme_color": "#f4f6f8",
+  "background_color": "#f4f6f8",
+  "categories": ["business", "productivity"],
+  "shortcuts": [
+    { "name": "Hoje", "url": "/orcamentos" },
+    { "name": "Tarefas", "url": "/orcamentos?tab=tasks" },
+    { "name": "Finanças", "url": "/orcamentos?tab=finance" }
+  ],
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

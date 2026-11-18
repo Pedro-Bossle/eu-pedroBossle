@@ -407,6 +407,11 @@ export const orcamentosApi = {
     request<{ activity: CrmActivity }>("/api/orcamentos/crm/activities", { method: "POST", body: JSON.stringify(a) }),
   crmDeleteActivity: (id: string) =>
     request<{ ok: boolean }>(`/api/orcamentos/crm/activities?id=${encodeURIComponent(id)}`, { method: "DELETE" }),
+  crmConvert: (from: "lead" | "contact", id: string) =>
+    request<{ client: OrcamentoClient; existed: boolean }>("/api/orcamentos/crm/convert", {
+      method: "POST",
+      body: JSON.stringify({ from, id }),
+    }),
   crmSearch: (q: string) =>
     request<{ results: CrmSearchResult[] }>(`/api/orcamentos/crm/search?q=${encodeURIComponent(q)}`),
 };
