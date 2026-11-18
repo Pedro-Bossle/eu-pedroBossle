@@ -159,11 +159,11 @@ export default function Finance({ showToast }: Props) {
       </header>
 
       {!data.configured ? (
-        <div className="border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-900 dark:text-amber-200">
+        <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-900 dark:text-amber-200">
           Defina <code>PLUGGY_CLIENT_ID</code> e <code>PLUGGY_CLIENT_SECRET</code> nas variáveis da Vercel para conectar seus bancos.
         </div>
       ) : !data.items.length ? (
-        <div className="border border-sky-500/30 bg-sky-500/10 px-4 py-3 text-sm text-sky-900 dark:text-sky-200">
+        <div className="rounded-xl border border-sky-500/30 bg-sky-500/10 px-4 py-3 text-sm text-sky-900 dark:text-sky-200">
           Nenhum banco conectado ainda.{" "}
           <button type="button" className="font-semibold underline underline-offset-4" onClick={() => setView("contas")}>
             Conecte seu primeiro banco

@@ -806,7 +806,7 @@ export default function Instagram({ showToast }: Props) {
       </header>
 
       {!connected ? (
-        <div className="border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-900 dark:text-amber-200">
+        <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-900 dark:text-amber-200">
           Instagram não conectado. Você pode montar o calendário e os rascunhos; para publicar e ver métricas,{" "}
           <button type="button" className="font-semibold underline underline-offset-4" onClick={() => setView("conta")}>
             conecte a conta

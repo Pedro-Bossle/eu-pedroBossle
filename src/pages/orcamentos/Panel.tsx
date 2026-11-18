@@ -70,6 +70,7 @@ import TaskEditor from "./crm/TaskEditor";
 import { draftFromTask, type TaskDraft } from "./crm/model";
 import Tasks from "./crm/Tasks";
 import Today, { type TodayNav } from "./crm/Today";
+import Results from "./crm/Results";
 import { CLIENT_CREATED, convertToClient } from "./crm/events";
 import type { CrmSearchResult, CrmTask } from "../../types/orcamentos";
 import Finance from "./Finance";
@@ -299,6 +300,7 @@ function Panel({
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
   const [quickOpen, setQuickOpen] = useState(false);
+  const [fabOpen, setFabOpen] = useState(false);
   const [presetForm, setPresetForm] = useState<OrcamentoPreset | null>(null);
   const [presetSectionFilter, setPresetSectionFilter] =
     useState<PresetSection | "todos">("todos");
@@ -462,6 +464,7 @@ function Panel({
   const go = (next: Tab) => {
     setMoreOpen(false);
     setQuickOpen(false);
+    setFabOpen(false);
     setEditing(null);
     setEditStep("projeto");
     setClientForm(null);
@@ -1971,10 +1974,10 @@ function Panel({
                     id="dashboard-title"
                     className="mt-1 text-pretty text-2xl font-semibold tracking-tight sm:text-3xl xl:text-4xl"
                   >
-                    Painel de orçamentos
+                    Resultados
                   </h1>
                   <p className="mt-2 max-w-xl text-sm text-muted xl:max-w-2xl">
-                    Acompanhe clientes, propostas e valores do pipeline.
+                    Orçamentos, conversão e os clientes que mais trazem resultado.
                   </p>
                 </div>
                 <button
@@ -2071,6 +2074,8 @@ function Panel({
                   </button>
                 ))}
               </div>
+
+              <Results proposals={proposals} clients={clients} onOpenClient={setSheetClientId} />
 
               <div className={cardClass}>
                 <div className="mb-1 flex items-center justify-between gap-2">
@@ -2857,16 +2862,16 @@ function Panel({
         <>
           {/* Botão flutuante: criar rápido */}
           <div className="fixed right-4 bottom-[calc(4.75rem+env(safe-area-inset-bottom))] z-30 md:hidden">
-            {quickOpen ? <QuickMenu onClose={() => setQuickOpen(false)} items={quickItems} align="right" up /> : null}
+            {fabOpen ? <QuickMenu onClose={() => setFabOpen(false)} items={quickItems} align="right" up /> : null}
             <button
               type="button"
               aria-label="Criar"
               aria-haspopup="menu"
-              aria-expanded={quickOpen}
-              onClick={() => setQuickOpen((o) => !o)}
+              aria-expanded={fabOpen}
+              onClick={() => setFabOpen((o) => !o)}
               className={`grid size-14 place-items-center rounded-full bg-accent text-accent-ink shadow-float transition-transform active:scale-95 ${focusRing}`}
             >
-              <svg viewBox="0 0 24 24" className={`size-6 transition-transform duration-200 ${quickOpen ? "rotate-45" : ""}`} fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden>
+              <svg viewBox="0 0 24 24" className={`size-6 transition-transform duration-200 ${fabOpen ? "rotate-45" : ""}`} fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden>
                 <path d="M12 5v14M5 12h14" />
               </svg>
             </button>
