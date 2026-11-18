@@ -2889,9 +2889,20 @@ function Panel({
                 Backup / seed
               </h1>
               <p className="mt-2 text-sm text-muted">
-                Importe o JSON inicial para o Neon.
+                Baixe uma cópia de tudo ou importe o JSON inicial para o Neon.
               </p>
-              <div className="mt-6 grid gap-4 sm:grid-cols-2">
+              <div className={`${cardClass} mt-6 flex flex-wrap items-center justify-between gap-4`}>
+                <div className="min-w-0">
+                  <h3 className="font-semibold">Backup completo</h3>
+                  <p className="mt-1 text-sm text-muted">
+                    Clientes, orçamentos, tarefas, histórico, cobranças, projetos, funil, Instagram e regras de finanças em um arquivo JSON. Tokens e senhas não entram.
+                  </p>
+                </div>
+                <a className={btnPrimary} href="/api/orcamentos/crm/export" download>
+                  Baixar backup
+                </a>
+              </div>
+              <div className="mt-4 grid gap-4 sm:grid-cols-2">
                 <div className={cardClass}>
                   <h3 className="font-semibold">Mesclar seed</h3>
                   <p className="mt-2 text-sm text-muted">
