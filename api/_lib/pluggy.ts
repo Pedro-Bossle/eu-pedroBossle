@@ -189,16 +189,34 @@ export function classify(t: { description: string; pluggyCategory: string }, rul
 
 const ymd = (d: Date) => d.toISOString().slice(0, 10);
 
+/**
+ * GET /v2/transactions (paginação por cursor). O /transactions antigo foi descontinuado.
+ * `next` vem como URL (com ?after=…) ou como o próprio cursor; os dois formatos são aceitos.
+ */
 async function allTransactions(accountId: string, from: string, to: string) {
   const out: PTransaction[] = [];
-  for (let page = 1; page <= 40; page += 1) {
-    const r = await pluggy<Page<PTransaction>>(
-      `/transactions?accountId=${encodeURIComponent(accountId)}&from=${from}&to=${to}&pageSize=500&page=${page}`,
-    );
+  let after: string | null = null;
+  for (let page = 0; page < 200; page += 1) {
+    const qs = new URLSearchParams({ accountId, dateFrom: from, dateTo: to });
+    if (after) qs.set("after", after);
+    const r = await pluggy<{ results?: PTransaction[]; next?: string | null }>(`/v2/transactions?${qs.toString()}`);
     out.push(...(r.results ?? []));
-    if (!r.totalPages || page >= r.totalPages) break;
+    after = nextCursor(r.next);
+    if (!after) break;
   }
   return out;
+}
+
+function nextCursor(next: string | null | undefined): string | null {
+  if (!next) return null;
+  if (/^https?:\/\/|^\//.test(next)) {
+    try {
+      return new URL(next, "https://api.pluggy.ai").searchParams.get("after");
+    } catch {
+      return null;
+    }
+  }
+  return next;
 }
 
 export async function loadRules(db: PoolClient): Promise<Rule[]> {
