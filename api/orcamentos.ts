@@ -58,6 +58,11 @@ const loaders: Record<string, () => Promise<{ default: RouteHandler }>> = {
   "finance/webhook-setup": () => import("./_handlers/finance/webhookSetup.js"),
   "finance/transactions": () => import("./_handlers/finance/transactions.js"),
   "finance/rules": () => import("./_handlers/finance/rules.js"),
+  // CRM (013)
+  "crm/today": () => import("./_handlers/crm/today.js"),
+  "crm/tasks": () => import("./_handlers/crm/tasks.js"),
+  "crm/activities": () => import("./_handlers/crm/activities.js"),
+  "crm/search": () => import("./_handlers/crm/search.js"),
   // Vercel Cron / GitHub Actions (Bearer CRON_SECRET)
   cron: () => import("./_handlers/cron.js"),
 };

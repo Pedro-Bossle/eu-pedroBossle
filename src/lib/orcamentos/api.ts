@@ -6,6 +6,12 @@ import type {
   OrcamentoProfile,
   OrcamentoProposal,
   BotToken,
+  CrmActivity,
+  CrmActivityKind,
+  CrmSearchResult,
+  CrmTask,
+  CrmTaskInput,
+  CrmToday,
   FinAnalytics,
   FinOverview,
   FinSyncResult,
@@ -381,4 +387,26 @@ export const orcamentosApi = {
       method: "POST",
       body: JSON.stringify({ type: "budget", category, limit }),
     }),
+  // ---------- CRM ----------
+  crmToday: () => request<CrmToday>("/api/orcamentos/crm/today"),
+  crmTasks: (params: { scope?: "open" | "done" | "all"; clientId?: string } = {}) => {
+    const qs = new URLSearchParams();
+    if (params.scope) qs.set("scope", params.scope);
+    if (params.clientId) qs.set("clientId", params.clientId);
+    return request<{ tasks: CrmTask[] }>(`/api/orcamentos/crm/tasks?${qs.toString()}`);
+  },
+  crmSaveTask: (task: CrmTaskInput) =>
+    request<{ task: CrmTask }>("/api/orcamentos/crm/tasks", { method: "POST", body: JSON.stringify(task) }),
+  crmToggleTask: (id: string, done: boolean) =>
+    request<{ task: CrmTask }>("/api/orcamentos/crm/tasks", { method: "PATCH", body: JSON.stringify({ id, done }) }),
+  crmDeleteTask: (id: string) =>
+    request<{ ok: boolean }>(`/api/orcamentos/crm/tasks?id=${encodeURIComponent(id)}`, { method: "DELETE" }),
+  crmActivities: (clientId: string) =>
+    request<{ activities: CrmActivity[] }>(`/api/orcamentos/crm/activities?clientId=${encodeURIComponent(clientId)}`),
+  crmAddActivity: (a: { clientId: string; kind: CrmActivityKind; body: string; at?: string }) =>
+    request<{ activity: CrmActivity }>("/api/orcamentos/crm/activities", { method: "POST", body: JSON.stringify(a) }),
+  crmDeleteActivity: (id: string) =>
+    request<{ ok: boolean }>(`/api/orcamentos/crm/activities?id=${encodeURIComponent(id)}`, { method: "DELETE" }),
+  crmSearch: (q: string) =>
+    request<{ results: CrmSearchResult[] }>(`/api/orcamentos/crm/search?q=${encodeURIComponent(q)}`),
 };

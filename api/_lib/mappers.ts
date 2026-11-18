@@ -40,6 +40,16 @@ export function mapClient(row: Record<string, unknown>): OrcamentoClient {
     legalName: String(row.legal_name ?? ""),
     document: document ? maskCpfCnpj(document) : "",
     address: String(row.address ?? ""),
+    status: (String(row.status ?? "ativo") as OrcamentoClient["status"]),
+    tags: (row.tags as string[] | null) ?? [],
+    source: String(row.source ?? ""),
+    nextContactAt: row.next_contact_at
+      ? row.next_contact_at instanceof Date
+        ? row.next_contact_at.toISOString().slice(0, 10)
+        : String(row.next_contact_at).slice(0, 10)
+      : null,
+    monthlyValue: Number(row.monthly_value ?? 0),
+    created: isoOrNull(row.created_at) ?? undefined,
   };
 }
 

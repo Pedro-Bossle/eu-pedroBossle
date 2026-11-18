@@ -27,7 +27,19 @@ export type OrcamentoClient = {
   document?: string;
   /** Endereço completo (opcional). */
   address?: string;
+  /** CRM (013) */
+  status?: ClientStatus;
+  tags?: string[];
+  /** De onde veio (indicação, Instagram, site…). */
+  source?: string;
+  /** Data do próximo contato combinado (YYYY-MM-DD). */
+  nextContactAt?: string | null;
+  /** Valor mensal recorrente (manutenção, hospedagem…). */
+  monthlyValue?: number;
+  created?: string;
 };
+
+export type ClientStatus = "lead" | "ativo" | "recorrente" | "pausado" | "encerrado";
 
 export type OrcamentoComment = {
   id: string;
@@ -397,3 +409,70 @@ export type FinAnalytics = {
   weekday: number[];
   recurring: { label: string; category: string; avg: number; months: number; lastDay: string; inMonth: boolean }[];
 };
+
+// ---------- CRM (013) ----------
+
+export type CrmTaskKind = "tarefa" | "follow-up" | "reuniao" | "ligacao" | "entrega" | "cobranca";
+
+export type CrmTask = {
+  id: string;
+  title: string;
+  notes: string;
+  kind: CrmTaskKind;
+  /** 0 baixa, 1 normal, 2 alta */
+  priority: number;
+  dueAt: string | null;
+  allDay: boolean;
+  doneAt: string | null;
+  clientId: string | null;
+  clientName: string | null;
+  proposalId: string | null;
+  proposalLabel: string | null;
+  leadId: string | null;
+  leadName: string | null;
+  created: string | null;
+  dueDay?: string | null;
+};
+
+export type CrmTaskInput = {
+  id?: string;
+  title: string;
+  notes?: string;
+  kind?: CrmTaskKind;
+  priority?: number;
+  dueAt?: string | null;
+  allDay?: boolean;
+  clientId?: string | null;
+  proposalId?: string | null;
+  leadId?: string | null;
+};
+
+export type CrmActivityKind = "nota" | "ligacao" | "reuniao" | "email" | "whatsapp" | "pagamento" | "entrega";
+export type CrmActivity = { id: string; clientId: string; kind: CrmActivityKind; body: string; at: string | null };
+
+export type CrmToday = {
+  tasks: {
+    today: string;
+    overdue: CrmTask[];
+    dueToday: CrmTask[];
+    upcoming: CrmTask[];
+    noDate: CrmTask[];
+    doneToday: number;
+  } | null;
+  contacts: { id: string; name: string; company: string; phone: string; email: string; nextContactAt: string | null }[] | null;
+  proposals: { id: string; title: string; clientName: string; clientPhone: string; total: number; days: number }[] | null;
+  funnel: { awaiting: number; followups: number; replied: number; proposals: number } | null;
+  inbox: { unread: number; latest: { id: string; name: string; idea: string; at: string | null }[] } | null;
+  instagram: {
+    posts: { id: string; kind: string; caption: string; at: string | null; status: string; thumb: string }[];
+    newComments: number;
+    nextPostAt: string | null;
+  } | null;
+  finance: {
+    bills: { id: string; name: string; amount: number; due: string | null }[];
+    budgets: { category: string; limit: number; spent: number }[];
+  } | null;
+  kpis: { mrr: number; activeClients: number; pipeline: number; wonMonth: number; winRate: number | null } | null;
+};
+
+export type CrmSearchResult = { type: "client" | "proposal" | "lead" | "task"; id: string; title: string; sub: string };

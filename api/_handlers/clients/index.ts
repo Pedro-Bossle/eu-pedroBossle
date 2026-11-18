@@ -6,6 +6,8 @@ import { mapClient } from "../../_lib/mappers.js";
 import { maskCpfCnpj } from "../../../src/lib/documentMask.js";
 import { maskPhoneBr } from "../../../src/lib/phoneMask.js";
 
+const CLIENT_STATUSES = ["lead", "ativo", "recorrente", "pausado", "encerrado"];
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (!(await requireSession(req, res))) return;
 
@@ -30,10 +32,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         await db.query(
           `INSERT INTO clients (
              id, name, company, phone, email, link, notes,
-             legal_name, document, address
+             legal_name, document, address,
+             status, tags, source, next_contact_at, monthly_value
            )
-           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
+           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)
            ON CONFLICT (id) DO UPDATE SET
+             status = EXCLUDED.status,
+             tags = EXCLUDED.tags,
+             source = EXCLUDED.source,
+             next_contact_at = EXCLUDED.next_contact_at,
+             monthly_value = EXCLUDED.monthly_value,
              name = EXCLUDED.name,
              company = EXCLUDED.company,
              phone = EXCLUDED.phone,
@@ -55,6 +63,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             String(body.legalName ?? ""),
             body.document ? maskCpfCnpj(String(body.document)) : "",
             String(body.address ?? ""),
+            CLIENT_STATUSES.includes(String(body.status)) ? String(body.status) : "ativo",
+            Array.isArray(body.tags)
+              ? [...new Set((body.tags as unknown[]).map((t) => String(t).trim().slice(0, 30)).filter(Boolean))].slice(0, 12)
+              : [],
+            String(body.source ?? "").slice(0, 60),
+            /^\d{4}-\d{2}-\d{2}$/.test(String(body.nextContactAt ?? "")) ? String(body.nextContactAt) : null,
+            Math.max(0, Number(body.monthlyValue) || 0),
           ],
         );
         const { rows } = await db.query("SELECT * FROM clients WHERE id = $1", [
