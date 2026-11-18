@@ -30,6 +30,7 @@ const ICONS = {
   card: "M2 7a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2zM2 10h20",
   sun: "M12 3v2M12 19v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M3 12h2M19 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8z",
   plus: "M12 5v14M5 12h14",
+  money: "M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6",
   arrow: "M5 12h14M13 6l6 6-6 6",
 };
 
@@ -135,7 +136,7 @@ export default function Today({ name, version, onNavigate, onOpenClient, onOpenP
 
       {error ? <p className="rounded-xl bg-danger-soft px-4 py-3 text-sm text-danger">{error}</p> : null}
 
-      {data?.kpis ? <Kpis k={data.kpis} onNavigate={onNavigate} /> : !data ? <div className="h-24 animate-pulse rounded-2xl bg-sunken/70 motion-reduce:animate-none" /> : null}
+      {data?.kpis ? <Kpis k={data.kpis} receivable={data.payments} onNavigate={onNavigate} /> : !data ? <div className="h-24 animate-pulse rounded-2xl bg-sunken/70 motion-reduce:animate-none" /> : null}
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)] lg:items-start">
         {/* Tarefas */}
@@ -252,12 +253,14 @@ function TaskGroup({
   );
 }
 
-function Kpis({ k, onNavigate }: { k: NonNullable<CrmToday["kpis"]>; onNavigate: (t: TodayNav) => void }) {
+function Kpis({ k, receivable, onNavigate }: { k: NonNullable<CrmToday["kpis"]>; receivable: CrmToday["payments"]; onNavigate: (t: TodayNav) => void }) {
   const items: { label: string; value: string; hint: string; to: TodayNav }[] = [
     { label: "Receita recorrente", value: money(k.mrr), hint: `${k.activeClients} ${k.activeClients === 1 ? "cliente ativo" : "clientes ativos"}`, to: "clients" },
     { label: "Em negociação", value: money(k.pipeline), hint: "propostas abertas", to: "proposals" },
     { label: "Fechado no mês", value: money(k.wonMonth), hint: "propostas aprovadas", to: "proposals" },
-    { label: "Conversão", value: k.winRate == null ? "—" : `${k.winRate}%`, hint: "aprovadas ÷ decididas", to: "proposals" },
+    receivable
+      ? { label: "A receber", value: money(receivable.open), hint: receivable.overdue ? `${money(receivable.overdue)} vencido` : `${money(receivable.receivedMonth)} recebido no mês`, to: "clients" }
+      : { label: "Conversão", value: k.winRate == null ? "—" : `${k.winRate}%`, hint: "aprovadas ÷ decididas", to: "proposals" },
   ];
   return (
     <div className="grid grid-cols-2 overflow-hidden rounded-2xl border border-line bg-surface lg:grid-cols-4">
@@ -331,6 +334,35 @@ function Attention({
 }) {
   const cards: ReactNode[] = [];
   const row = "flex items-center gap-3 rounded-lg px-1 py-2 text-sm";
+
+  if (d.payments?.due.length) {
+    cards.push(
+      <AttentionCard key="payments" icon={ICONS.money} title="A receber" count={d.payments.due.length}>
+        <ul className="divide-y divide-line">
+          {d.payments.due.slice(0, 5).map((p) => {
+            const wa = waLink(p.clientPhone, `Oi ${p.clientName.split(" ")[0]}, tudo bem? Passando para lembrar da parcela "${p.description}" de ${money(p.amount)}.`);
+            return (
+              <li key={p.id} className={row}>
+                <button type="button" className="min-w-0 flex-1 text-left" onClick={() => onOpenClient(p.clientId)}>
+                  <p className="truncate font-medium">
+                    {p.clientName} <span className="font-normal tabular-nums">· {money(p.amount)}</span>
+                  </p>
+                  <p className={`truncate text-xs ${p.overdue ? "font-medium text-danger" : "text-faint"}`}>
+                    {p.overdue ? "Vencida" : "Vence"} {p.dueDate ? new Date(`${p.dueDate}T12:00:00`).toLocaleDateString("pt-BR", { day: "2-digit", month: "short" }) : ""} · {p.description}
+                  </p>
+                </button>
+                {wa ? (
+                  <a href={wa} target="_blank" rel="noreferrer" className={btnSm}>
+                    Lembrar
+                  </a>
+                ) : null}
+              </li>
+            );
+          })}
+        </ul>
+      </AttentionCard>,
+    );
+  }
 
   if (d.contacts?.length) {
     cards.push(

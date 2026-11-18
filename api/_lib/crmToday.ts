@@ -22,7 +22,7 @@ async function safe<T>(fn: (db: PoolClient) => Promise<T>): Promise<T | null> {
  * Usado pela tela Hoje (crm/today) e pelo resumo diário por e-mail.
  */
 export async function loadToday() {
-  const [tasks, contacts, proposals, funnel, inbox, instagram, finance, kpis] = await Promise.all([
+  const [tasks, contacts, proposals, funnel, inbox, instagram, finance, kpis, payments] = await Promise.all([
     safe(async (db) => {
       const { rows } = await db.query(
         `SELECT ${TASK_COLS}, (t.due_at AT TIME ZONE '${TZ}')::date AS due_day FROM ${TASK_FROM}
@@ -160,9 +160,42 @@ export async function loadToday() {
         winRate: Number(r.decided) ? Math.round((Number(r.won_total) / Number(r.decided)) * 100) : null,
       };
     }),
+    safe(async (db) => {
+      const { rows } = await db.query(
+        `SELECT p.id, p.client_id, p.description, p.amount, p.due_date, c.name AS client_name, c.phone AS client_phone,
+                (p.due_date < ${TODAY}) AS overdue
+         FROM crm_payments p JOIN clients c ON c.id = p.client_id
+         WHERE p.paid_at IS NULL AND p.due_date <= ${TODAY} + 7
+         ORDER BY p.due_date LIMIT 20`,
+      );
+      const totals = await db.query(
+        `SELECT
+           COALESCE(sum(amount) FILTER (WHERE paid_at IS NULL), 0) AS open,
+           COALESCE(sum(amount) FILTER (WHERE paid_at IS NULL AND due_date < ${TODAY}), 0) AS overdue,
+           COALESCE(sum(amount) FILTER (WHERE paid_at IS NOT NULL
+             AND to_char(paid_at AT TIME ZONE '${TZ}', 'YYYY-MM') = to_char(now() AT TIME ZONE '${TZ}', 'YYYY-MM')), 0) AS received_month
+         FROM crm_payments`,
+      );
+      const t = totals.rows[0]!;
+      return {
+        due: rows.map((r) => ({
+          id: String(r.id),
+          clientId: String(r.client_id),
+          clientName: String(r.client_name),
+          clientPhone: String(r.client_phone ?? ""),
+          description: String(r.description),
+          amount: Number(r.amount),
+          dueDate: iso(r.due_date)?.slice(0, 10) ?? null,
+          overdue: Boolean(r.overdue),
+        })),
+        open: Number(t.open),
+        overdue: Number(t.overdue),
+        receivedMonth: Number(t.received_month),
+      };
+    }),
   ]);
 
-  return { tasks, contacts, proposals, funnel, inbox, instagram, finance, kpis };
+  return { tasks, contacts, proposals, funnel, inbox, instagram, finance, kpis, payments };
 }
 
 export type TodayData = Awaited<ReturnType<typeof loadToday>>;

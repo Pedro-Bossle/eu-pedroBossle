@@ -8,6 +8,7 @@ import type {
   BotToken,
   CrmActivity,
   CrmActivityKind,
+  CrmPayment,
   CrmSearchResult,
   CrmTask,
   CrmTaskInput,
@@ -414,6 +415,24 @@ export const orcamentosApi = {
     }),
   crmDigest: () =>
     request<{ sent?: string; skipped?: string }>("/api/orcamentos/crm/digest", { method: "POST", body: "{}" }),
+  crmPayments: (params: { clientId?: string; scope?: "open" } = {}) => {
+    const qs = new URLSearchParams();
+    if (params.clientId) qs.set("clientId", params.clientId);
+    if (params.scope) qs.set("scope", params.scope);
+    return request<{ payments: CrmPayment[] }>(`/api/orcamentos/crm/payments?${qs.toString()}`);
+  },
+  crmAddPayments: (body: {
+    clientId: string;
+    proposalId?: string | null;
+    description?: string;
+    amount?: number;
+    dueDate?: string;
+    installments?: { total: number; count: number; firstDue: string; labels?: string[] };
+  }) => request<{ payments?: CrmPayment[]; payment?: CrmPayment }>("/api/orcamentos/crm/payments", { method: "POST", body: JSON.stringify(body) }),
+  crmPayPayment: (id: string, paid: boolean, method?: string) =>
+    request<{ payment: CrmPayment }>("/api/orcamentos/crm/payments", { method: "PATCH", body: JSON.stringify({ id, paid, method }) }),
+  crmDeletePayment: (id: string) =>
+    request<{ ok: boolean }>(`/api/orcamentos/crm/payments?id=${encodeURIComponent(id)}`, { method: "DELETE" }),
   crmSearch: (q: string) =>
     request<{ results: CrmSearchResult[] }>(`/api/orcamentos/crm/search?q=${encodeURIComponent(q)}`),
 };

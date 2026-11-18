@@ -478,6 +478,25 @@ export type CrmToday = {
     budgets: { category: string; limit: number; spent: number }[];
   } | null;
   kpis: { mrr: number; activeClients: number; pipeline: number; wonMonth: number; winRate: number | null } | null;
+  payments: {
+    due: { id: string; clientId: string; clientName: string; clientPhone: string; description: string; amount: number; dueDate: string | null; overdue: boolean }[];
+    open: number;
+    overdue: number;
+    receivedMonth: number;
+  } | null;
+};
+
+export type CrmPayment = {
+  id: string;
+  clientId: string;
+  clientName: string | null;
+  clientPhone: string | null;
+  proposalId: string | null;
+  description: string;
+  amount: number;
+  dueDate: string | null;
+  paidAt: string | null;
+  method: string;
 };
 
 export type CrmSearchResult = { type: "client" | "proposal" | "lead" | "task"; id: string; title: string; sub: string };

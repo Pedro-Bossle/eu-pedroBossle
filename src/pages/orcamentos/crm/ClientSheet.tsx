@@ -5,6 +5,7 @@ import { btn, btnPrimary, btnSm, focusRing, inputClass, labelClass, textareaClas
 import Icon from "../ui/Icon";
 import Select from "../ui/Select";
 import Sheet from "../ui/Sheet";
+import Payments from "./Payments";
 import TaskRow from "./TaskRow";
 import { ACTIVITY_ICON, ACTIVITY_KINDS, ACTIVITY_LABEL, CLIENT_STATUSES, addDays, clientStatus, money, relTime, telLink, waLink, ymd, type TaskDraft } from "./model";
 
@@ -55,7 +56,7 @@ export default function ClientSheet({
   onSaved: (c: OrcamentoClient) => void;
   showToast: (m: string) => void;
 }) {
-  const [view, setView] = useState<"timeline" | "tasks" | "proposals">("timeline");
+  const [view, setView] = useState<"timeline" | "tasks" | "proposals" | "payments">("timeline");
   const [activities, setActivities] = useState<CrmActivity[] | null>(null);
   const [tasks, setTasks] = useState<CrmTask[] | null>(null);
   const [kind, setKind] = useState<CrmActivityKind>("nota");
@@ -327,6 +328,7 @@ export default function ClientSheet({
             ["timeline", "Linha do tempo"],
             ["tasks", `Tarefas${openTasks.length ? ` (${openTasks.length})` : ""}`],
             ["proposals", `Orçamentos (${mine.length})`],
+            ["payments", "Cobranças"],
           ] as const
         ).map(([id, label]) => (
           <button
@@ -335,7 +337,7 @@ export default function ClientSheet({
             type="button"
             aria-selected={view === id}
             onClick={() => setView(id)}
-            className={`flex-1 rounded-lg px-2 py-1.5 text-sm transition-colors ${focusRing} ${view === id ? "bg-surface font-medium text-ink shadow-sm" : "text-muted hover:text-ink"}`}
+            className={`flex-1 rounded-lg px-1.5 py-1.5 text-xs transition-colors sm:px-2 sm:text-sm ${focusRing} ${view === id ? "bg-surface font-medium text-ink shadow-sm" : "text-muted hover:text-ink"}`}
           >
             {label}
           </button>
@@ -433,6 +435,8 @@ export default function ClientSheet({
           </button>
         </div>
       ) : null}
+
+      {view === "payments" ? <Payments client={client} proposals={proposals} showToast={showToast} onChanged={load} /> : null}
 
       {view === "proposals" ? (
         <ul className="mt-3 divide-y divide-line">

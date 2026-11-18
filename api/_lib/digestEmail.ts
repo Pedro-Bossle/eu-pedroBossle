@@ -36,6 +36,14 @@ export function buildDigestHtml(d: TodayData, opts: { name: string; panelUrl: st
     section("Atrasadas", (t?.overdue ?? []).map(taskRow), danger),
     section("Para hoje", (t?.dueToday ?? []).map(taskRow)),
     section(
+      "A receber",
+      (d.payments?.due ?? []).map(
+        (p) =>
+          `${p.overdue ? `<span style="color:${danger}">Vencida:</span> ` : ""}${esc(p.clientName)} — ${brl(p.amount)} ${sub(`· ${esc(p.description)} · ${p.dueDate ? new Date(`${p.dueDate}T12:00:00`).toLocaleDateString("pt-BR", { day: "2-digit", month: "short" }) : ""}`)}`,
+      ),
+      d.payments?.overdue ? danger : ink,
+    ),
+    section(
       "Retomar contato",
       (d.contacts ?? []).map((c) => `${esc(c.name)}${c.company ? ` ${sub(`· ${esc(c.company)}`)}` : ""}`),
     ),
@@ -112,6 +120,7 @@ export function digestHasContent(d: TodayData) {
     d.tasks?.overdue.length ||
       d.tasks?.dueToday.length ||
       d.contacts?.length ||
+      d.payments?.due.length ||
       d.proposals?.length ||
       d.funnel?.awaiting ||
       d.funnel?.followups ||
