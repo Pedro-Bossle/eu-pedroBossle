@@ -1,26 +1,45 @@
 {
+  "regions": [
+    "gru1"
+  ],
   "headers": [
     {
       "source": "/orcamentos/(.*)",
       "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
       ]
     },
     {
       "source": "/api/(.*)",
       "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
       ]
     },
     {
       "source": "/(.*)",
       "headers": [
-        { "key": "X-Content-Type-Options", "value": "nosniff" },
-        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" }
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        }
       ]
     }
   ],
   "rewrites": [
+    {
+      "source": "/webhooks/pluggy",
+      "destination": "/api/orcamentos"
+    },
     {
       "source": "/api/orcamentos/auth/me",
       "destination": "/api/orcamentos-auth-me"
@@ -48,6 +67,12 @@
     {
       "source": "/((?!api/|@|src/|node_modules/|assets/)(?!.*\\.).*)",
       "destination": "/index.html"
+    }
+  ],
+  "crons": [
+    {
+      "path": "/api/orcamentos/cron?tasks=daily",
+      "schedule": "23 9 * * *"
     }
   ]
 }

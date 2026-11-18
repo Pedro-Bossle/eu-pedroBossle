@@ -39,6 +39,39 @@ const loaders: Record<string, () => Promise<{ default: RouteHandler }>> = {
   "bot/leads": () => import("./_handlers/bot/leads.js"),
   "bot/queue": () => import("./_handlers/bot/queue.js"),
   "bot/move": () => import("./_handlers/bot/move.js"),
+  // Instagram (011)
+  instagram: () => import("./_handlers/instagram/index.js"),
+  "instagram/oauth": () => import("./_handlers/instagram/oauth.js"),
+  "instagram/oauth-callback": () => import("./_handlers/instagram/oauthCallback.js"),
+  "instagram/sync": () => import("./_handlers/instagram/sync.js"),
+  "instagram/posts": () => import("./_handlers/instagram/posts.js"),
+  "instagram/media": () => import("./_handlers/instagram/media.js"),
+  "instagram/comments": () => import("./_handlers/instagram/comments.js"),
+  "instagram/upload": () => import("./_handlers/instagram/upload.js"),
+  // Finanças (012)
+  finance: () => import("./_handlers/finance/index.js"),
+  "finance/sync": () => import("./_handlers/finance/sync.js"),
+  "finance/analytics": () => import("./_handlers/finance/analytics.js"),
+  "finance/connect-token": () => import("./_handlers/finance/connectToken.js"),
+  // Webhook público da Pluggy (header secreto) + registro pelo painel
+  "finance/webhook": () => import("./_handlers/finance/webhook.js"),
+  "finance/webhook-setup": () => import("./_handlers/finance/webhookSetup.js"),
+  "finance/transactions": () => import("./_handlers/finance/transactions.js"),
+  "finance/rules": () => import("./_handlers/finance/rules.js"),
+  // CRM (013)
+  "crm/today": () => import("./_handlers/crm/today.js"),
+  "crm/tasks": () => import("./_handlers/crm/tasks.js"),
+  "crm/activities": () => import("./_handlers/crm/activities.js"),
+  "crm/search": () => import("./_handlers/crm/search.js"),
+  "crm/convert": () => import("./_handlers/crm/convert.js"),
+  "crm/digest": () => import("./_handlers/crm/digest.js"),
+  "crm/payments": () => import("./_handlers/crm/payments.js"),
+  "crm/projects": () => import("./_handlers/crm/projects.js"),
+  "crm/export": () => import("./_handlers/crm/export.js"),
+  "crm/agenda": () => import("./_handlers/crm/agenda.js"),
+  "crm/counts": () => import("./_handlers/crm/counts.js"),
+  // Vercel Cron / GitHub Actions (Bearer CRON_SECRET)
+  cron: () => import("./_handlers/cron.js"),
 };
 
 function routeKey(req: VercelRequest): string {
@@ -55,6 +88,8 @@ function routeKey(req: VercelRequest): string {
   for (const raw of candidates) {
     if (!raw) continue;
     const pathOnly = String(raw).split("?")[0] ?? "";
+    // Endereço curto do webhook da Pluggy (rewrite em vercel.json)
+    if (/^\/webhooks\/pluggy\/?$/.test(pathOnly)) return "finance/webhook";
     const marker = "/api/orcamentos/";
     const idx = pathOnly.indexOf(marker);
     if (idx >= 0) {

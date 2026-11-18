@@ -10,7 +10,20 @@ import {
   whatsappUrl,
 } from "../../lib/orcamentos/prospects";
 import type { BotToken, ProspectEvent, ProspectInput, ProspectLead } from "../../types/orcamentos";
-import { btn, btnPrimary, cardClass, focusRing } from "./panelStyles";
+import Select from "./ui/Select";
+import { convertToClient } from "./crm/events";
+import {
+  btn,
+  btnDangerSm,
+  btnPrimary,
+  btnSm,
+  btnWhatsApp,
+  cardClass,
+  control,
+  focusRing,
+  labelClass,
+  linkClass,
+} from "./panelStyles";
 
 type Props = {
   showToast: (msg: string) => void;
@@ -67,29 +80,24 @@ const STAGE_HINT: Record<string, string> = {
 
 const isExit = (s: string) => (EXITS as readonly string[]).includes(s);
 
-const control = `border border-neutral-200 bg-[#f9f9f9] outline-none transition focus:border-emerald-600 dark:border-neutral-700 dark:bg-[#121212] dark:focus:border-emerald-400 ${focusRing}`;
-const inputClass = `${control} w-full min-h-11 px-3 py-2 text-base sm:text-sm`;
-const areaClass = `${control} w-full min-h-40 resize-y px-4 py-3 text-base leading-relaxed sm:text-sm`;
-const btnSm = `inline-flex min-h-10 cursor-pointer items-center justify-center gap-2 border border-neutral-200 bg-white px-3 py-2 text-sm font-medium transition-[border-color,opacity] hover:border-neutral-400 disabled:cursor-not-allowed disabled:opacity-50 dark:border-neutral-700 dark:bg-[#151515] dark:hover:border-neutral-500 ${focusRing}`;
-const btnDanger = `${btnSm} text-red-600 dark:text-red-400`;
-const btnWhatsApp = `inline-flex min-h-10 cursor-pointer items-center justify-center gap-2 bg-emerald-700 px-3 py-2 text-sm font-semibold text-white transition-opacity hover:opacity-90 dark:bg-emerald-500 dark:text-neutral-950 ${focusRing}`;
-const smallLabel = "text-xs font-medium uppercase tracking-widest text-neutral-500 dark:text-neutral-400";
-const badge = "inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide";
-const linkClass =
-  "text-emerald-800 underline decoration-emerald-800/30 underline-offset-4 dark:text-emerald-300 dark:decoration-emerald-300/30";
+const inputClass = `${control} w-full min-h-10 px-3 py-2 text-base sm:text-sm`;
+const areaClass = `${control} w-full min-h-40 resize-y px-3.5 py-3 text-base leading-relaxed sm:text-sm`;
+const btnDanger = btnDangerSm;
+const smallLabel = labelClass;
+const badge = "inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold";
 
 const chip = (active: boolean) =>
   `shrink-0 rounded-full px-3 py-1.5 text-xs font-medium transition ${focusRing} ${
     active
-      ? "bg-neutral-900 text-white dark:bg-[#f9f9f9] dark:text-neutral-900"
-      : "border border-neutral-200 text-neutral-500 hover:text-neutral-900 dark:border-neutral-700 dark:text-neutral-400 dark:hover:text-white"
+      ? "bg-ink text-canvas"
+      : "border border-line text-muted hover:text-ink"
   }`;
 
 const scoreBadge = (score: number | null) =>
   score == null
-    ? "bg-neutral-100 text-neutral-500 dark:bg-neutral-800 dark:text-neutral-400"
+    ? "bg-sunken text-muted"
     : score >= 70
-      ? "bg-emerald-500/15 text-emerald-800 dark:text-emerald-300"
+      ? "bg-emerald-500/15 text-accent-text"
       : score >= 40
         ? "bg-amber-500/10 text-amber-800 dark:text-amber-300"
         : "bg-red-500/10 text-red-700 dark:text-red-300";
@@ -102,8 +110,8 @@ const fmtWhen = (iso: string | null) =>
 function Row({ label, children, muted }: { label: string; children: ReactNode; muted?: boolean }) {
   return (
     <>
-      <dt className="pt-0.5 text-xs font-medium text-neutral-500 dark:text-neutral-400">{label}</dt>
-      <dd className={`min-w-0 break-words ${muted ? "text-neutral-400 dark:text-neutral-500" : ""}`}>{children}</dd>
+      <dt className="pt-0.5 text-xs font-medium text-muted">{label}</dt>
+      <dd className={`min-w-0 break-words ${muted ? "text-faint" : ""}`}>{children}</dd>
     </>
   );
 }
@@ -125,22 +133,22 @@ function History({ id }: { id: string }) {
     };
   }, [id]);
 
-  if (error) return <p className="text-sm text-red-600 dark:text-red-400">{error}</p>;
-  if (!events) return <p className="text-sm text-neutral-500">Carregando…</p>;
-  if (!events.length) return <p className="text-sm text-neutral-500">Sem movimentações ainda.</p>;
+  if (error) return <p className="text-sm text-danger">{error}</p>;
+  if (!events) return <p className="text-sm text-muted">Carregando…</p>;
+  if (!events.length) return <p className="text-sm text-muted">Sem movimentações ainda.</p>;
   return (
     <ol className="space-y-2 text-sm">
       {events.map((e, i) => (
-        <li key={`${e.at}-${i}`} className="border-l-2 border-neutral-200 pl-3 dark:border-neutral-700">
+        <li key={`${e.at}-${i}`} className="border-l-2 border-line pl-3">
           <p>
             <span className="font-medium">
               {e.from === e.to ? STAGE_LABEL[e.to] ?? e.to : `${STAGE_LABEL[e.from] ?? e.from} → ${STAGE_LABEL[e.to] ?? e.to}`}
             </span>{" "}
-            <span className="text-neutral-500 dark:text-neutral-400">
+            <span className="text-muted">
               · {e.actor} · {fmtWhen(e.at)}
             </span>
           </p>
-          {e.note ? <p className="text-neutral-600 dark:text-neutral-300">{e.note}</p> : null}
+          {e.note ? <p className="text-muted">{e.note}</p> : null}
         </li>
       ))}
     </ol>
@@ -202,13 +210,13 @@ function LeadCard({
   const address = [lead.address, lead.neighborhood].filter(Boolean).join(" – ");
 
   return (
-    <article className="flex min-w-0 flex-col gap-4 border border-neutral-200 bg-white p-4 sm:p-5 dark:border-neutral-800 dark:bg-[#151515]">
+    <article className="flex min-w-0 flex-col gap-4 rounded-xl border border-line bg-surface p-4 sm:p-5">
       <header className="space-y-2">
         <div className="flex flex-wrap items-center gap-1.5">
           <span className={`${badge} ${scoreBadge(lead.score)}`}>
             {lead.score == null ? "Sem nota" : `Nota ${lead.score}`}
           </span>
-          <span className={`${badge} bg-neutral-100 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-300`}>
+          <span className={`${badge} bg-sunken text-muted`}>
             {STAGE_LABEL[stage] ?? stage}
             {lead.stageChangedAt ? ` · ${fmtWhen(lead.stageChangedAt)}` : ""}
           </span>
@@ -216,7 +224,7 @@ function LeadCard({
             <span
               className={`${badge} ${
                 lead.result === "fechado"
-                  ? "bg-emerald-500/15 text-emerald-800 dark:text-emerald-300"
+                  ? "bg-emerald-500/15 text-accent-text"
                   : "bg-red-500/10 text-red-700 dark:text-red-300"
               }`}
             >
@@ -224,13 +232,13 @@ function LeadCard({
             </span>
           ) : null}
           {lead.followupApprovedAt && stage === "enviado" ? (
-            <span className={`${badge} bg-emerald-500/10 text-emerald-800 dark:text-emerald-300`}>
+            <span className={`${badge} bg-emerald-500/10 text-accent-text`}>
               Follow-up aprovado
             </span>
           ) : null}
         </div>
         <h3 className="text-lg font-semibold leading-snug tracking-tight break-words">{lead.name}</h3>
-        <p className="text-sm text-neutral-500 dark:text-neutral-400">
+        <p className="text-sm text-muted">
           {[lead.niche, lead.city].filter(Boolean).join(" · ")}
         </p>
       </header>
@@ -260,7 +268,7 @@ function LeadCard({
                 <span className={`${badge} bg-amber-500/10 text-amber-800 dark:text-amber-300`}>Só fixo</span>
               ) : null}
               {lead.phoneSources.length ? (
-                <span className="text-xs text-neutral-500">({lead.phoneSources.join(", ")})</span>
+                <span className="text-xs text-muted">({lead.phoneSources.join(", ")})</span>
               ) : null}
             </span>
           ) : (
@@ -320,7 +328,7 @@ function LeadCard({
           {showScore ? (
             <ul className="text-sm">
               {lead.scoreBreakdown.map((s) => (
-                <li key={s.label} className="flex justify-between gap-3 border-b border-neutral-100 py-1 dark:border-neutral-800">
+                <li key={s.label} className="flex justify-between gap-3 border-b border-line py-1">
                   <span>{s.label}</span>
                   <span className="font-mono text-xs">
                     {s.points}/{s.max}
@@ -435,6 +443,23 @@ function LeadCard({
             </button>
           </>
         ) : null}
+        {["respondeu", "proposta", "resultado", "followup", "enviado"].includes(stage) ? (
+          <button
+            type="button"
+            className={btn}
+            disabled={busy}
+            title="Cria o cliente com os dados deste lead e abre a ficha"
+            onClick={async () => {
+              try {
+                showToast(await convertToClient("lead", lead.id));
+              } catch (e) {
+                showToast(e instanceof Error ? e.message : "Erro ao criar cliente");
+              }
+            }}
+          >
+            Virar cliente
+          </button>
+        ) : null}
         {stage === "aguardando" || stage === "encontrado" ? (
           <button
             type="button"
@@ -449,22 +474,16 @@ function LeadCard({
       </div>
 
       {/* Mover manualmente */}
-      <div className="grid gap-2 border-t border-neutral-200 pt-3 sm:grid-cols-[1fr_1fr_auto] dark:border-neutral-800">
-        <select
-          className={inputClass}
+      <div className="grid gap-2 border-t border-line pt-3 sm:grid-cols-[1fr_1fr_auto]">
+        <Select
+          ariaLabel="Mover para a etapa"
+          placeholder="Mover para…"
           value={target}
-          onChange={(e) => setTarget(e.target.value)}
-          aria-label="Mover para a etapa"
-        >
-          <option value="">Mover para…</option>
-          {[...FUNNEL, ...EXITS]
+          onChange={setTarget}
+          options={[...FUNNEL, ...EXITS]
             .filter((s) => s !== stage)
-            .map((s) => (
-              <option key={s} value={s}>
-                {STAGE_LABEL[s]}
-              </option>
-            ))}
-        </select>
+            .map((s) => ({ value: s, label: STAGE_LABEL[s] ?? s, hint: isExit(s) ? "saída" : "" }))}
+        />
         <input
           className={inputClass}
           value={note}
@@ -525,7 +544,7 @@ function BotTokens({ showToast }: { showToast: (msg: string) => void }) {
     <div className={`${cardClass} mb-4 space-y-4`}>
       <div>
         <h2 className="text-lg font-semibold tracking-tight">Tokens dos bots</h2>
-        <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
+        <p className="mt-1 text-sm text-muted">
           <span className="font-mono">prospector</span> (Dev Bossle) cadastra e qualifica leads;{" "}
           <span className="font-mono">executor</span> (WhatsApp) envia as mensagens aprovadas. O token aparece uma única vez.
         </p>
@@ -575,31 +594,31 @@ function BotTokens({ showToast }: { showToast: (msg: string) => void }) {
           placeholder="Nome do bot"
           aria-label="Nome do bot"
         />
-        <select
-          className={inputClass}
+        <Select
+          ariaLabel="Papel do bot"
           value={role}
-          onChange={(e) => setRole(e.target.value as BotToken["role"])}
-          aria-label="Papel do bot"
-        >
-          <option value="prospector">prospector</option>
-          <option value="executor">executor</option>
-        </select>
+          onChange={(v) => setRole(v)}
+          options={[
+            { value: "prospector", label: "Prospector", hint: "Dev Bossle" },
+            { value: "executor", label: "Executor", hint: "WhatsApp" },
+          ]}
+        />
         <button type="submit" className={btnPrimary} disabled={busy || !name.trim()}>
           Criar token
         </button>
       </form>
-      <ul className="divide-y divide-neutral-200 text-sm dark:divide-neutral-800">
+      <ul className="divide-y divide-line text-sm">
         {tokens.map((t) => (
           <li key={t.id} className="flex flex-wrap items-center justify-between gap-2 py-2">
-            <span className={t.revoked_at ? "text-neutral-400 line-through" : ""}>
+            <span className={t.revoked_at ? "text-faint line-through" : ""}>
               {t.name} · <span className="font-mono">{t.role}</span> · …{t.last4}
-              <span className="text-neutral-500 dark:text-neutral-400">
+              <span className="text-muted">
                 {" "}
                 · {t.last_used_at ? `usado ${fmtWhen(t.last_used_at)}` : "nunca usado"}
               </span>
             </span>
             {t.revoked_at ? (
-              <span className="text-xs text-neutral-500">revogado</span>
+              <span className="text-xs text-muted">revogado</span>
             ) : (
               <button
                 type="button"
@@ -618,7 +637,7 @@ function BotTokens({ showToast }: { showToast: (msg: string) => void }) {
             )}
           </li>
         ))}
-        {!tokens.length ? <li className="py-2 text-neutral-500">Nenhum token ainda.</li> : null}
+        {!tokens.length ? <li className="py-2 text-muted">Nenhum token ainda.</li> : null}
       </ul>
     </div>
   );
@@ -670,7 +689,7 @@ function LeadForm({
   );
   const [busy, setBusy] = useState(false);
   const set = (patch: ProspectInput) => setForm((f) => ({ ...f, ...patch }));
-  const label = "text-sm font-medium text-neutral-700 dark:text-neutral-300";
+  const label = "text-sm font-medium text-muted";
 
   const field = (k: keyof ProspectInput, text: string, placeholder = "", full = false) => (
     <label className={`block ${full ? "sm:col-span-2" : ""}`}>
@@ -766,9 +785,9 @@ function LeadForm({
         ) : null}
       </div>
 
-      <fieldset className="space-y-3 border-t border-neutral-200 pt-4 dark:border-neutral-800">
+      <fieldset className="space-y-3 border-t border-line pt-4">
         <legend className={smallLabel}>Dados da nota</legend>
-        <p className="text-sm text-neutral-500 dark:text-neutral-400">
+        <p className="text-sm text-muted">
           Ao salvar, a nota é recalculada com estes dados. Sem nenhum deles, a nota atual é mantida.
         </p>
         <div className="grid gap-3 sm:grid-cols-2">
@@ -776,20 +795,17 @@ function LeadForm({
           {date("lastReviewAt", "Última avaliação")}
           {num("followers", "Seguidores no Instagram")}
           {date("lastPostAt", "Último post")}
-          <label className="block">
+          <div className="block">
             <span className={label}>Capacidade de investir</span>
-            <select
-              className={`${inputClass} mt-1`}
-              value={form.investLevel ?? 0}
-              onChange={(e) => set({ investLevel: Number(e.target.value) })}
-            >
-              {INVEST_LEVELS.map((t, i) => (
-                <option key={t} value={i}>
-                  {t}
-                </option>
-              ))}
-            </select>
-          </label>
+            <div className="mt-1">
+              <Select
+                ariaLabel="Capacidade de investir"
+                value={String(form.investLevel ?? 0)}
+                onChange={(v) => set({ investLevel: Number(v) })}
+                options={INVEST_LEVELS.map((t, i) => ({ value: String(i), label: t }))}
+              />
+            </div>
+          </div>
           <label className="flex min-h-11 items-center gap-2 self-end text-sm">
             <input
               type="checkbox"
@@ -861,7 +877,7 @@ function ImportExport({
     <div className={`${cardClass} mb-4 grid gap-6 lg:grid-cols-[1.4fr_1fr]`}>
       <div className="space-y-3">
         <h2 className="text-lg font-semibold tracking-tight">Importar leads</h2>
-        <p className="text-sm text-neutral-500 dark:text-neutral-400">
+        <p className="text-sm text-muted">
           Cole um CSV ou JSON, ou escolha um arquivo. Colunas: nome, nicho, cidade, endereco, bairro, site, email, whatsapp, telefone, instagram, problemas, argumento. Mesmo nome e cidade atualiza o lead em vez de duplicar.
         </p>
         <textarea
@@ -890,14 +906,14 @@ function ImportExport({
           />
         </div>
         {msg ? (
-          <p className="text-sm text-neutral-600 dark:text-neutral-300" role="status">
+          <p className="text-sm text-muted" role="status">
             {msg}
           </p>
         ) : null}
       </div>
       <div className="space-y-3">
         <h2 className="text-lg font-semibold tracking-tight">Exportar / backup</h2>
-        <p className="text-sm text-neutral-500 dark:text-neutral-400">
+        <p className="text-sm text-muted">
           O JSON leva tudo, inclusive etapa, nota e mensagens. Para restaurar, importe o mesmo arquivo.
         </p>
         <div className="flex flex-wrap gap-2">
@@ -951,16 +967,16 @@ const OWNER_LABEL: Record<Owner, string> = { db: "Dev Bossle", wa: "WhatsApp", p
 
 const OWNER_BADGE: Record<Owner, string> = {
   db: "bg-blue-500/10 text-blue-700 dark:text-blue-300",
-  wa: "bg-emerald-500/10 text-emerald-800 dark:text-emerald-300",
-  pd: "bg-neutral-900 text-white dark:bg-[#f9f9f9] dark:text-neutral-900",
+  wa: "bg-emerald-500/10 text-accent-text",
+  pd: "bg-ink text-canvas",
 };
 
 const OWNER_BAR: Record<Owner, { track: string; fill: string }> = {
   db: { track: "border-blue-600 bg-blue-500/10", fill: "bg-blue-600/80" },
   wa: { track: "border-emerald-600 bg-emerald-500/10", fill: "bg-emerald-600/85" },
   pd: {
-    track: "border-neutral-900 bg-neutral-500/10 dark:border-neutral-200",
-    fill: "bg-neutral-900/80 dark:bg-neutral-200/80",
+    track: "border-ink bg-neutral-500/10",
+    fill: "bg-ink/80",
   },
 };
 
@@ -992,7 +1008,7 @@ const isLate = (l: ProspectLead) =>
   (l.stage === "aguardando" && ageDays(l.stageChangedAt ?? l.created) >= 2) ||
   (l.stage === "respondeu" && ageDays(l.stageChangedAt ?? l.created) >= 1);
 
-const neutralBadge = `${badge} bg-neutral-100 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-300`;
+const neutralBadge = `${badge} bg-sunken text-muted`;
 
 function BoardCard({
   lead,
@@ -1028,7 +1044,7 @@ function BoardCard({
           onOpen();
         }
       }}
-      className={`grid w-full min-w-0 cursor-pointer gap-2 border border-neutral-200 bg-white p-3 text-left transition-colors hover:border-neutral-400 dark:border-neutral-800 dark:bg-[#151515] dark:hover:border-neutral-500 ${focusRing}`}
+      className={`grid w-full min-w-0 cursor-pointer gap-2 rounded-xl border border-line bg-surface p-3 text-left transition-colors hover:border-line-strong ${focusRing}`}
     >
       <div className="flex items-start justify-between gap-2">
         <h4 className="min-w-0 text-sm leading-snug font-bold break-words">{lead.name}</h4>
@@ -1036,15 +1052,15 @@ function BoardCard({
           <span className={`${badge} shrink-0 ${scoreBadge(lead.score)}`}>{lead.score}</span>
         ) : null}
       </div>
-      <p className="text-xs break-words text-neutral-500 dark:text-neutral-400">{place || "Sem nicho ou cidade"}</p>
+      <p className="text-xs break-words text-muted">{place || "Sem nicho ou cidade"}</p>
 
       {lead.stage === "aguardando" && lead.message ? (
-        <p className="line-clamp-4 border-l-2 border-emerald-600 bg-[#f9f9f9] px-2.5 py-2 text-xs leading-relaxed dark:bg-[#121212]">
+        <p className="line-clamp-4 border-l-2 border-emerald-600 bg-canvas px-2.5 py-2 text-xs leading-relaxed">
           {lead.message}
         </p>
       ) : null}
       {lead.stage === "respondeu" ? (
-        <p className="line-clamp-3 border-l-2 border-neutral-900 bg-[#f9f9f9] px-2.5 py-2 text-xs leading-relaxed dark:border-neutral-200 dark:bg-[#121212]">
+        <p className="line-clamp-3 border-l-2 border-ink bg-canvas px-2.5 py-2 text-xs leading-relaxed">
           {lead.replyText || "Respondeu"}
         </p>
       ) : null}
@@ -1053,7 +1069,7 @@ function BoardCard({
           <span
             className={`${badge} ${
               lead.result === "fechado"
-                ? "bg-emerald-500/15 text-emerald-800 dark:text-emerald-300"
+                ? "bg-emerald-500/15 text-accent-text"
                 : "bg-red-500/10 text-red-700 dark:text-red-300"
             }`}
           >
@@ -1065,7 +1081,7 @@ function BoardCard({
         <div className="flex flex-wrap gap-1">
           <span
             className={
-              lead.website ? neutralBadge : `${badge} bg-emerald-500/10 text-emerald-800 dark:text-emerald-300`
+              lead.website ? neutralBadge : `${badge} bg-emerald-500/10 text-accent-text`
             }
           >
             {lead.website ? "com site" : "sem site"}
@@ -1081,8 +1097,8 @@ function BoardCard({
         </div>
       ) : null}
 
-      <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] text-neutral-500 dark:text-neutral-400">
-        <span className={isLate(lead) ? "font-bold text-red-600 dark:text-red-400" : ""}>
+      <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] text-muted">
+        <span className={isLate(lead) ? "font-bold text-danger" : ""}>
           {ageText(since)} nesta etapa
         </span>
         {lead.stage === "aguardando" ? (
@@ -1097,7 +1113,7 @@ function BoardCard({
             </button>
             <button
               type="button"
-              className="inline-flex min-h-8 cursor-pointer items-center bg-emerald-700 px-2.5 py-1 text-xs font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-50 dark:bg-emerald-500 dark:text-neutral-950"
+              className="inline-flex min-h-8 cursor-pointer items-center bg-emerald-700 px-2.5 py-1 text-xs font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-50 dark:bg-emerald-500"
               disabled={busy}
               onClick={stop(onApprove)}
             >
@@ -1140,9 +1156,9 @@ function LeadDrawer({
         role="dialog"
         aria-modal="true"
         aria-label={lead.name}
-        className="fixed inset-y-0 right-0 z-50 flex w-full max-w-xl flex-col border-l border-neutral-200 bg-[#f6f6f6] dark:border-neutral-800 dark:bg-[#0e0e0e]"
+        className="fixed inset-y-0 right-0 z-50 flex w-full max-w-xl flex-col border-l border-line bg-[#f6f6f6]"
       >
-        <div className="flex items-center justify-between gap-3 border-b border-neutral-200 bg-white px-4 py-3 dark:border-neutral-800 dark:bg-[#151515]">
+        <div className="flex items-center justify-between gap-3 border-b border-line bg-surface px-4 py-3">
           <span className="flex min-w-0 items-center gap-2">
             <span className={out ? neutralBadge : `${badge} ${OWNER_BADGE[OWNER[lead.stage]]}`}>
               {out ? "Fora do funil" : OWNER_LABEL[OWNER[lead.stage]]}
@@ -1274,9 +1290,9 @@ function Funnel({ showToast }: Props) {
     <section className="grid gap-5">
       <header className="flex flex-wrap items-end justify-between gap-x-5 gap-y-3">
         <div>
-          <p className="text-sm font-medium uppercase tracking-widest opacity-60">Vendas</p>
+          <p className="text-sm font-medium opacity-60">Vendas</p>
           <h1 className="mt-1 text-2xl font-semibold tracking-tight sm:text-3xl">Funil de prospecção</h1>
-          <p className="mt-2 text-sm text-neutral-500 dark:text-neutral-400">
+          <p className="mt-2 text-sm text-muted">
             {leads.length} leads. Os bots movem os leads entre as etapas; você aprova mensagens e acompanha o resultado.
           </p>
         </div>
@@ -1320,19 +1336,15 @@ function Funnel({ showToast }: Props) {
             {c}
           </button>
         ))}
-        <select
-          className={`${inputClass} !min-h-9 !w-auto !py-1.5`}
-          value={niche}
-          onChange={(e) => setNiche(e.target.value)}
-          aria-label="Nicho"
-        >
-          <option value="">Todos os nichos</option>
-          {niches.map((n) => (
-            <option key={n} value={n}>
-              {n}
-            </option>
-          ))}
-        </select>
+        <div className="w-48">
+          <Select
+            size="sm"
+            ariaLabel="Nicho"
+            value={niche}
+            onChange={setNiche}
+            options={[{ value: "", label: "Todos os nichos" }, ...niches.map((n) => ({ value: n, label: n }))]}
+          />
+        </div>
         <input
           className={`${inputClass} !min-h-9 !py-1.5 sm:!w-60`}
           type="search"
@@ -1361,7 +1373,7 @@ function Funnel({ showToast }: Props) {
           <h2 id="funnel-title" className="text-base font-bold">
             Funil
           </h2>
-          <span className="text-xs text-neutral-500 dark:text-neutral-400">
+          <span className="text-xs text-muted">
             Leads que chegaram a cada etapa · {won} fechado{won === 1 ? "" : "s"}
           </span>
         </div>
@@ -1386,15 +1398,15 @@ function Funnel({ showToast }: Props) {
                   <i className={`absolute inset-x-0 bottom-0 ${bar.fill}`} style={{ height: `${h}%` }} />
                 </div>
                 <span className="text-xl leading-none font-bold tabular-nums">{n}</span>
-                <span className="text-[11px] leading-tight font-semibold break-words text-neutral-500 dark:text-neutral-400">
+                <span className="text-[11px] leading-tight font-semibold break-words text-muted">
                   {STAGE_LABEL[s]}
                 </span>
-                <span className="text-[11px] text-neutral-500 tabular-nums dark:text-neutral-400">
+                <span className="text-[11px] text-muted tabular-nums">
                   {pct === null ? (
                     "base"
                   ) : (
                     <>
-                      <b className="font-semibold text-neutral-900 dark:text-neutral-100">{pct}%</b> da anterior
+                      <b className="font-semibold text-ink">{pct}%</b> da anterior
                     </>
                   )}{" "}
                   · {now} agora
@@ -1403,7 +1415,7 @@ function Funnel({ showToast }: Props) {
             );
           })}
         </div>
-        <div className="flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-neutral-500 dark:text-neutral-400">
+        <div className="flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-muted">
           {(Object.keys(OWNER_LABEL) as Owner[]).map((o) => (
             <span key={o} className="inline-flex items-center gap-1.5">
               <i className={`inline-block size-2.5 ${OWNER_BAR[o].fill}`} />
@@ -1442,17 +1454,17 @@ function Funnel({ showToast }: Props) {
                 key={s}
                 id={`col-${s}`}
                 aria-label={STAGE_LABEL[s]}
-                className={`flex min-h-60 min-w-0 flex-col border bg-[#f9f9f9] dark:bg-[#121212] ${attn ? "border-amber-500/55" : "border-neutral-200 dark:border-neutral-800"}`}
+                className={`flex min-h-60 min-w-0 flex-col border bg-canvas ${attn ? "border-amber-500/55" : "border-line"}`}
               >
                 <header
-                  className={`flex items-center justify-between gap-2 border-b px-3 py-2.5 ${attn ? "border-amber-500/55 bg-amber-500/10" : "border-neutral-200 bg-white dark:border-neutral-800 dark:bg-[#151515]"}`}
+                  className={`flex items-center justify-between gap-2 border-b px-3 py-2.5 ${attn ? "border-amber-500/55 bg-amber-500/10" : "border-line bg-surface"}`}
                 >
-                  <h3 className="text-xs font-bold tracking-wide uppercase">{STAGE_LABEL[s]}</h3>
+                  <h3 className="text-xs font-bold tracking-wide">{STAGE_LABEL[s]}</h3>
                   <span className="flex items-center gap-1.5">
-                    <span className={`px-1.5 py-0.5 text-[10px] font-bold tracking-wide uppercase ${OWNER_BADGE[owner]}`}>
+                    <span className={`px-1.5 py-0.5 text-[10px] font-bold tracking-wide ${OWNER_BADGE[owner]}`}>
                       {OWNER_LABEL[owner]}
                     </span>
-                    <span className="text-xs font-bold text-neutral-500 tabular-nums dark:text-neutral-400">
+                    <span className="text-xs font-bold text-muted tabular-nums">
                       {items.length}
                     </span>
                   </span>
@@ -1477,7 +1489,7 @@ function Funnel({ showToast }: Props) {
                       />
                     ))
                   ) : (
-                    <p className="px-1 py-2.5 text-xs text-neutral-500 dark:text-neutral-400">
+                    <p className="px-1 py-2.5 text-xs text-muted">
                       {loading ? "Carregando…" : "Nada aqui agora."}
                     </p>
                   )}
@@ -1500,23 +1512,23 @@ function Funnel({ showToast }: Props) {
               type="button"
               aria-pressed={exitStage === e}
               onClick={() => setExitStage(exitStage === e ? "" : e)}
-              className={`grid cursor-pointer content-start gap-0.5 border bg-white p-3 text-left transition-colors hover:border-neutral-400 dark:bg-[#151515] dark:hover:border-neutral-500 ${focusRing} ${
-                exitStage === e ? "border-neutral-900 dark:border-neutral-200" : "border-neutral-200 dark:border-neutral-800"
+              className={`grid cursor-pointer content-start gap-0.5 border bg-surface p-3 text-left transition-colors hover:border-line-strong ${focusRing} ${
+                exitStage === e ? "border-ink" : "border-line"
               }`}
             >
               <b className="text-xl tabular-nums">{byStage[e]?.length ?? 0}</b>
               <span className="text-xs font-semibold">{STAGE_LABEL[e]}</span>
-              <small className="text-[11px] text-neutral-500 dark:text-neutral-400">{STAGE_HINT[e]}</small>
+              <small className="text-[11px] text-muted">{STAGE_HINT[e]}</small>
             </button>
           ))}
         </div>
         {exitStage ? (
-          <div className="overflow-x-auto border border-neutral-200 bg-white dark:border-neutral-800 dark:bg-[#151515]">
+          <div className="overflow-x-auto rounded-xl border border-line bg-surface">
             <table className="w-full border-collapse text-sm">
               <thead>
-                <tr className="text-left text-[11px] tracking-wider text-neutral-500 uppercase dark:text-neutral-400">
+                <tr className="text-left text-[11px] text-muted">
                   {["Negócio", "Cidade", "Motivo", "Quando"].map((h) => (
-                    <th key={h} className="border-b border-neutral-200 px-3 py-2 font-semibold dark:border-neutral-800">
+                    <th key={h} className="border-b border-line px-3 py-2 font-semibold">
                       {h}
                     </th>
                   ))}
@@ -1530,25 +1542,25 @@ function Funnel({ showToast }: Props) {
                       tabIndex={0}
                       onClick={() => open(l.id)}
                       onKeyDown={(e) => e.key === "Enter" && open(l.id)}
-                      className={`cursor-pointer hover:bg-neutral-50 dark:hover:bg-neutral-900 ${focusRing}`}
+                      className={`cursor-pointer hover:bg-sunken ${focusRing}`}
                     >
-                      <td className="border-b border-neutral-100 px-3 py-2 font-medium whitespace-nowrap dark:border-neutral-800">
+                      <td className="border-b border-line px-3 py-2 font-medium whitespace-nowrap">
                         {l.name}
                       </td>
-                      <td className="border-b border-neutral-100 px-3 py-2 whitespace-nowrap dark:border-neutral-800">
+                      <td className="border-b border-line px-3 py-2 whitespace-nowrap">
                         {l.city}
                       </td>
-                      <td className="min-w-56 border-b border-neutral-100 px-3 py-2 dark:border-neutral-800">
+                      <td className="min-w-56 border-b border-line px-3 py-2">
                         {l.exitReason || "—"}
                       </td>
-                      <td className="border-b border-neutral-100 px-3 py-2 whitespace-nowrap text-neutral-500 dark:border-neutral-800">
+                      <td className="border-b border-line px-3 py-2 whitespace-nowrap text-muted">
                         {fmtWhen(l.stageChangedAt)}
                       </td>
                     </tr>
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={4} className="px-3 py-3 text-neutral-500 dark:text-neutral-400">
+                    <td colSpan={4} className="px-3 py-3 text-muted">
                       Nenhum lead em {STAGE_LABEL[exitStage]} com estes filtros.
                     </td>
                   </tr>

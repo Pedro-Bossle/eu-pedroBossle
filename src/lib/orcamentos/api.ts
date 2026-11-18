@@ -6,6 +6,24 @@ import type {
   OrcamentoProfile,
   OrcamentoProposal,
   BotToken,
+  CrmActivity,
+  CrmAgendaItem,
+  CrmActivityKind,
+  CrmPayment,
+  CrmProject,
+  CrmProjectStage,
+  CrmSearchResult,
+  CrmTask,
+  CrmTaskInput,
+  CrmToday,
+  FinAnalytics,
+  FinOverview,
+  FinSyncResult,
+  FinTransaction,
+  IgMedia,
+  IgOverview,
+  IgPost,
+  IgPostInput,
   ProspectEvent,
   ProspectInput,
   ProspectLead,
@@ -258,4 +276,177 @@ export const orcamentosApi = {
       `/api/orcamentos/prospects?id=${encodeURIComponent(id)}`,
       { method: "DELETE" },
     ),
+  // ---------- Instagram ----------
+  igOverview: () => request<IgOverview>("/api/orcamentos/instagram"),
+  igConnect: (token: string) =>
+    request<{ account: IgOverview["account"] }>("/api/orcamentos/instagram", {
+      method: "POST",
+      body: JSON.stringify({ token }),
+    }),
+  igDisconnect: () =>
+    request<{ ok: boolean }>("/api/orcamentos/instagram", { method: "DELETE" }),
+  igOauthStart: () =>
+    request<{ url: string; redirectUri: string }>("/api/orcamentos/instagram/oauth"),
+  igSync: () =>
+    request<{
+      media: number;
+      comments: number;
+      insights: number;
+      warnings: string[];
+      publish: { published?: number; errors?: number };
+    }>("/api/orcamentos/instagram/sync", { method: "POST", body: "{}" }),
+  igSavePost: (post: IgPostInput) =>
+    request<{ post: IgPost; publish?: { published: number; pending: number; errors: number } }>(
+      "/api/orcamentos/instagram/posts",
+      { method: "POST", body: JSON.stringify(post) },
+    ),
+  igMovePost: (id: string, scheduledAt: string) =>
+    request<{ post: IgPost }>("/api/orcamentos/instagram/posts", {
+      method: "PATCH",
+      body: JSON.stringify({ id, scheduledAt }),
+    }),
+  igDeletePost: (id: string) =>
+    request<{ ok: boolean }>(
+      `/api/orcamentos/instagram/posts?id=${encodeURIComponent(id)}`,
+      { method: "DELETE" },
+    ),
+  igPatchMedia: (id: string, patch: { tags?: string[]; notes?: string }) =>
+    request<{ media: IgMedia }>("/api/orcamentos/instagram/media", {
+      method: "PATCH",
+      body: JSON.stringify({ id, ...patch }),
+    }),
+  igCommentStatus: (ids: string[], status: "novo" | "respondido" | "arquivado") =>
+    request<{ ok: boolean }>("/api/orcamentos/instagram/comments", {
+      method: "PATCH",
+      body: JSON.stringify({ ids, status }),
+    }),
+  igCommentAction: (
+    id: string,
+    action: "reply" | "hide" | "unhide" | "delete",
+    message?: string,
+  ) =>
+    request<{ ok: boolean; replyId?: string }>("/api/orcamentos/instagram/comments", {
+      method: "POST",
+      body: JSON.stringify({ id, action, message }),
+    }),
+  // ---------- Finanças ----------
+  finOverview: () => request<FinOverview>("/api/orcamentos/finance"),
+  finAddItem: (itemId: string) =>
+    request<{ result: FinSyncResult }>("/api/orcamentos/finance", {
+      method: "POST",
+      body: JSON.stringify({ itemId }),
+    }),
+  finConnectToken: (itemId?: string) =>
+    request<{ accessToken: string }>("/api/orcamentos/finance/connect-token", {
+      method: "POST",
+      body: JSON.stringify(itemId ? { itemId } : {}),
+    }),
+  finWebhook: (method: "GET" | "POST" | "DELETE" = "GET") =>
+    request<{ url: string | null; registered: boolean; hook: { id: string; createdAt?: string } | null }>(
+      "/api/orcamentos/finance/webhook-setup",
+      method === "GET" ? undefined : { method, body: method === "POST" ? "{}" : undefined },
+    ),
+  finAnalytics: (month: string) =>
+    request<FinAnalytics>(`/api/orcamentos/finance/analytics?month=${encodeURIComponent(month)}`),
+  finDeleteItem: (itemId: string) =>
+    request<{ ok: boolean }>(
+      `/api/orcamentos/finance?itemId=${encodeURIComponent(itemId)}`,
+      { method: "DELETE" },
+    ),
+  finHideAccount: (accountId: string, hidden: boolean) =>
+    request<{ ok: boolean }>("/api/orcamentos/finance", {
+      method: "PATCH",
+      body: JSON.stringify({ accountId, hidden }),
+    }),
+  finSync: (opts: { itemId?: string; refresh?: boolean; full?: boolean } = {}) =>
+    request<{ results: FinSyncResult[] }>("/api/orcamentos/finance/sync", {
+      method: "POST",
+      body: JSON.stringify(opts),
+    }),
+  finTransactions: (params: { month?: string; q?: string }) => {
+    const qs = new URLSearchParams();
+    if (params.month) qs.set("month", params.month);
+    if (params.q) qs.set("q", params.q);
+    return request<{ transactions: FinTransaction[] }>(
+      `/api/orcamentos/finance/transactions?${qs.toString()}`,
+    );
+  },
+  finPatchTx: (id: string, patch: { category?: string; ignored?: boolean; notes?: string }) =>
+    request<{ transaction: FinTransaction }>("/api/orcamentos/finance/transactions", {
+      method: "PATCH",
+      body: JSON.stringify({ id, ...patch }),
+    }),
+  finAddRule: (rule: { pattern: string; category: string; ignore: boolean; apply?: boolean }) =>
+    request<{ id: string; applied: number }>("/api/orcamentos/finance/rules", {
+      method: "POST",
+      body: JSON.stringify({ type: "rule", ...rule }),
+    }),
+  finDeleteRule: (id: string) =>
+    request<{ ok: boolean }>(
+      `/api/orcamentos/finance/rules?id=${encodeURIComponent(id)}`,
+      { method: "DELETE" },
+    ),
+  finSetBudget: (category: string, limit: number | null) =>
+    request<{ ok: boolean }>("/api/orcamentos/finance/rules", {
+      method: "POST",
+      body: JSON.stringify({ type: "budget", category, limit }),
+    }),
+  // ---------- CRM ----------
+  crmToday: () => request<CrmToday>("/api/orcamentos/crm/today"),
+  crmTasks: (params: { scope?: "open" | "done" | "all"; clientId?: string } = {}) => {
+    const qs = new URLSearchParams();
+    if (params.scope) qs.set("scope", params.scope);
+    if (params.clientId) qs.set("clientId", params.clientId);
+    return request<{ tasks: CrmTask[] }>(`/api/orcamentos/crm/tasks?${qs.toString()}`);
+  },
+  crmSaveTask: (task: CrmTaskInput) =>
+    request<{ task: CrmTask }>("/api/orcamentos/crm/tasks", { method: "POST", body: JSON.stringify(task) }),
+  crmToggleTask: (id: string, done: boolean) =>
+    request<{ task: CrmTask; next: CrmTask | null }>("/api/orcamentos/crm/tasks", { method: "PATCH", body: JSON.stringify({ id, done }) }),
+  crmDeleteTask: (id: string) =>
+    request<{ ok: boolean }>(`/api/orcamentos/crm/tasks?id=${encodeURIComponent(id)}`, { method: "DELETE" }),
+  crmActivities: (clientId: string) =>
+    request<{ activities: CrmActivity[] }>(`/api/orcamentos/crm/activities?clientId=${encodeURIComponent(clientId)}`),
+  crmAddActivity: (a: { clientId: string; kind: CrmActivityKind; body: string; at?: string }) =>
+    request<{ activity: CrmActivity }>("/api/orcamentos/crm/activities", { method: "POST", body: JSON.stringify(a) }),
+  crmDeleteActivity: (id: string) =>
+    request<{ ok: boolean }>(`/api/orcamentos/crm/activities?id=${encodeURIComponent(id)}`, { method: "DELETE" }),
+  crmConvert: (from: "lead" | "contact", id: string) =>
+    request<{ client: OrcamentoClient; existed: boolean }>("/api/orcamentos/crm/convert", {
+      method: "POST",
+      body: JSON.stringify({ from, id }),
+    }),
+  crmDigest: () =>
+    request<{ sent?: string; skipped?: string }>("/api/orcamentos/crm/digest", { method: "POST", body: "{}" }),
+  crmPayments: (params: { clientId?: string; scope?: "open" } = {}) => {
+    const qs = new URLSearchParams();
+    if (params.clientId) qs.set("clientId", params.clientId);
+    if (params.scope) qs.set("scope", params.scope);
+    return request<{ payments: CrmPayment[] }>(`/api/orcamentos/crm/payments?${qs.toString()}`);
+  },
+  crmAddPayments: (body: {
+    clientId: string;
+    proposalId?: string | null;
+    description?: string;
+    amount?: number;
+    dueDate?: string;
+    installments?: { total: number; count: number; firstDue: string; labels?: string[] };
+  }) => request<{ payments?: CrmPayment[]; payment?: CrmPayment }>("/api/orcamentos/crm/payments", { method: "POST", body: JSON.stringify(body) }),
+  crmPayPayment: (id: string, paid: boolean, method?: string) =>
+    request<{ payment: CrmPayment }>("/api/orcamentos/crm/payments", { method: "PATCH", body: JSON.stringify({ id, paid, method }) }),
+  crmDeletePayment: (id: string) =>
+    request<{ ok: boolean }>(`/api/orcamentos/crm/payments?id=${encodeURIComponent(id)}`, { method: "DELETE" }),
+  crmProjects: (clientId?: string) =>
+    request<{ projects: CrmProject[] }>(`/api/orcamentos/crm/projects${clientId ? `?clientId=${encodeURIComponent(clientId)}` : ""}`),
+  crmSaveProject: (p: Partial<CrmProject> & { title: string }) =>
+    request<{ project: CrmProject }>("/api/orcamentos/crm/projects", { method: "POST", body: JSON.stringify(p) }),
+  crmMoveProject: (id: string, stage: CrmProjectStage) =>
+    request<{ project: CrmProject }>("/api/orcamentos/crm/projects", { method: "PATCH", body: JSON.stringify({ id, stage }) }),
+  crmDeleteProject: (id: string) =>
+    request<{ ok: boolean }>(`/api/orcamentos/crm/projects?id=${encodeURIComponent(id)}`, { method: "DELETE" }),
+  crmAgenda: (from: string, to: string) =>
+    request<{ items: CrmAgendaItem[] }>(`/api/orcamentos/crm/agenda?from=${from}&to=${to}`),
+  crmCounts: () => request<{ counts: Record<string, number> }>("/api/orcamentos/crm/counts"),
+  crmSearch: (q: string) =>
+    request<{ results: CrmSearchResult[] }>(`/api/orcamentos/crm/search?q=${encodeURIComponent(q)}`),
 };

@@ -31,7 +31,7 @@ Além do Neon, configure (Production + Preview):
 
 ## 3. Schema + RLS
 
-No SQL Editor do Neon, rode os arquivos `001`…`009` (nesta ordem), **ou**:
+No SQL Editor do Neon, rode os arquivos `001`…`018` (nesta ordem), **ou**:
 
 ```bash
 # com DATABASE_URL no ambiente
@@ -43,6 +43,15 @@ npm run db:migrate
 - `006` — `session_version` para invalidar JWTs após reset de senha.
 - `007` — `contact_leads` (formulário da Home → inbox do painel).
 - `008` — `prospect_leads` (menu **Prospecção**). `integration_settings` é legado e pode ficar vazia.
+- `009`/`010` — funil de prospecção e nota do lead.
+- `011` — Instagram: `integration_credentials` (token criptografado), `ig_media`, `ig_comments`, `ig_posts`.
+- `012` — Finanças (Pluggy): `fin_items`, `fin_accounts`, `fin_transactions`, `fin_investments`, `fin_rules`, `fin_budgets`.
+- `013` — CRM: status/etiquetas/origem/próximo contato/valor mensal do cliente, `crm_tasks`, `crm_activities`.
+- `014` — Gatilho em `proposals`: follow-up automático ao enviar, kickoff/cobrança e cliente ativo ao aprovar.
+- `015` — Tarefas recorrentes (`crm_tasks.repeat`).
+- `016` — Cobranças (`crm_payments`).
+- `017` — Projetos (`crm_projects`); proposta aprovada vira projeto em Briefing.
+- `018` — Índices de desempenho (inclui `pg_trgm` para busca por texto).
 
 ### Prospecção
 
@@ -71,3 +80,60 @@ curl -X POST https://dev-bossle.vercel.app/api/orcamentos/bootstrap \
 ## 6. Domínio
 
 Adicione `orcamentos.devbossle.com.br` ao projeto Vercel e aponte o DNS (CNAME para `cname.vercel-dns.com`). O `vercel.json` redireciona `/` desse host para `/orcamentos`.
+
+## 7. Instagram (menu **Instagram**)
+
+Calendário de posts, agendamento (foto, carrossel, Reels, Story), biblioteca com métricas e caixa de comentários com status (sem resposta / respondido / arquivado).
+
+| Variável | Uso |
+|---|---|
+| `CRON_SECRET` | 16+ caracteres. Protege `/api/orcamentos/cron`; a Vercel Cron envia sozinha |
+| `INTEGRATIONS_ENC_KEY` | (recomendado) chave para criptografar tokens no banco; sem ela usa o `ORCAMENTOS_SESSION_SECRET` |
+| `META_APP_ID` / `META_APP_SECRET` | (opcional) botão “Entrar com Instagram” e troca por token de 60 dias |
+| `META_REDIRECT_URI` | (opcional) padrão `https://<ORCAMENTOS_PUBLIC_URL>/api/orcamentos/instagram/oauth-callback` |
+| `META_GRAPH_VERSION` | (opcional) padrão `v24.0` |
+| `BLOB_READ_WRITE_TOKEN` | (opcional) Vercel Blob para enviar fotos/vídeos pelo painel. Sem ele, use URLs públicas |
+
+1. Conta do Instagram **profissional** (Criador ou Empresa).
+2. developers.facebook.com → app Business → produto **Instagram** (API com login do Instagram). Permissões: `instagram_business_basic`, `instagram_business_content_publish`, `instagram_business_manage_comments`, `instagram_business_manage_insights`.
+3. Gere o token e cole em **Instagram → Conta**, ou configure `META_APP_ID`/`META_APP_SECRET` + a URL de redirecionamento no app da Meta e use o botão.
+4. O token é renovado automaticamente (cron diário) antes dos 60 dias.
+
+**Agendamento.** A API do Instagram não agenda sozinha: o painel guarda o post e publica na hora. A Vercel Hobby só permite cron diário (`vercel.json`), então o workflow `.github/workflows/instagram-scheduler.yml` chama `/api/orcamentos/cron?tasks=publish` a cada 10 min. Configure no GitHub (Settings → Secrets → Actions) `APP_URL` e `CRON_SECRET`. No plano Pro dá para trocar o cron do `vercel.json` para `*/5 * * * *`.
+
+Mídias precisam ser URLs públicas: imagem **JPEG** (o upload do painel converte PNG/WebP), vídeo MP4/MOV. Reels levam alguns minutos para processar; o post fica “Publicando” e sai no próximo ciclo.
+
+## 8. Finanças (menu **Finanças**)
+
+Saldo, faturas, investimentos, entradas × saídas por mês, gastos por categoria, orçamentos e regras de categorização.
+
+| Variável | Uso |
+|---|---|
+| `PLUGGY_CLIENT_ID` / `PLUGGY_CLIENT_SECRET` | Credenciais do dashboard da Pluggy (ficam só no servidor) |
+| `PLUGGY_WEBHOOK_SECRET` | (opcional) segredo do webhook; sem ele é derivado do `ORCAMENTOS_SESSION_SECRET` |
+| `PLUGGY_WEBHOOK_URL` | (opcional) URL pública do webhook; padrão `https://orcamentos.devbossle.com.br/webhooks/pluggy` (vem do `ORCAMENTOS_PUBLIC_URL`) |
+| `PLUGGY_ITEM_IDS` | (opcional) Item IDs separados por vírgula, cadastrados automaticamente no sync |
+
+1. Em dashboard.pluggy.ai copie Client ID e Client Secret e coloque na Vercel.
+2. **Finanças → Contas → Conectar banco**: abre o widget oficial Pluggy Connect (o servidor gera um connect token de 30 min; o secret nunca vai ao navegador). Ao concluir, o painel importa 12 meses.
+   Alternativa: colar o Item ID de uma conexão do Meu Pluggy em “Já tenho um Item ID”.
+3. **Atualização automática → Ativar**: registra na Pluggy um webhook (`event: all`) para `/webhooks/pluggy` (atalho de `/api/orcamentos/finance/webhook`), com o header `x-webhook-secret`. O painel responde na hora e sincroniza em segundo plano (`waitUntil`).
+   - `item/updated`, `item/created`, `transactions/created|updated` → sincroniza o banco
+   - `item/error`, `item/waiting_user_input` → marca a conexão com erro (botão **Reconectar** abre o widget)
+   - `transactions/deleted` → apaga as transações; `item/deleted` → marca a conexão como removida
+   - A Pluggy precisa alcançar a URL: em previews com Deployment Protection ligado, o webhook não chega; use o domínio de produção.
+4. O cron diário continua como rede de segurança.
+
+Pagamento de fatura e transferência entre contas próprias são ignorados nos totais automaticamente (dá para mudar por transação). Edições manuais de categoria não são sobrescritas pelo sync.
+
+## 9. CRM (menus **Hoje**, **Tarefas**, **Clientes**, **Resultados**)
+
+- **Hoje** é a tela inicial: tarefas atrasadas/hoje/7 dias, indicadores (recorrente, em negociação, fechado no mês, a receber) e o que pede atenção (contatos, propostas paradas, cobranças, funil, inbox, Instagram, faturas).
+- **Tarefas** com tipo, prioridade, cliente, horário e recorrência (dia, dias úteis, semana, mês).
+- **Ficha do cliente**: status, origem, próximo contato, valor mensal, etiquetas, linha do tempo, tarefas, orçamentos e **cobranças** (parcelas, recebido, lembrete no WhatsApp).
+- **Automações** (`014`): proposta Enviada cria follow-up em 3 dias; Aprovada ativa o cliente e cria a tarefa de kickoff/cobrança; Recusada fecha os follow-ups.
+- **Resumo diário por e-mail** às 06:23 (cron da Vercel) via Resend. Destino: `CRM_DIGEST_EMAIL` > `CONTACT_NOTIFY_EMAIL` > e-mail de Meus dados. `CRM_DIGEST=off` desliga. Teste: Ctrl+K → “Enviar resumo do dia por e-mail”.
+- **Atalhos**: Ctrl/⌘+K ou `/` busca, `N` nova tarefa, `?` ajuda.
+- **App instalável**: `public/orcamentos.webmanifest` (abre em /orcamentos, tela cheia).
+
+Pendências de configuração: ver `docs/PENDENCIAS.md`.

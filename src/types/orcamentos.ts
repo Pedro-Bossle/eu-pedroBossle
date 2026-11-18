@@ -27,7 +27,19 @@ export type OrcamentoClient = {
   document?: string;
   /** Endereço completo (opcional). */
   address?: string;
+  /** CRM (013) */
+  status?: ClientStatus;
+  tags?: string[];
+  /** De onde veio (indicação, Instagram, site…). */
+  source?: string;
+  /** Data do próximo contato combinado (YYYY-MM-DD). */
+  nextContactAt?: string | null;
+  /** Valor mensal recorrente (manutenção, hospedagem…). */
+  monthlyValue?: number;
+  created?: string;
 };
+
+export type ClientStatus = "lead" | "ativo" | "recorrente" | "pausado" | "encerrado";
 
 export type OrcamentoComment = {
   id: string;
@@ -191,3 +203,335 @@ export type BotToken = {
   last_used_at: string | null;
   revoked_at: string | null;
 };
+
+// ---------- Instagram (011) ----------
+
+export type IgPostKind = "image" | "carousel" | "reel" | "story";
+export type IgPostStatus = "rascunho" | "agendado" | "publicando" | "publicado" | "erro";
+
+export type IgPost = {
+  id: string;
+  kind: IgPostKind;
+  caption: string;
+  mediaUrls: string[];
+  coverUrl: string;
+  shareToFeed: boolean;
+  scheduledAt: string | null;
+  status: IgPostStatus;
+  publishedMediaId: string;
+  permalink: string;
+  error: string;
+  attempts: number;
+  tags: string[];
+  notes: string;
+  publishedAt: string | null;
+  created: string | null;
+  updated: string | null;
+};
+
+export type IgPostInput = {
+  id?: string;
+  kind: IgPostKind;
+  caption: string;
+  mediaUrls: string[];
+  coverUrl: string;
+  shareToFeed: boolean;
+  scheduledAt: string | null;
+  mode: "rascunho" | "agendado" | "agora";
+  tags: string[];
+  notes: string;
+};
+
+export type IgMedia = {
+  id: string;
+  caption: string;
+  mediaType: string;
+  productType: string;
+  mediaUrl: string;
+  thumbnailUrl: string;
+  permalink: string;
+  postedAt: string | null;
+  likes: number | null;
+  comments: number | null;
+  reach: number | null;
+  views: number | null;
+  saved: number | null;
+  shares: number | null;
+  tags: string[];
+  notes: string;
+};
+
+export type IgComment = {
+  id: string;
+  mediaId: string;
+  parentId: string | null;
+  username: string;
+  text: string;
+  postedAt: string | null;
+  fromMe: boolean;
+  hidden: boolean;
+  status: "novo" | "respondido" | "arquivado";
+  mediaPermalink: string;
+  mediaThumb: string;
+  mediaCaption: string;
+};
+
+export type IgAccount =
+  | { connected: false }
+  | {
+      connected: true;
+      userId: string;
+      username: string;
+      name: string;
+      picture: string;
+      followers: number | null;
+      follows: number | null;
+      mediaCount: number | null;
+      accountType: string;
+      connectedAt: string;
+      refreshedAt: string;
+      expiresAt?: string | null;
+      expiryGuessed?: boolean;
+      insights28d?: Record<string, number>;
+      insightsAt?: string;
+      publishQuota?: { used: number; total: number } | null;
+    };
+
+export type IgOverview = {
+  account: IgAccount;
+  posts: IgPost[];
+  media: IgMedia[];
+  comments: IgComment[];
+  features: { oauth: boolean; upload: boolean; cron: boolean };
+};
+
+// ---------- Finanças (012) ----------
+
+export type FinItem = {
+  id: string;
+  connectorName: string;
+  connectorImage: string;
+  status: string;
+  executionStatus: string;
+  error: string;
+  bankUpdatedAt: string | null;
+  syncedAt: string | null;
+};
+
+export type FinAccount = {
+  id: string;
+  itemId: string;
+  type: string;
+  subtype: string;
+  name: string;
+  number: string;
+  balance: number;
+  currency: string;
+  creditLimit: number | null;
+  availableCredit: number | null;
+  billDueDate: string | null;
+  hidden: boolean;
+  connectorName: string;
+  syncedAt: string | null;
+};
+
+export type FinTransaction = {
+  id: string;
+  accountId: string;
+  date: string | null;
+  description: string;
+  amount: number;
+  pluggyCategory: string;
+  category: string;
+  categoryManual: boolean;
+  merchant: string;
+  status: string;
+  ignored: boolean;
+  notes: string;
+};
+
+export type FinInvestment = {
+  id: string;
+  itemId: string;
+  name: string;
+  type: string;
+  subtype: string;
+  balance: number;
+  amountOriginal: number | null;
+  annualRate: number | null;
+  dueDate: string | null;
+};
+
+export type FinRule = { id: string; pattern: string; category: string; ignore: boolean };
+export type FinBudget = { category: string; limit: number };
+export type FinMonth = { month: string; income: number; expense: number };
+
+export type FinOverview = {
+  configured: boolean;
+  items: FinItem[];
+  accounts: FinAccount[];
+  investments: FinInvestment[];
+  rules: FinRule[];
+  budgets: FinBudget[];
+  months: FinMonth[];
+  categories: string[];
+};
+
+export type FinSyncResult = {
+  itemId: string;
+  accounts: number;
+  transactions: number;
+  investments: number;
+  error?: string;
+};
+
+export type FinCategoryStat = {
+  category: string;
+  spent: number;
+  previous: number;
+  avg3: number;
+  /** Gasto dos últimos 6 meses (mais antigo → atual). */
+  history: number[];
+  count: number;
+};
+
+export type FinAnalytics = {
+  month: string;
+  previousMonth: string;
+  current: { income: number; expense: number };
+  previous: { income: number; expense: number };
+  cumulative: { current: number[]; previous: number[] };
+  categories: FinCategoryStat[];
+  months: string[];
+  income: { category: string; value: number }[];
+  merchants: { label: string; spent: number; count: number; category: string }[];
+  /** Gasto médio por dia da semana (0 = domingo). */
+  weekday: number[];
+  recurring: { label: string; category: string; avg: number; months: number; lastDay: string; inMonth: boolean }[];
+};
+
+// ---------- CRM (013) ----------
+
+export type CrmTaskKind = "tarefa" | "follow-up" | "reuniao" | "ligacao" | "entrega" | "cobranca";
+
+export type CrmTask = {
+  id: string;
+  title: string;
+  notes: string;
+  kind: CrmTaskKind;
+  /** 0 baixa, 1 normal, 2 alta */
+  priority: number;
+  dueAt: string | null;
+  allDay: boolean;
+  doneAt: string | null;
+  /** none | daily | weekdays | weekly | monthly */
+  repeat?: CrmTaskRepeat;
+  clientId: string | null;
+  clientName: string | null;
+  proposalId: string | null;
+  proposalLabel: string | null;
+  leadId: string | null;
+  leadName: string | null;
+  created: string | null;
+  dueDay?: string | null;
+};
+
+export type CrmTaskInput = {
+  id?: string;
+  title: string;
+  notes?: string;
+  kind?: CrmTaskKind;
+  priority?: number;
+  dueAt?: string | null;
+  allDay?: boolean;
+  repeat?: CrmTaskRepeat;
+  clientId?: string | null;
+  proposalId?: string | null;
+  leadId?: string | null;
+};
+
+export type CrmTaskRepeat = "none" | "daily" | "weekdays" | "weekly" | "monthly";
+
+export type CrmActivityKind = "nota" | "ligacao" | "reuniao" | "email" | "whatsapp" | "pagamento" | "entrega";
+export type CrmActivity = { id: string; clientId: string; kind: CrmActivityKind; body: string; at: string | null };
+
+export type CrmToday = {
+  tasks: {
+    today: string;
+    overdue: CrmTask[];
+    dueToday: CrmTask[];
+    upcoming: CrmTask[];
+    noDate: CrmTask[];
+    doneToday: number;
+  } | null;
+  contacts: { id: string; name: string; company: string; phone: string; email: string; nextContactAt: string | null }[] | null;
+  proposals: { id: string; title: string; clientName: string; clientPhone: string; total: number; days: number }[] | null;
+  funnel: { awaiting: number; followups: number; replied: number; proposals: number } | null;
+  inbox: { unread: number; latest: { id: string; name: string; idea: string; at: string | null }[] } | null;
+  instagram: {
+    posts: { id: string; kind: string; caption: string; at: string | null; status: string; thumb: string }[];
+    newComments: number;
+    nextPostAt: string | null;
+  } | null;
+  finance: {
+    bills: { id: string; name: string; amount: number; due: string | null }[];
+    budgets: { category: string; limit: number; spent: number }[];
+  } | null;
+  kpis: { mrr: number; activeClients: number; pipeline: number; wonMonth: number; winRate: number | null } | null;
+  payments: {
+    due: { id: string; clientId: string; clientName: string; clientPhone: string; description: string; amount: number; dueDate: string | null; overdue: boolean }[];
+    open: number;
+    overdue: number;
+    receivedMonth: number;
+  } | null;
+  deliveries: {
+    due: { id: string; title: string; stage: string; dueDate: string | null; clientName: string; clientId: string | null; late: boolean }[];
+    active: number;
+  } | null;
+};
+
+export type CrmAgendaItem = {
+  key: string;
+  type: "task" | "delivery" | "payment" | "post" | "contact";
+  day: string;
+  time: string | null;
+  title: string;
+  sub: string;
+  done: boolean;
+  ref: string;
+  clientId: string | null;
+  task?: CrmTask;
+};
+
+export type CrmProjectStage = "briefing" | "layout" | "desenvolvimento" | "revisao" | "publicado" | "pausado";
+
+export type CrmProject = {
+  id: string;
+  clientId: string | null;
+  clientName: string | null;
+  proposalId: string | null;
+  title: string;
+  stage: CrmProjectStage;
+  dueDate: string | null;
+  value: number;
+  notes: string;
+  link: string;
+  openTasks: number;
+  stageChangedAt: string | null;
+  created: string | null;
+};
+
+export type CrmPayment = {
+  id: string;
+  clientId: string;
+  clientName: string | null;
+  clientPhone: string | null;
+  proposalId: string | null;
+  description: string;
+  amount: number;
+  dueDate: string | null;
+  paidAt: string | null;
+  method: string;
+};
+
+export type CrmSearchResult = { type: "client" | "proposal" | "lead" | "task"; id: string; title: string; sub: string };

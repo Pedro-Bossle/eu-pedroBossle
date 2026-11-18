@@ -62,6 +62,16 @@ const sqlFiles = [
   resolve("db/006_session_version.sql"),
   resolve("db/007_contact_leads.sql"),
   resolve("db/008_prospects.sql"),
+  resolve("db/009_prospect_funnel.sql"),
+  resolve("db/010_prospect_scoring.sql"),
+  resolve("db/011_instagram.sql"),
+  resolve("db/012_finance.sql"),
+  resolve("db/013_crm.sql"),
+  resolve("db/014_crm_automations.sql"),
+  resolve("db/015_crm_recurring.sql"),
+  resolve("db/016_crm_payments.sql"),
+  resolve("db/017_crm_projects.sql"),
+  resolve("db/018_perf_indexes.sql"),
 ];
 const pool = new Pool({ connectionString: url });
 const client = await pool.connect();

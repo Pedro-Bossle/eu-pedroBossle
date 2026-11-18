@@ -205,3 +205,168 @@ body {
     --hp: 2rem;
   }
 }
+
+/* ---------- Painel administrativo: tokens "Névoa e Pinho" ----------
+   Uma fonte de verdade para cores do painel. Os utilitários (bg-surface,
+   text-muted, border-line…) trocam sozinhos no modo escuro. */
+:root {
+  --adm-canvas: #f4f6f8;
+  --adm-surface: #ffffff;
+  --adm-sunken: #edf0f3;
+  --adm-line: #e2e6eb;
+  --adm-line-strong: #c9d0d8;
+  --adm-ink: #18202a;
+  --adm-muted: #5b6573;
+  --adm-faint: #8a93a0;
+  --adm-accent: #127a5c;
+  --adm-accent-ink: #ffffff;
+  --adm-accent-soft: #e3f2ec;
+  --adm-accent-text: #0e664c;
+  --adm-danger: #b93a32;
+  --adm-danger-soft: #fbeceb;
+  --adm-shadow: 0 1px 2px rgb(24 32 42 / 0.04), 0 12px 32px -12px rgb(24 32 42 / 0.18);
+}
+
+.dark {
+  --adm-canvas: #0f1318;
+  --adm-surface: #171c23;
+  --adm-sunken: #1e242d;
+  --adm-line: #29313b;
+  --adm-line-strong: #3a4450;
+  --adm-ink: #e6eaef;
+  --adm-muted: #9aa4b1;
+  --adm-faint: #6f7987;
+  --adm-accent: #3cc795;
+  --adm-accent-ink: #062a1d;
+  --adm-accent-soft: rgb(60 199 149 / 0.12);
+  --adm-accent-text: #6fd9b1;
+  --adm-danger: #f07167;
+  --adm-danger-soft: rgb(240 113 103 / 0.12);
+  --adm-shadow: 0 1px 2px rgb(0 0 0 / 0.3), 0 16px 40px -12px rgb(0 0 0 / 0.6);
+}
+
+@theme inline {
+  --color-canvas: var(--adm-canvas);
+  --color-surface: var(--adm-surface);
+  --color-sunken: var(--adm-sunken);
+  --color-line: var(--adm-line);
+  --color-line-strong: var(--adm-line-strong);
+  --color-ink: var(--adm-ink);
+  --color-muted: var(--adm-muted);
+  --color-faint: var(--adm-faint);
+  --color-accent: var(--adm-accent);
+  --color-accent-ink: var(--adm-accent-ink);
+  --color-accent-soft: var(--adm-accent-soft);
+  --color-accent-text: var(--adm-accent-text);
+  --color-danger: var(--adm-danger);
+  --color-danger-soft: var(--adm-danger-soft);
+  --shadow-float: var(--adm-shadow);
+}
+
+.adm {
+  font-size: 15px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: "tnum" 0;
+}
+
+.adm ::selection {
+  background: var(--adm-accent-soft);
+  color: var(--adm-ink);
+}
+
+.adm input[type="checkbox"],
+.adm input[type="radio"] {
+  accent-color: var(--adm-accent);
+}
+
+/* Entrada de diálogos e toasts: só o que responde a uma ação */
+@keyframes adm-pop {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.985);
+  }
+}
+
+.adm-pop {
+  animation: adm-pop 160ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .adm-pop {
+    animation: none;
+  }
+
+  .adm *,
+  .adm *::before,
+  .adm *::after {
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Painel lateral (desktop) / folha inferior (celular) */
+@keyframes adm-sheet-right {
+  from {
+    transform: translateX(24px);
+    opacity: 0;
+  }
+}
+
+@keyframes adm-sheet-up {
+  from {
+    transform: translateY(32px);
+    opacity: 0;
+  }
+}
+
+@keyframes adm-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+/* Troca de tela: entra com leve subida (uma vez por navegação) */
+@keyframes adm-view {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+.adm-backdrop {
+  animation: adm-fade 180ms ease-out;
+}
+
+.adm-sheet {
+  animation: adm-sheet-up 240ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+@media (min-width: 768px) {
+  .adm-sheet {
+    animation-name: adm-sheet-right;
+  }
+}
+
+.adm-view {
+  animation: adm-view 220ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+/* Concluir tarefa: o check “salta” */
+@keyframes adm-check {
+  40% {
+    transform: scale(1.18);
+  }
+}
+
+.adm-check {
+  animation: adm-check 260ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .adm-backdrop,
+  .adm-sheet,
+  .adm-view,
+  .adm-check {
+    animation: none;
+  }
+}

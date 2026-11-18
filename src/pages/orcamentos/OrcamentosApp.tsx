@@ -48,7 +48,7 @@ function OrcamentosApp() {
   const [loadError, setLoadError] = useState("");
 
   useEffect(() => {
-    document.title = "Orçamentos · .dev Bossle";
+    document.title = "Dev Bossle · CRM";
     let robots = document.head.querySelector<HTMLMetaElement>(
       'meta[name="robots"]',
     );
@@ -58,6 +58,36 @@ function OrcamentosApp() {
       document.head.appendChild(robots);
     }
     robots.setAttribute("content", "noindex, nofollow");
+
+    // App instalável: manifest próprio do painel (abre direto em /orcamentos, tela cheia)
+    const setMeta = (name: string, content: string) => {
+      let el = document.head.querySelector<HTMLMetaElement>(`meta[name="${name}"]`);
+      if (!el) {
+        el = document.createElement("meta");
+        el.setAttribute("name", name);
+        document.head.appendChild(el);
+      }
+      el.setAttribute("content", content);
+    };
+    const manifest = document.head.querySelector<HTMLLinkElement>('link[rel="manifest"]');
+    const previousManifest = manifest?.getAttribute("href") ?? null;
+    manifest?.setAttribute("href", "/orcamentos.webmanifest");
+    setMeta("apple-mobile-web-app-capable", "yes");
+    setMeta("mobile-web-app-capable", "yes");
+    setMeta("apple-mobile-web-app-title", "Dev Bossle");
+    setMeta("apple-mobile-web-app-status-bar-style", "default");
+    const theme = document.head.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
+    const previousTheme = theme?.getAttribute("content") ?? null;
+    const syncTheme = () =>
+      theme?.setAttribute("content", document.documentElement.classList.contains("dark") ? "#0f1318" : "#f4f6f8");
+    syncTheme();
+    const obs = new MutationObserver(syncTheme);
+    obs.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+    return () => {
+      obs.disconnect();
+      if (previousManifest) manifest?.setAttribute("href", previousManifest);
+      if (previousTheme) theme?.setAttribute("content", previousTheme);
+    };
   }, []);
 
   useEffect(() => {
@@ -110,7 +140,7 @@ function OrcamentosApp() {
 
   if (/\/redefinir-senha\/?$/.test(location.pathname)) {
     return (
-      <div className="flex min-h-dvh flex-col items-center justify-center bg-[#f9f9f9] px-4 text-center text-neutral-700 dark:bg-[#121212] dark:text-neutral-300">
+      <div className="adm flex min-h-dvh flex-col items-center justify-center bg-canvas px-4 text-center text-muted">
         <p className="text-sm">Link inválido ou incompleto.</p>
         <a
           href={
@@ -128,7 +158,7 @@ function OrcamentosApp() {
 
   if (checking) {
     return (
-      <div className="flex min-h-dvh items-center justify-center bg-[#f9f9f9] text-neutral-500 dark:bg-[#121212] dark:text-neutral-400">
+      <div className="adm flex min-h-dvh items-center justify-center bg-canvas text-muted">
         Carregando…
       </div>
     );

@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { Link } from "react-router";
 import { orcamentosApi } from "../../lib/orcamentos/api";
+import { appRoot, btnPrimary, inputClass, labelClass } from "./panelStyles";
 
 type Props = {
   onSuccess: (username: string) => void;
@@ -59,14 +60,14 @@ function Login({ onSuccess }: Props) {
   };
 
   return (
-    <div className="flex min-h-dvh flex-col bg-[#f9f9f9] text-neutral-900 dark:bg-[#121212] dark:text-[#f9f9f9] [&_a]:cursor-pointer [&_button:disabled]:cursor-not-allowed [&_button:not(:disabled)]:cursor-pointer [&_label]:cursor-pointer [&_select]:cursor-pointer [&_input[type=checkbox]]:cursor-pointer [&_input[type=radio]]:cursor-pointer">
-      <header className="border-b border-neutral-200 bg-[#F3F4F6] px-4 py-4 dark:border-neutral-800 dark:bg-[#151515] sm:px-6">
+    <div className={`${appRoot} flex flex-col`}>
+      <header className="px-4 py-5 sm:px-6">
         <div className="mx-auto flex max-w-md items-center justify-between">
           <Link to="/" className="flex cursor-pointer items-center gap-2 sm:gap-2.5">
             <TrafficLights />
             <span className="ml-1 font-bold sm:ml-2">.dev Bossle</span>
           </Link>
-          <span className="text-xs font-medium uppercase tracking-[0.14em] opacity-50">
+          <span className={labelClass}>
             Orçamentos
           </span>
         </div>
@@ -74,16 +75,16 @@ function Login({ onSuccess }: Props) {
 
       <main className="flex flex-1 items-center justify-center px-4 py-12">
         {mode === "forgot" ? (
-          <div className="w-full max-w-md border border-neutral-200 bg-white p-8 dark:border-neutral-800 dark:bg-[#151515] sm:p-10">
-            <p className="text-sm font-medium uppercase tracking-widest opacity-60">
+          <div className="w-full max-w-md rounded-2xl border border-line bg-surface p-7 shadow-float sm:p-9">
+            <p className="text-sm font-medium text-accent-text">
               Segurança
             </p>
             <h1 className="mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">
               Redefinir senha
             </h1>
-            <p className="mt-2 text-sm text-neutral-500 dark:text-neutral-400">
+            <p className="mt-2 text-sm text-muted">
               Enviaremos um link para o e-mail cadastrado em{" "}
-              <strong className="font-medium text-neutral-700 dark:text-neutral-300">
+              <strong className="font-medium text-muted">
                 Meus dados
               </strong>
               .
@@ -91,7 +92,7 @@ function Login({ onSuccess }: Props) {
 
             {forgotSent ? (
               <p
-                className="mt-6 text-sm text-emerald-800 dark:text-emerald-300"
+                className="mt-6 text-sm text-accent-text"
                 role="status"
               >
                 {forgotMsg ||
@@ -102,7 +103,7 @@ function Login({ onSuccess }: Props) {
                 type="button"
                 disabled={loading}
                 onClick={requestReset}
-                className="mt-8 w-full cursor-pointer bg-neutral-900 px-4 py-3 text-sm font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-[#f9f9f9] dark:text-neutral-900"
+                className={`${btnPrimary} mt-8 min-h-11 w-full`}
               >
                 {loading ? "Enviando…" : "Enviar link por e-mail"}
               </button>
@@ -110,7 +111,7 @@ function Login({ onSuccess }: Props) {
 
             {error ? (
               <p
-                className="mt-4 text-sm text-red-600 dark:text-red-400"
+                className="mt-4 text-sm text-danger"
                 role="alert"
               >
                 {error}
@@ -119,7 +120,7 @@ function Login({ onSuccess }: Props) {
 
             <button
               type="button"
-              className="mt-6 text-sm font-medium text-emerald-800 underline decoration-emerald-800/30 underline-offset-4 dark:text-emerald-300"
+              className="mt-6 text-sm font-medium text-accent-text underline decoration-accent/30 underline-offset-4"
               onClick={() => {
                 setMode("login");
                 setError("");
@@ -133,33 +134,33 @@ function Login({ onSuccess }: Props) {
         ) : (
           <form
             onSubmit={submit}
-            className="w-full max-w-md border border-neutral-200 bg-white p-8 dark:border-neutral-800 dark:bg-[#151515] sm:p-10"
+            className="w-full max-w-md rounded-2xl border border-line bg-surface p-7 shadow-float sm:p-9"
           >
-            <p className="text-sm font-medium uppercase tracking-widest opacity-60">
+            <p className="text-sm font-medium text-accent-text">
               Área privada
             </p>
             <h1 className="mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">
               Entrar no painel
             </h1>
-            <p className="mt-2 text-sm text-neutral-500 dark:text-neutral-400">
+            <p className="mt-2 text-sm text-muted">
               orcamentos.devbossle.com.br
             </p>
 
             <label className="mt-8 block">
-              <span className="text-xs font-medium uppercase tracking-[0.14em] opacity-50">
+              <span className={labelClass}>
                 Usuário
               </span>
               <input
                 autoComplete="username"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                className="mt-2 w-full border border-neutral-200 bg-[#f9f9f9] px-3 py-3 text-sm outline-none transition focus:border-emerald-600 dark:border-neutral-700 dark:bg-[#121212] dark:focus:border-emerald-400"
+                className={`${inputClass} mt-2`}
                 required
               />
             </label>
 
             <label className="mt-4 block">
-              <span className="text-xs font-medium uppercase tracking-[0.14em] opacity-50">
+              <span className={labelClass}>
                 Senha
               </span>
               <input
@@ -167,14 +168,14 @@ function Login({ onSuccess }: Props) {
                 autoComplete="current-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="mt-2 w-full border border-neutral-200 bg-[#f9f9f9] px-3 py-3 text-sm outline-none transition focus:border-emerald-600 dark:border-neutral-700 dark:bg-[#121212] dark:focus:border-emerald-400"
+                className={`${inputClass} mt-2`}
                 required
               />
             </label>
 
             {error ? (
               <p
-                className="mt-4 text-sm text-red-600 dark:text-red-400"
+                className="mt-4 text-sm text-danger"
                 role="alert"
               >
                 {error}
@@ -184,14 +185,14 @@ function Login({ onSuccess }: Props) {
             <button
               type="submit"
               disabled={loading}
-              className="mt-6 w-full cursor-pointer bg-neutral-900 px-4 py-3 text-sm font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-[#f9f9f9] dark:text-neutral-900"
+              className={`${btnPrimary} mt-6 min-h-11 w-full`}
             >
               {loading ? "Entrando…" : "Entrar"}
             </button>
 
             <button
               type="button"
-              className="mt-4 w-full text-center text-sm font-medium text-emerald-800 underline decoration-emerald-800/30 underline-offset-4 dark:text-emerald-300"
+              className="mt-4 w-full text-center text-sm font-medium text-accent-text underline decoration-accent/30 underline-offset-4"
               onClick={() => {
                 setMode("forgot");
                 setError("");
