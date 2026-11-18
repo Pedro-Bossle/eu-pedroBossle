@@ -412,6 +412,8 @@ export const orcamentosApi = {
       method: "POST",
       body: JSON.stringify({ from, id }),
     }),
+  crmDigest: () =>
+    request<{ sent?: string; skipped?: string }>("/api/orcamentos/crm/digest", { method: "POST", body: "{}" }),
   crmSearch: (q: string) =>
     request<{ results: CrmSearchResult[] }>(`/api/orcamentos/crm/search?q=${encodeURIComponent(q)}`),
 };

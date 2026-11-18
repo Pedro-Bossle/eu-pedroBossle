@@ -931,6 +931,20 @@ function Panel({
     { id: "new-proposal", label: "Novo orçamento", icon: navIcons.proposals.join(""), run: () => openProposal(blankProposal()), keywords: "proposta criar" },
     { id: "new-client", label: "Novo cliente", icon: navIcons.clients.join(""), run: newClient, keywords: "cadastrar criar" },
     { id: "new-post", label: "Agendar post no Instagram", icon: navIcons.instagram.join(""), run: () => go("instagram"), keywords: "publicar" },
+    {
+      id: "digest",
+      label: "Enviar resumo do dia por e-mail",
+      icon: "M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2zM22 6l-10 7L2 6",
+      run: async () => {
+        try {
+          const r = await orcamentosApi.crmDigest();
+          showToast(r.sent ? `Resumo enviado para ${r.sent}` : `Não enviado: ${r.skipped}`);
+        } catch (e) {
+          showToast(e instanceof Error ? e.message : "Falha ao enviar");
+        }
+      },
+      keywords: "email digest teste",
+    },
     { id: "theme", label: dark ? "Usar tema claro" : "Usar tema escuro", icon: "M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z", run: () => setDark((d) => !d), keywords: "dark modo noite" },
     ...nav.map((n) => ({ id: `go-${n.id}`, label: `Ir para ${n.label}`, hint: n.group, icon: navIcons[n.id].join(""), run: () => go(n.id), keywords: n.short })),
   ];

@@ -64,6 +64,7 @@ const loaders: Record<string, () => Promise<{ default: RouteHandler }>> = {
   "crm/activities": () => import("./_handlers/crm/activities.js"),
   "crm/search": () => import("./_handlers/crm/search.js"),
   "crm/convert": () => import("./_handlers/crm/convert.js"),
+  "crm/digest": () => import("./_handlers/crm/digest.js"),
   // Vercel Cron / GitHub Actions (Bearer CRON_SECRET)
   cron: () => import("./_handlers/cron.js"),
 };

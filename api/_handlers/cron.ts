@@ -4,13 +4,15 @@ import { json } from "../_lib/auth.js";
 import { withAuth } from "../_lib/db.js";
 import { loadIgCredential, publishDue, refreshIfNeeded, syncInstagram } from "../_lib/instagram.js";
 import { pluggyConfigured, syncAllItems } from "../_lib/pluggy.js";
+import { loadToday } from "../_lib/crmToday.js";
+import { sendDigest } from "../_lib/digestEmail.js";
 
 /**
  * Tarefas automáticas. Autoriza com `Authorization: Bearer $CRON_SECRET`
  * (a Vercel Cron manda esse header sozinha quando CRON_SECRET existe).
  *
  * ?tasks=publish → só publica posts vencidos (rodar a cada 5–10 min)
- * ?tasks=daily   → publica + renova token + sincroniza Instagram e finanças
+ * ?tasks=daily   → publica + renova token + sincroniza Instagram e finanças + resumo por e-mail
  */
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   const secret = process.env.CRON_SECRET ?? "";
@@ -46,6 +48,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         out.finance = await syncAllItems(withAuth);
       } catch (e) {
         out.finance = { error: e instanceof Error ? e.message : String(e) };
+      }
+    }
+    // Resumo do dia por e-mail (depois do sync, para incluir faturas atualizadas)
+    if (process.env.RESEND_API_KEY) {
+      try {
+        out.digest = await sendDigest(await loadToday());
+      } catch (e) {
+        out.digest = { error: e instanceof Error ? e.message : String(e) };
       }
     }
   }
