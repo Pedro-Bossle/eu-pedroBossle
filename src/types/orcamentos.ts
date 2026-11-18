@@ -372,3 +372,28 @@ export type FinSyncResult = {
   investments: number;
   error?: string;
 };
+
+export type FinCategoryStat = {
+  category: string;
+  spent: number;
+  previous: number;
+  avg3: number;
+  /** Gasto dos últimos 6 meses (mais antigo → atual). */
+  history: number[];
+  count: number;
+};
+
+export type FinAnalytics = {
+  month: string;
+  previousMonth: string;
+  current: { income: number; expense: number };
+  previous: { income: number; expense: number };
+  cumulative: { current: number[]; previous: number[] };
+  categories: FinCategoryStat[];
+  months: string[];
+  income: { category: string; value: number }[];
+  merchants: { label: string; spent: number; count: number; category: string }[];
+  /** Gasto médio por dia da semana (0 = domingo). */
+  weekday: number[];
+  recurring: { label: string; category: string; avg: number; months: number; lastDay: string; inMonth: boolean }[];
+};

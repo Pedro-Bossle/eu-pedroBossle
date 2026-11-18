@@ -10,6 +10,7 @@ import {
   whatsappUrl,
 } from "../../lib/orcamentos/prospects";
 import type { BotToken, ProspectEvent, ProspectInput, ProspectLead } from "../../types/orcamentos";
+import Select from "./ui/Select";
 import {
   btn,
   btnDangerSm,
@@ -456,21 +457,15 @@ function LeadCard({
 
       {/* Mover manualmente */}
       <div className="grid gap-2 border-t border-line pt-3 sm:grid-cols-[1fr_1fr_auto]">
-        <select
-          className={inputClass}
+        <Select
+          ariaLabel="Mover para a etapa"
+          placeholder="Mover para…"
           value={target}
-          onChange={(e) => setTarget(e.target.value)}
-          aria-label="Mover para a etapa"
-        >
-          <option value="">Mover para…</option>
-          {[...FUNNEL, ...EXITS]
+          onChange={setTarget}
+          options={[...FUNNEL, ...EXITS]
             .filter((s) => s !== stage)
-            .map((s) => (
-              <option key={s} value={s}>
-                {STAGE_LABEL[s]}
-              </option>
-            ))}
-        </select>
+            .map((s) => ({ value: s, label: STAGE_LABEL[s] ?? s, hint: isExit(s) ? "saída" : "" }))}
+        />
         <input
           className={inputClass}
           value={note}
@@ -581,15 +576,15 @@ function BotTokens({ showToast }: { showToast: (msg: string) => void }) {
           placeholder="Nome do bot"
           aria-label="Nome do bot"
         />
-        <select
-          className={inputClass}
+        <Select
+          ariaLabel="Papel do bot"
           value={role}
-          onChange={(e) => setRole(e.target.value as BotToken["role"])}
-          aria-label="Papel do bot"
-        >
-          <option value="prospector">prospector</option>
-          <option value="executor">executor</option>
-        </select>
+          onChange={(v) => setRole(v)}
+          options={[
+            { value: "prospector", label: "Prospector", hint: "Dev Bossle" },
+            { value: "executor", label: "Executor", hint: "WhatsApp" },
+          ]}
+        />
         <button type="submit" className={btnPrimary} disabled={busy || !name.trim()}>
           Criar token
         </button>
@@ -782,20 +777,17 @@ function LeadForm({
           {date("lastReviewAt", "Última avaliação")}
           {num("followers", "Seguidores no Instagram")}
           {date("lastPostAt", "Último post")}
-          <label className="block">
+          <div className="block">
             <span className={label}>Capacidade de investir</span>
-            <select
-              className={`${inputClass} mt-1`}
-              value={form.investLevel ?? 0}
-              onChange={(e) => set({ investLevel: Number(e.target.value) })}
-            >
-              {INVEST_LEVELS.map((t, i) => (
-                <option key={t} value={i}>
-                  {t}
-                </option>
-              ))}
-            </select>
-          </label>
+            <div className="mt-1">
+              <Select
+                ariaLabel="Capacidade de investir"
+                value={String(form.investLevel ?? 0)}
+                onChange={(v) => set({ investLevel: Number(v) })}
+                options={INVEST_LEVELS.map((t, i) => ({ value: String(i), label: t }))}
+              />
+            </div>
+          </div>
           <label className="flex min-h-11 items-center gap-2 self-end text-sm">
             <input
               type="checkbox"
@@ -1326,19 +1318,15 @@ function Funnel({ showToast }: Props) {
             {c}
           </button>
         ))}
-        <select
-          className={`${inputClass} !min-h-9 !w-auto !py-1.5`}
-          value={niche}
-          onChange={(e) => setNiche(e.target.value)}
-          aria-label="Nicho"
-        >
-          <option value="">Todos os nichos</option>
-          {niches.map((n) => (
-            <option key={n} value={n}>
-              {n}
-            </option>
-          ))}
-        </select>
+        <div className="w-48">
+          <Select
+            size="sm"
+            ariaLabel="Nicho"
+            value={niche}
+            onChange={setNiche}
+            options={[{ value: "", label: "Todos os nichos" }, ...niches.map((n) => ({ value: n, label: n }))]}
+          />
+        </div>
         <input
           className={`${inputClass} !min-h-9 !py-1.5 sm:!w-60`}
           type="search"

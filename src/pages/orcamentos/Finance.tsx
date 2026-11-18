@@ -1,13 +1,17 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { orcamentosApi } from "../../lib/orcamentos/api";
-import type { FinAccount, FinMonth, FinOverview, FinTransaction } from "../../types/orcamentos";
-import { btn, btnDangerSm, btnPrimary, btnSm, cardClass, control, focusRing, inputClass, labelClass, tabItem, tabList } from "./panelStyles";
+import type { FinAccount, FinAnalytics, FinMonth, FinOverview, FinTransaction } from "../../types/orcamentos";
+import { CategoriesView, Overview } from "./finance/Analysis";
+import { C_IN, C_OUT, FIN_PALETTE_CSS } from "./finance/theme";
+import Select from "./ui/Select";
+import { btn, btnDangerSm, btnPrimary, btnSm, cardClass, control, inputClass, labelClass, tabItem, tabList } from "./panelStyles";
 
 type Props = { showToast: (msg: string) => void };
-type View = "visao" | "transacoes" | "orcamentos" | "contas";
+type View = "visao" | "categorias" | "transacoes" | "orcamentos" | "contas";
 
 const VIEWS: { id: View; label: string }[] = [
   { id: "visao", label: "Visão geral" },
+  { id: "categorias", label: "Categorias" },
   { id: "transacoes", label: "Transações" },
   { id: "orcamentos", label: "Orçamentos e regras" },
   { id: "contas", label: "Contas" },
@@ -15,13 +19,6 @@ const VIEWS: { id: View; label: string }[] = [
 
 const smallLabel = labelClass;
 
-// Paleta validada (dataviz): entradas / saídas, claro e escuro
-const C_IN = "var(--fin-in)";
-const C_OUT = "var(--fin-out)";
-const paletteStyle = `
-.fin-root{--fin-in:#059669;--fin-out:#d97706;--fin-grid:#e5e5e5;--fin-surface:#fff}
-.dark .fin-root{--fin-in:#0ea371;--fin-out:#d27a06;--fin-grid:#2a2a2a;--fin-surface:#151515}
-`;
 
 const brl = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 const brlShort = new Intl.NumberFormat("pt-BR", { notation: "compact", maximumFractionDigits: 1 });
@@ -56,6 +53,7 @@ export default function Finance({ showToast }: Props) {
   const [txs, setTxs] = useState<FinTransaction[]>([]);
   const [txLoading, setTxLoading] = useState(false);
   const [categoryFilter, setCategoryFilter] = useState("");
+  const [analytics, setAnalytics] = useState<FinAnalytics | null>(null);
 
   const load = useCallback(async () => {
     try {
@@ -79,6 +77,14 @@ export default function Finance({ showToast }: Props) {
     }
   }, [month, showToast]);
 
+  const loadAnalytics = useCallback(async () => {
+    try {
+      setAnalytics(await orcamentosApi.finAnalytics(month));
+    } catch (e) {
+      showToast(e instanceof Error ? e.message : "Erro na análise");
+    }
+  }, [month, showToast]);
+
   // Busca ao abrir / trocar de mês (o setState acontece depois do fetch)
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -88,6 +94,11 @@ export default function Finance({ showToast }: Props) {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     loadTxs();
   }, [loadTxs]);
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    loadAnalytics();
+  }, [loadAnalytics]);
+  const refreshAll = useCallback(() => Promise.all([load(), loadTxs(), loadAnalytics()]), [load, loadTxs, loadAnalytics]);
 
   const sync = async (refresh = false) => {
     setSyncing(true);
@@ -96,7 +107,7 @@ export default function Finance({ showToast }: Props) {
       const failed = results.filter((r) => r.error);
       const total = results.reduce((s, r) => s + r.transactions, 0);
       showToast(failed.length ? `Erro em ${failed.length} conexão(ões): ${failed[0]!.error}` : `${total} transações sincronizadas`);
-      await Promise.all([load(), loadTxs()]);
+      await refreshAll();
     } catch (e) {
       showToast(e instanceof Error ? e.message : "Erro ao sincronizar");
     } finally {
@@ -110,6 +121,7 @@ export default function Finance({ showToast }: Props) {
       const r = await orcamentosApi.finPatchTx(t.id, patch);
       setTxs((list) => list.map((x) => (x.id === t.id ? r.transaction : x)));
       load();
+      loadAnalytics();
     } catch (e) {
       showToast(e instanceof Error ? e.message : "Erro ao salvar");
       loadTxs();
@@ -123,7 +135,7 @@ export default function Finance({ showToast }: Props) {
 
   return (
     <section className="fin-root space-y-6" aria-labelledby="fin-title">
-      <style>{paletteStyle}</style>
+      <style>{FIN_PALETTE_CSS}</style>
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <p className={smallLabel}>Pessoal</p>
@@ -180,10 +192,24 @@ export default function Finance({ showToast }: Props) {
         hasData ? (
           <Overview
             data={data}
+            analytics={analytics?.month === month ? analytics : null}
             month={month}
-            txs={txs}
-            loading={txLoading}
-            onPickMonth={setMonth}
+            monthly={<MonthlyChart months={data.months} selected={month} onPick={setMonth} />}
+            onPickCategory={(c) => {
+              setCategoryFilter(c);
+              setView("transacoes");
+            }}
+          />
+        ) : (
+          <EmptyState onGo={() => setView("contas")} />
+        )
+      ) : null}
+
+      {view === "categorias" ? (
+        hasData ? (
+          <CategoriesView
+            analytics={analytics?.month === month ? analytics : null}
+            budgets={data.budgets}
             onPickCategory={(c) => {
               setCategoryFilter(c);
               setView("transacoes");
@@ -203,13 +229,13 @@ export default function Finance({ showToast }: Props) {
           setCategory={setCategoryFilter}
           onPatch={patchTx}
           showToast={showToast}
-          onRuleCreated={() => Promise.all([load(), loadTxs()])}
+          onRuleCreated={refreshAll}
         />
       ) : null}
 
-      {view === "orcamentos" ? <Budgets data={data} txs={txs} month={month} showToast={showToast} onChanged={() => Promise.all([load(), loadTxs()])} /> : null}
+      {view === "orcamentos" ? <Budgets data={data} txs={txs} month={month} showToast={showToast} onChanged={refreshAll} /> : null}
 
-      {view === "contas" ? <Accounts data={data} showToast={showToast} onChanged={() => Promise.all([load(), loadTxs()])} /> : null}
+      {view === "contas" ? <Accounts data={data} showToast={showToast} onChanged={refreshAll} /> : null}
     </section>
   );
 }
@@ -259,177 +285,6 @@ function useMonthStats(txs: FinTransaction[], accounts: FinAccount[]) {
     const biggest = valid.filter((t) => t.amount < 0).sort((a, b) => a.amount - b.amount).slice(0, 6);
     return { income, expense, categories, biggest, count: valid.length };
   }, [txs, accounts]);
-}
-
-function Overview({
-  data,
-  month,
-  txs,
-  loading,
-  onPickMonth,
-  onPickCategory,
-}: {
-  data: FinOverview;
-  month: string;
-  txs: FinTransaction[];
-  loading: boolean;
-  onPickMonth: (m: string) => void;
-  onPickCategory: (c: string) => void;
-}) {
-  const visible = data.accounts.filter((a) => !a.hidden);
-  const cash = visible.filter((a) => !isCredit(a)).reduce((s, a) => s + a.balance, 0);
-  const cards = visible.filter(isCredit).reduce((s, a) => s + a.balance, 0);
-  const invested = data.investments.reduce((s, i) => s + i.balance, 0);
-  const stats = useMonthStats(txs, data.accounts);
-  const budgets = new Map(data.budgets.map((b) => [b.category, b.limit]));
-  const result = stats.income - stats.expense;
-  const maxCat = Math.max(1, ...stats.categories.map((c) => Math.max(c.spent, budgets.get(c.category) ?? 0)));
-  const accName = new Map(data.accounts.map((a) => [a.id, a.name]));
-
-  // Mês corrente: ritmo de gasto projetado
-  const isCurrent = month === monthKey();
-  const now = new Date();
-  const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
-  const projected = isCurrent && now.getDate() > 3 ? (stats.expense / now.getDate()) * daysInMonth : null;
-
-  const tiles = [
-    { label: "Saldo em contas", value: money(cash) },
-    { label: "Faturas dos cartões", value: money(cards), hint: data.accounts.filter(isCredit).length ? "valor atual das faturas" : "nenhum cartão" },
-    { label: "Investimentos", value: money(invested), hint: `${data.investments.length} aplicações` },
-    { label: "Patrimônio líquido", value: money(cash + invested - cards) },
-  ];
-
-  return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-2 overflow-hidden rounded-2xl border border-line bg-surface lg:grid-cols-4">
-        {tiles.map((t) => (
-          <div key={t.label} className="border-line p-5 xl:p-6 [&:nth-child(n+3)]:border-t [&:nth-child(even)]:border-l lg:[&:nth-child(n+3)]:border-t-0 lg:[&:not(:first-child)]:border-l">
-            <p className={smallLabel}>{t.label}</p>
-            <p className="mt-2 text-xl font-semibold tabular-nums sm:text-2xl">{t.value}</p>
-            {t.hint ? <p className="mt-1 text-xs text-muted">{t.hint}</p> : null}
-          </div>
-        ))}
-      </div>
-
-      <div className="grid gap-4 xl:grid-cols-[1.4fr_1fr]">
-        <div className={cardClass}>
-          <div className="flex flex-wrap items-baseline justify-between gap-2">
-            <h3 className="text-base font-semibold">Entradas e saídas por mês</h3>
-            <Legend />
-          </div>
-          <MonthlyChart months={data.months} selected={month} onPick={onPickMonth} />
-        </div>
-
-        <div className={cardClass}>
-          <h3 className="text-base font-semibold">{monthLabel(month)}</h3>
-          <dl className="mt-4 space-y-3">
-            <div className="flex items-baseline justify-between">
-              <dt className="flex items-center gap-2 text-sm">
-                <span className="size-2.5 rounded-lg" style={{ background: C_IN }} /> Entradas
-              </dt>
-              <dd className="text-lg font-semibold tabular-nums">{money(stats.income)}</dd>
-            </div>
-            <div className="flex items-baseline justify-between">
-              <dt className="flex items-center gap-2 text-sm">
-                <span className="size-2.5 rounded-lg" style={{ background: C_OUT }} /> Saídas
-              </dt>
-              <dd className="text-lg font-semibold tabular-nums">{money(stats.expense)}</dd>
-            </div>
-            <div className="flex items-baseline justify-between border-t border-line pt-3">
-              <dt className="text-sm font-medium">Resultado</dt>
-              <dd className={`text-xl font-semibold tabular-nums ${result < 0 ? "text-danger" : ""}`}>
-                {result >= 0 ? "+" : "−"}
-                {money(Math.abs(result))}
-              </dd>
-            </div>
-            {stats.income > 0 ? (
-              <p className="text-xs text-muted">
-                Taxa de poupança: {Math.round((result / stats.income) * 100)}% da renda
-              </p>
-            ) : null}
-            {projected ? (
-              <p className="text-xs text-muted">No ritmo atual, o mês fecha com ~{money(projected)} em saídas.</p>
-            ) : null}
-          </dl>
-          {data.accounts.some((a) => isCredit(a) && a.billDueDate) ? (
-            <div className="mt-5 border-t border-line pt-4">
-              <p className={smallLabel}>Faturas</p>
-              <ul className="mt-2 space-y-1.5 text-sm">
-                {data.accounts
-                  .filter((a) => isCredit(a) && !a.hidden)
-                  .map((a) => (
-                    <li key={a.id} className="flex justify-between gap-3">
-                      <span className="truncate">
-                        {a.name} {a.billDueDate ? <span className="text-xs text-muted">vence {fmtDay(a.billDueDate)}</span> : null}
-                      </span>
-                      <span className="tabular-nums">{money(a.balance)}</span>
-                    </li>
-                  ))}
-              </ul>
-            </div>
-          ) : null}
-        </div>
-      </div>
-
-      <div className="grid gap-4 xl:grid-cols-[1.4fr_1fr]">
-        <div className={cardClass}>
-          <div className="flex items-baseline justify-between">
-            <h3 className="text-base font-semibold">Gastos por categoria</h3>
-            {loading ? <span className="text-xs text-muted">carregando…</span> : null}
-          </div>
-          {!stats.categories.length ? <p className="mt-4 text-sm text-muted">Sem gastos neste mês.</p> : null}
-          <ul className="mt-4 space-y-3">
-            {stats.categories.map((c) => {
-              const limit = budgets.get(c.category);
-              const over = limit != null && c.spent > limit;
-              return (
-                <li key={c.category}>
-                  <button type="button" onClick={() => onPickCategory(c.category)} className={`group block w-full text-left ${focusRing}`} title="Ver transações">
-                    <div className="flex items-baseline justify-between gap-3 text-sm">
-                      <span className="truncate group-hover:underline">{c.category}</span>
-                      <span className="shrink-0 tabular-nums">
-                        {money(c.spent)}
-                        {limit != null ? <span className="text-xs text-muted"> / {money(limit)}</span> : null}
-                        <span className="ml-2 text-xs text-muted">{Math.round((c.spent / Math.max(1, stats.expense)) * 100)}%</span>
-                      </span>
-                    </div>
-                    <div className="relative mt-1.5 h-2 bg-sunken">
-                      <div
-                        className="h-full rounded-r-[4px]"
-                        style={{ width: `${(c.spent / maxCat) * 100}%`, background: over ? "#dc2626" : C_OUT }}
-                      />
-                      {limit != null ? (
-                        <span className="absolute -top-1 h-4 w-0.5 bg-ink" style={{ left: `${Math.min(100, (limit / maxCat) * 100)}%` }} aria-hidden />
-                      ) : null}
-                    </div>
-                    {over ? <p className="mt-1 text-xs font-medium text-danger">⚠ Passou {money(c.spent - limit!)} do orçamento</p> : null}
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
-        </div>
-
-        <div className={cardClass}>
-          <h3 className="text-base font-semibold">Maiores gastos do mês</h3>
-          <ul className="mt-4 divide-y divide-line">
-            {stats.biggest.map((t) => (
-              <li key={t.id} className="flex items-center justify-between gap-3 py-2.5 text-sm">
-                <div className="min-w-0">
-                  <p className="truncate">{t.merchant || t.description}</p>
-                  <p className="truncate text-xs text-muted">
-                    {fmtDay(t.date)} · {t.category} · {accName.get(t.accountId)}
-                  </p>
-                </div>
-                <span className="shrink-0 font-medium tabular-nums">{money(-t.amount)}</span>
-              </li>
-            ))}
-            {!stats.biggest.length ? <li className="py-2 text-sm text-muted">Nada ainda.</li> : null}
-          </ul>
-        </div>
-      </div>
-    </div>
-  );
 }
 
 function Legend() {
@@ -500,7 +355,10 @@ function MonthlyChart({ months, selected, onPick }: { months: FinMonth[]; select
   }
 
   return (
-    <div className="relative mt-4">
+    <div className="relative">
+      <div className="mb-2 flex justify-end">
+        <Legend />
+      </div>
       <svg viewBox={`0 0 ${W} ${H}`} className="w-full" role="img" aria-label="Entradas e saídas dos últimos 13 meses">
         {ticks.map((t) => (
           <g key={t}>
@@ -647,11 +505,6 @@ function Transactions({
 
   return (
     <div className="space-y-4">
-      <datalist id="fin-categories">
-        {data.categories.map((c) => (
-          <option key={c} value={c} />
-        ))}
-      </datalist>
       <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-[1.5fr_1fr_1fr_auto]">
         <div className="flex gap-2">
           <input
@@ -668,27 +521,28 @@ function Transactions({
             Todos os meses
           </button>
         </div>
-        <select className={inputClass} value={account} onChange={(e) => setAccount(e.target.value)} aria-label="Conta">
-          <option value="">Todas as contas</option>
-          {data.accounts.map((a) => (
-            <option key={a.id} value={a.id}>
-              {a.name}
-            </option>
-          ))}
-        </select>
-        <select className={inputClass} value={category} onChange={(e) => setCategory(e.target.value)} aria-label="Categoria">
-          <option value="">Todas as categorias</option>
-          {data.categories.map((c) => (
-            <option key={c} value={c}>
-              {c}
-            </option>
-          ))}
-        </select>
-        <select className={inputClass} value={kind} onChange={(e) => setKind(e.target.value as typeof kind)} aria-label="Tipo">
-          <option value="todas">Entradas e saídas</option>
-          <option value="saidas">Só saídas</option>
-          <option value="entradas">Só entradas</option>
-        </select>
+        <Select
+          ariaLabel="Conta"
+          value={account}
+          onChange={setAccount}
+          options={[{ value: "", label: "Todas as contas" }, ...data.accounts.map((a) => ({ value: a.id, label: a.name, hint: a.type === "CREDIT" ? "cartão" : "" }))]}
+        />
+        <Select
+          ariaLabel="Categoria"
+          value={category}
+          onChange={setCategory}
+          options={[{ value: "", label: "Todas as categorias" }, ...data.categories.map((c) => ({ value: c, label: c }))]}
+        />
+        <Select
+          ariaLabel="Tipo"
+          value={kind}
+          onChange={(v) => setKind(v)}
+          options={[
+            { value: "todas", label: "Entradas e saídas" },
+            { value: "saidas", label: "Só saídas" },
+            { value: "entradas", label: "Só entradas" },
+          ]}
+        />
       </div>
       <div className="flex flex-wrap items-center gap-3 text-sm">
         <label className="inline-flex items-center gap-2">
@@ -711,7 +565,14 @@ function Transactions({
           <p className="text-sm font-medium">Nova regra: quando a descrição contiver…</p>
           <div className="grid gap-2 sm:grid-cols-[1.5fr_1fr_auto_auto] sm:items-center">
             <input className={inputClass} value={rule.pattern} onChange={(e) => setRule({ ...rule, pattern: e.target.value })} />
-            <input className={inputClass} list="fin-categories" placeholder="Categoria" value={rule.category} onChange={(e) => setRule({ ...rule, category: e.target.value })} />
+            <Select
+              ariaLabel="Categoria da regra"
+              placeholder="Categoria"
+              creatable
+              value={rule.category}
+              onChange={(v) => setRule({ ...rule, category: v })}
+              options={data.categories.map((c) => ({ value: c, label: c }))}
+            />
             <label className="inline-flex items-center gap-2 text-sm">
               <input type="checkbox" checked={rule.ignore} onChange={(e) => setRule({ ...rule, ignore: e.target.checked })} />
               Ignorar nos totais
@@ -757,18 +618,16 @@ function Transactions({
                   </p>
                 </td>
                 <td className="px-3 py-2">
-                  <input
-                    className={`${control} min-h-9 w-40 px-2 py-1 text-sm`}
-                    list="fin-categories"
-                    defaultValue={t.category}
-                    key={`${t.id}-${t.category}`}
-                    onBlur={(e) => {
-                      const v = e.target.value.trim();
-                      if (v && v !== t.category) onPatch(t, { category: v });
-                    }}
-                    onKeyDown={(e) => e.key === "Enter" && (e.target as HTMLInputElement).blur()}
-                    aria-label="Categoria"
-                  />
+                  <div className="w-44">
+                    <Select
+                      size="sm"
+                      creatable
+                      ariaLabel="Categoria"
+                      value={t.category}
+                      onChange={(v) => v !== t.category && onPatch(t, { category: v })}
+                      options={data.categories.map((c) => ({ value: c, label: c }))}
+                    />
+                  </div>
                 </td>
                 <td className={`px-3 py-2 text-right font-medium whitespace-nowrap tabular-nums ${t.amount > 0 ? "text-accent-text" : ""}`}>
                   {t.amount > 0 ? "+" : "−"}
@@ -899,12 +758,14 @@ function Budgets({
           })}
         </ul>
         <div className="mt-5 grid gap-2 border-t border-line pt-4 sm:grid-cols-[1fr_140px_auto]">
-          <datalist id="fin-categories-b">
-            {data.categories.map((c) => (
-              <option key={c} value={c} />
-            ))}
-          </datalist>
-          <input className={inputClass} list="fin-categories-b" placeholder="Categoria" value={newCat} onChange={(e) => setNewCat(e.target.value)} />
+          <Select
+            ariaLabel="Categoria do orçamento"
+            placeholder="Categoria"
+            creatable
+            value={newCat}
+            onChange={setNewCat}
+            options={data.categories.filter((c) => !data.budgets.some((b) => b.category === c)).map((c) => ({ value: c, label: c }))}
+          />
           <input className={inputClass} type="number" min={0} placeholder="Limite R$" value={newLimit} onChange={(e) => setNewLimit(e.target.value)} />
           <button
             type="button"
@@ -946,7 +807,14 @@ function Budgets({
         </p>
         <div className="mt-4 grid gap-2 sm:grid-cols-2">
           <input className={inputClass} placeholder="Texto (ex. UBER)" value={rule.pattern} onChange={(e) => setRule({ ...rule, pattern: e.target.value })} />
-          <input className={inputClass} list="fin-categories-b" placeholder="Categoria" value={rule.category} onChange={(e) => setRule({ ...rule, category: e.target.value })} />
+          <Select
+            ariaLabel="Categoria da regra"
+            placeholder="Categoria"
+            creatable
+            value={rule.category}
+            onChange={(v) => setRule({ ...rule, category: v })}
+            options={data.categories.map((c) => ({ value: c, label: c }))}
+          />
           <label className="inline-flex items-center gap-2 text-sm">
             <input type="checkbox" checked={rule.ignore} onChange={(e) => setRule({ ...rule, ignore: e.target.checked })} />
             Ignorar nos totais

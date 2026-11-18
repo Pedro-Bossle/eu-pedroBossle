@@ -51,6 +51,7 @@ const loaders: Record<string, () => Promise<{ default: RouteHandler }>> = {
   // Finanças (012)
   finance: () => import("./_handlers/finance/index.js"),
   "finance/sync": () => import("./_handlers/finance/sync.js"),
+  "finance/analytics": () => import("./_handlers/finance/analytics.js"),
   "finance/connect-token": () => import("./_handlers/finance/connectToken.js"),
   // Webhook público da Pluggy (header secreto) + registro pelo painel
   "finance/webhook": () => import("./_handlers/finance/webhook.js"),

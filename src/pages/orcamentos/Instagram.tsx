@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type DragEvent, type ReactNode } from "react";
 import { upload } from "@vercel/blob/client";
+import Select from "./ui/Select";
 import InstagramIcon from "../../components/icons/InstagramIcon";
 import { orcamentosApi } from "../../lib/orcamentos/api";
 import type {
@@ -1035,21 +1036,28 @@ function Library({ media, onOpen, connected, onSync, syncing }: { media: IgMedia
     <div className="space-y-4">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
         <input className={`${inputClass} sm:max-w-xs`} placeholder="Buscar na legenda ou nota…" value={q} onChange={(e) => setQ(e.target.value)} />
-        <select className={`${inputClass} sm:w-48`} value={sort} onChange={(e) => setSort(e.target.value as typeof sort)} aria-label="Ordenar">
-          <option value="recentes">Mais recentes</option>
-          <option value="alcance">Maior alcance</option>
-          <option value="engajamento">Maior engajamento</option>
-          <option value="salvos">Mais salvos</option>
-        </select>
+        <div className="sm:w-52">
+          <Select
+            ariaLabel="Ordenar"
+            value={sort}
+            onChange={(v) => setSort(v)}
+            options={[
+              { value: "recentes", label: "Mais recentes" },
+              { value: "alcance", label: "Maior alcance" },
+              { value: "engajamento", label: "Maior engajamento" },
+              { value: "salvos", label: "Mais salvos" },
+            ]}
+          />
+        </div>
         {allTags.length ? (
-          <select className={`${inputClass} sm:w-44`} value={tag} onChange={(e) => setTag(e.target.value)} aria-label="Etiqueta">
-            <option value="">Todas as etiquetas</option>
-            {allTags.map((t) => (
-              <option key={t} value={t}>
-                #{t}
-              </option>
-            ))}
-          </select>
+          <div className="sm:w-48">
+            <Select
+              ariaLabel="Etiqueta"
+              value={tag}
+              onChange={setTag}
+              options={[{ value: "", label: "Todas as etiquetas" }, ...allTags.map((t) => ({ value: t, label: `#${t}` }))]}
+            />
+          </div>
         ) : null}
         <span className="text-xs text-muted sm:ml-auto">{list.length} posts</span>
       </div>

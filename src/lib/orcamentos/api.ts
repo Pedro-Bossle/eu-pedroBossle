@@ -6,6 +6,7 @@ import type {
   OrcamentoProfile,
   OrcamentoProposal,
   BotToken,
+  FinAnalytics,
   FinOverview,
   FinSyncResult,
   FinTransaction,
@@ -335,6 +336,8 @@ export const orcamentosApi = {
       "/api/orcamentos/finance/webhook-setup",
       method === "GET" ? undefined : { method, body: method === "POST" ? "{}" : undefined },
     ),
+  finAnalytics: (month: string) =>
+    request<FinAnalytics>(`/api/orcamentos/finance/analytics?month=${encodeURIComponent(month)}`),
   finDeleteItem: (itemId: string) =>
     request<{ ok: boolean }>(
       `/api/orcamentos/finance?itemId=${encodeURIComponent(itemId)}`,

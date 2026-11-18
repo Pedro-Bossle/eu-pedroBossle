@@ -56,11 +56,11 @@ import {
   focusRing,
   inputClass,
   labelClass,
-  selectClass,
   shellClass,
   textareaClass,
 } from "./panelStyles";
 import Instagram from "./Instagram";
+import Select from "./ui/Select";
 import Finance from "./Finance";
 
 type Tab =
@@ -130,6 +130,15 @@ function statusClass(status: string) {
   if (s.includes("recus") || s.includes("cancel"))
     return "bg-red-500/10 text-red-700 dark:text-red-300";
   return "bg-sunken text-muted";
+}
+
+/** Cor do ponto de status no menu de status. */
+function statusDot(status: string) {
+  const s = status.toLowerCase();
+  if (s.includes("aprov")) return "#1f9d6a";
+  if (s.includes("envi")) return "#d97706";
+  if (s.includes("recus") || s.includes("cancel")) return "#d03b3b";
+  return "#8a93a0";
 }
 
 function statusChipClass(status: string) {
@@ -934,24 +943,19 @@ function Panel({
     const list = presetsFor(section);
     if (!list.length) return null;
     return (
-      <select
-        className={`${selectClass} max-w-md`}
-        defaultValue=""
-        onChange={(e) => {
-          const id = e.target.value;
-          e.target.value = "";
-          const preset = list.find((p) => p.id === id);
-          if (preset) applyPreset(preset);
-        }}
-        aria-label={label}
-      >
-        <option value="">{label}…</option>
-        {list.map((p) => (
-          <option key={p.id} value={p.id}>
-            {p.name}
-          </option>
-        ))}
-      </select>
+      <div className="w-full max-w-xs">
+        <Select
+          size="sm"
+          ariaLabel={label}
+          placeholder={`${label}…`}
+          value=""
+          onChange={(id) => {
+            const preset = list.find((p) => p.id === id);
+            if (preset) applyPreset(preset);
+          }}
+          options={list.map((p) => ({ value: p.id, label: p.name }))}
+        />
+      </div>
     );
   };
 
@@ -1262,21 +1266,14 @@ function Panel({
                     </p>
                   </div>
                   <Field label="Cliente" full>
-                    <select
-                      className={inputClass}
+                    <Select
+                      ariaLabel="Cliente"
+                      placeholder="Selecionar cliente…"
+                      searchable
                       value={editing.clientId}
-                      onChange={(e) =>
-                        setEditing({ ...editing, clientId: e.target.value })
-                      }
-                    >
-                      <option value="">Selecionar…</option>
-                      {clients.map((c) => (
-                        <option key={c.id} value={c.id}>
-                          {c.name}
-                          {c.company ? ` — ${c.company}` : ""}
-                        </option>
-                      ))}
-                    </select>
+                      onChange={(v) => setEditing({ ...editing, clientId: v })}
+                      options={clients.map((c) => ({ value: c.id, label: c.company ? `${c.name} — ${c.company}` : c.name }))}
+                    />
                   </Field>
                   <Field label="Nome do projeto" full>
                     <input
@@ -1314,19 +1311,12 @@ function Panel({
                     </p>
                   </Field>
                   <Field label="Status" full>
-                    <select
-                      className={inputClass}
+                    <Select
+                      ariaLabel="Status"
                       value={editing.status}
-                      onChange={(e) =>
-                        setEditing({ ...editing, status: e.target.value })
-                      }
-                    >
-                      {STATUSES.map((s) => (
-                        <option key={s} value={s}>
-                          {s}
-                        </option>
-                      ))}
-                    </select>
+                      onChange={(v) => setEditing({ ...editing, status: v })}
+                      options={STATUSES.map((s) => ({ value: s, label: s, dot: statusDot(s) }))}
+                    />
                   </Field>
                 </div>
               ) : null}
@@ -2432,22 +2422,12 @@ function Panel({
                 <div className={`${cardClass} mb-4 space-y-4`}>
                   <div className="grid gap-4 sm:grid-cols-2">
                     <Field label="Seção">
-                      <select
-                        className={inputClass}
+                      <Select
+                        ariaLabel="Seção"
                         value={presetForm.section}
-                        onChange={(e) =>
-                          setPresetForm({
-                            ...presetForm,
-                            section: e.target.value as PresetSection,
-                          })
-                        }
-                      >
-                        {PRESET_SECTIONS.map((s) => (
-                          <option key={s.id} value={s.id}>
-                            {s.label}
-                          </option>
-                        ))}
-                      </select>
+                        onChange={(v) => setPresetForm({ ...presetForm, section: v as PresetSection })}
+                        options={PRESET_SECTIONS.map((x) => ({ value: x.id, label: x.label }))}
+                      />
                     </Field>
                     <Field label="Nome do preset">
                       <input
