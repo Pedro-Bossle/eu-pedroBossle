@@ -4,6 +4,11 @@ import { Pool } from "@neondatabase/serverless";
 
 const url = process.env.DATABASE_URL;
 if (!url) {
+  // No build da Vercel sem banco (ex.: fork), segue sem migrar.
+  if (process.argv.includes("--optional")) {
+    console.log("DATABASE_URL ausente: migrations puladas.");
+    process.exit(0);
+  }
   console.error("Defina DATABASE_URL");
   process.exit(1);
 }
@@ -72,6 +77,7 @@ const sqlFiles = [
   resolve("db/016_crm_payments.sql"),
   resolve("db/017_crm_projects.sql"),
   resolve("db/018_perf_indexes.sql"),
+  resolve("db/019_prospect_rules.sql"),
 ];
 const pool = new Pool({ connectionString: url });
 const client = await pool.connect();

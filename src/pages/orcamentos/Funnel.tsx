@@ -9,7 +9,7 @@ import {
   prospectsToCsv,
   whatsappUrl,
 } from "../../lib/orcamentos/prospects";
-import type { BotToken, ProspectEvent, ProspectInput, ProspectLead } from "../../types/orcamentos";
+import type { BotToken, ProspectEvent, ProspectInput, ProspectLead, ProspectRules } from "../../types/orcamentos";
 import Icon from "./ui/Icon";
 import QuickMenu from "./ui/QuickMenu";
 import Select from "./ui/Select";
@@ -82,6 +82,13 @@ const STAGE_HINT: Record<string, string> = {
 };
 
 const isExit = (s: string) => (EXITS as readonly string[]).includes(s);
+
+/** Canal do primeiro contato (espelha leadChannel da API). */
+const channelOf = (l: ProspectLead) =>
+  l.whatsapp.replace(/\D/g, "").length >= 10 ? "whatsapp" : /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(l.email.trim()) ? "email" : "none";
+
+const mailtoUrl = (l: ProspectLead, body: string) =>
+  `mailto:${encodeURIComponent(l.email.trim())}?subject=${encodeURIComponent(`Sobre o site da ${l.name}`)}&body=${encodeURIComponent(body)}`;
 
 const inputClass = `${control} w-full min-h-10 px-3 py-2 text-base sm:text-sm`;
 const areaClass = `${control} w-full min-h-40 resize-y px-3.5 py-3 text-base leading-relaxed sm:text-sm`;
@@ -273,6 +280,13 @@ function LeadCard({
             "Não informado"
           )}
         </Row>
+        {lead.email ? (
+          <Row label="E-mail">
+            <a href={`mailto:${lead.email}`} className={`${linkClass} break-all`}>
+              {lead.email}
+            </a>
+          </Row>
+        ) : null}
         {lead.instagram ? (
           <Row label="Instagram">
             <a
@@ -405,7 +419,17 @@ function LeadCard({
             Aprovar mensagem
           </button>
         ) : null}
-        {stage === "aprovado" && best ? (
+        {stage === "aprovado" && channelOf(lead) === "email" ? (
+          <>
+            <a href={mailtoUrl(lead, message)} className={btnPrimary}>
+              Abrir no e-mail
+            </a>
+            <button type="button" className={btn} disabled={busy} onClick={() => move("enviado", { note: "enviado por e-mail" })}>
+              Marcar como enviado
+            </button>
+          </>
+        ) : null}
+        {stage === "aprovado" && channelOf(lead) === "whatsapp" && best ? (
           <a
             href={whatsappUrl(best.wa, message)}
             target="_blank"
@@ -989,7 +1013,9 @@ function LeadRow({
   onReject: () => void;
 }) {
   const since = lead.stageChangedAt ?? lead.created;
-  const meta = [lead.niche, lead.neighborhood || lead.city, lead.website ? "" : "sem site"].filter(Boolean).join(" · ");
+  const meta = [lead.niche, lead.neighborhood ? `${lead.neighborhood}, ${lead.city}` : lead.city, lead.website ? "site com problema" : "sem site", channelOf(lead) === "email" ? "por e-mail" : ""]
+    .filter(Boolean)
+    .join(" · ");
   const preview =
     lead.stage === "aguardando"
       ? lead.message
@@ -1040,7 +1066,104 @@ function LeadRow({
   );
 }
 
-type Panel = "" | "new" | "import" | "tokens";
+const SERRA = ["Caxias do Sul", "Farroupilha", "São Marcos"];
+
+/** Regras que a API aplica aos leads dos bots. */
+function RulesPanel({ onClose, showToast }: { onClose: () => void; showToast: (msg: string) => void }) {
+  const [rules, setRules] = useState<ProspectRules | null>(null);
+  const [text, setText] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    orcamentosApi
+      .prospectRules()
+      .then(({ rules: r }) => {
+        setRules(r);
+        setText(r.cities.join("\n"));
+      })
+      .catch((e) => showToast(e instanceof Error ? e.message : "Falha ao carregar as regras"));
+  }, [showToast]);
+
+  const cities = text
+    .split(/[\n;,]+/)
+    .map((c) => c.trim())
+    .filter(Boolean);
+
+  const save = async () => {
+    if (!rules) return;
+    setBusy(true);
+    try {
+      const { rules: saved } = await orcamentosApi.saveProspectRules({ cities, allowWebsite: rules.allowWebsite });
+      setRules(saved);
+      showToast("Regras salvas. Valem para os próximos envios dos bots.");
+      onClose();
+    } catch (e) {
+      showToast(e instanceof Error ? e.message : "Falha ao salvar");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  if (!rules) return <p className="text-sm text-muted">Carregando…</p>;
+  return (
+    <div className="space-y-6">
+      <div className="space-y-2">
+        <label htmlFor="rules-cities" className={labelClass}>
+          Cidades atendidas
+        </label>
+        <textarea
+          id="rules-cities"
+          className={`${areaClass} min-h-32`}
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          placeholder={"Uma por linha. Vazio = qualquer cidade.\nEx.: Passo Fundo"}
+        />
+        <p className="text-xs text-muted">
+          {cities.length ? `${cities.length} cidade${cities.length > 1 ? "s" : ""}. Lead de outra cidade é recusado pela API.` : "Sem lista: o bot pode cadastrar leads de qualquer cidade."}
+        </p>
+        <div className="flex flex-wrap gap-2">
+          <button type="button" className={btnSm} onClick={() => setText("")}>
+            Qualquer cidade
+          </button>
+          <button type="button" className={btnSm} onClick={() => setText(SERRA.join("\n"))}>
+            Só Caxias, Farroupilha e São Marcos
+          </button>
+        </div>
+      </div>
+
+      <label className="flex items-start gap-3 rounded-xl border border-line p-3.5 text-sm">
+        <input
+          type="checkbox"
+          className="mt-0.5 size-4 accent-emerald-700"
+          checked={rules.allowWebsite}
+          onChange={(e) => setRules({ ...rules, allowWebsite: e.target.checked })}
+        />
+        <span>
+          <span className="font-medium">Aceitar lead com site ruim</span>
+          <span className="mt-0.5 block text-muted">
+            Site fora do ar, com erro de SSL, modelo pronto ou abandonado. O bot precisa descrever o problema na checagem.
+          </span>
+        </span>
+      </label>
+
+      <p className="text-xs text-muted">
+        Sempre valem: nota 70 ou mais, mensagem pronta e um canal: WhatsApp confirmado em 2 fontes ou e-mail. Leads só com
+        e-mail você envia pela ficha (Abrir no e-mail).
+      </p>
+
+      <div className="flex justify-end gap-2">
+        <button type="button" className={btn} onClick={onClose}>
+          Cancelar
+        </button>
+        <button type="button" className={btnPrimary} disabled={busy} onClick={save}>
+          {busy ? "Salvando…" : "Salvar regras"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+type Panel = "" | "new" | "import" | "tokens" | "rules";
 
 function Funnel({ showToast }: Props) {
   const [leads, setLeads] = useState<ProspectLead[]>([]);
@@ -1188,6 +1311,7 @@ function Funnel({ showToast }: Props) {
               onClose={() => setMenu(false)}
               items={[
                 { label: "Importar / exportar", icon: "M12 3v12m0 0-4-4m4 4 4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2", run: () => setPanel("import") },
+                { label: "Regras do funil", icon: "M4 6h16M7 12h10M10 18h4", run: () => setPanel("rules") },
                 { label: "Tokens dos bots", icon: "M15 7a2 2 0 1 1 0 4 2 2 0 0 1 0-4ZM3 21l7.5-7.5M13 11l-2 2m-4 4 2 2", run: () => setPanel("tokens") },
               ]}
             />
@@ -1371,6 +1495,11 @@ function Funnel({ showToast }: Props) {
       {panel === "import" ? (
         <Sheet title="Importar / exportar" onClose={closePanel}>
           <ImportExport leads={leads} onImported={setLeads} />
+        </Sheet>
+      ) : null}
+      {panel === "rules" ? (
+        <Sheet title="Regras do funil" subtitle="O que a API aceita dos bots" onClose={closePanel}>
+          <RulesPanel onClose={closePanel} showToast={showToast} />
         </Sheet>
       ) : null}
       {panel === "tokens" ? (

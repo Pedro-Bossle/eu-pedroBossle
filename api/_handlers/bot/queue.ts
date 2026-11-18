@@ -6,7 +6,8 @@ import { DAILY_FIRST_CONTACTS, inSendWindow, requireBot } from "../../_lib/prosp
 /**
  * Bot Whatsapp (executor). GET → o que pode ser enviado agora.
  * Só devolve leads Aprovados por Pedro e follow-ups que ele aprovou,
- * respeitando a janela de envio e o limite diário.
+ * respeitando a janela de envio e o limite diário. Leads só com e-mail
+ * ficam de fora: Pedro envia pelo painel.
  */
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (!(await requireBot(req, res, ["executor"]))) return;
@@ -34,7 +35,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         ? (
             await db.query(
               `SELECT id, name, whatsapp, message FROM prospect_leads
-               WHERE stage = 'aprovado' ORDER BY stage_changed_at LIMIT $1`,
+               WHERE stage = 'aprovado' AND length(regexp_replace(whatsapp, '\\D', '', 'g')) >= 10
+               ORDER BY stage_changed_at LIMIT $1`,
               [remaining],
             )
           ).rows
@@ -43,6 +45,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         await db.query(
           `SELECT id, name, whatsapp, followup_message AS message FROM prospect_leads
            WHERE stage = 'enviado' AND followup_approved_at IS NOT NULL
+             AND length(regexp_replace(whatsapp, '\\D', '', 'g')) >= 10
            ORDER BY followup_approved_at LIMIT 20`,
         )
       ).rows;

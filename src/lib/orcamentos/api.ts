@@ -1,4 +1,5 @@
 import type {
+  ProspectRules,
   ContactLead,
   OrcamentoClient,
   OrcamentoComment,
@@ -258,6 +259,12 @@ export const orcamentosApi = {
     request<{ lead: ProspectLead }>("/api/orcamentos/prospects/followup", {
       method: "POST",
       body: JSON.stringify({ id, message }),
+    }),
+  prospectRules: () => request<{ rules: ProspectRules }>("/api/orcamentos/prospects/rules"),
+  saveProspectRules: (rules: ProspectRules) =>
+    request<{ rules: ProspectRules }>("/api/orcamentos/prospects/rules", {
+      method: "PUT",
+      body: JSON.stringify(rules),
     }),
   listBotTokens: () =>
     request<{ tokens: BotToken[] }>("/api/orcamentos/prospects/bot-tokens"),

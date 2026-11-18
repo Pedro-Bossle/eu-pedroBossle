@@ -125,6 +125,9 @@ export type ContactLead = {
   readAt: string | null;
 };
 
+/** Regras do funil para os bots (019). Cidades vazias = qualquer cidade. */
+export type ProspectRules = { cities: string[]; allowWebsite: boolean };
+
 /** Lead de prospecção (negócio local para oferecer site). */
 export type ProspectLead = {
   id: string;
