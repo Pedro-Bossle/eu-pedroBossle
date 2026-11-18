@@ -1,13 +1,14 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { json, requireSession } from "../../_lib/auth.js";
 import { withAuth } from "../../_lib/db.js";
+import { dayStart } from "../../_lib/sqlTime.js";
 
 const TZ = "America/Sao_Paulo";
 const TODAY = `(now() AT TIME ZONE '${TZ}')::date`;
 
 /** Cada contador isolado: tabela de módulo não migrado vira 0 em vez de derrubar os outros. */
 const COUNTS: Record<string, string> = {
-  today: `SELECT count(*)::int AS n FROM crm_tasks WHERE done_at IS NULL AND (due_at AT TIME ZONE '${TZ}')::date <= ${TODAY}`,
+  today: `SELECT count(*)::int AS n FROM crm_tasks WHERE done_at IS NULL AND due_at < ${dayStart(`${TODAY} + 1`)}`,
   inbox: `SELECT count(*)::int AS n FROM contact_leads WHERE read_at IS NULL`,
   instagram: `SELECT count(*)::int AS n FROM ig_comments WHERE status = 'novo' AND NOT from_me`,
   prospects: `SELECT count(*)::int AS n FROM prospect_leads

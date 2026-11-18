@@ -1,6 +1,7 @@
 import type { PoolClient } from "@neondatabase/serverless";
 import { withAuth } from "./db.js";
 import { TASK_COLS, TASK_FROM, mapTask } from "./crm.js";
+import { MONTH_START, dayStart, inMonth, onDay } from "./sqlTime.js";
 
 const TZ = "America/Sao_Paulo";
 const TODAY = `(now() AT TIME ZONE '${TZ}')::date`;
@@ -26,13 +27,13 @@ export async function loadToday() {
     safe(async (db) => {
       const { rows } = await db.query(
         `SELECT ${TASK_COLS}, (t.due_at AT TIME ZONE '${TZ}')::date AS due_day FROM ${TASK_FROM}
-         WHERE t.done_at IS NULL AND (t.due_at IS NULL OR (t.due_at AT TIME ZONE '${TZ}')::date <= ${TODAY} + 7)
+         WHERE t.done_at IS NULL AND (t.due_at IS NULL OR t.due_at < ${dayStart(`${TODAY} + 8`)})
          ORDER BY t.due_at ASC NULLS LAST, t.priority DESC LIMIT 200`,
       );
       const today = await db.query(`SELECT ${TODAY}::text AS d`);
       const d = String(today.rows[0]!.d);
       const doneToday = await db.query(
-        `SELECT count(*)::int AS n FROM crm_tasks WHERE (done_at AT TIME ZONE '${TZ}')::date = ${TODAY}`,
+        `SELECT count(*)::int AS n FROM crm_tasks WHERE ${onDay("done_at", TODAY)}`,
       );
       const list = rows.map((r) => ({ ...mapTask(r), dueDay: r.due_day ? String(r.due_day instanceof Date ? r.due_day.toISOString().slice(0, 10) : r.due_day).slice(0, 10) : null }));
       return {
@@ -100,7 +101,7 @@ export async function loadToday() {
     safe(async (db) => {
       const posts = await db.query(
         `SELECT id, kind, caption, scheduled_at, status, media_urls[1] AS thumb FROM ig_posts
-         WHERE (status IN ('agendado', 'publicando') AND (scheduled_at AT TIME ZONE '${TZ}')::date = ${TODAY})
+         WHERE (status IN ('agendado', 'publicando') AND ${onDay("scheduled_at", TODAY)})
             OR status = 'erro'
          ORDER BY scheduled_at LIMIT 10`,
       );
@@ -131,7 +132,7 @@ export async function loadToday() {
         `SELECT b.category, b.monthly_limit, COALESCE(-sum(t.amount), 0) AS spent
          FROM fin_budgets b
          LEFT JOIN fin_transactions t ON t.category = b.category AND NOT t.ignored AND t.amount < 0
-           AND to_char(t.date AT TIME ZONE '${TZ}', 'YYYY-MM') = to_char(now() AT TIME ZONE '${TZ}', 'YYYY-MM')
+           AND ${inMonth("t.date", MONTH_START)}
          GROUP BY b.category, b.monthly_limit
          HAVING COALESCE(-sum(t.amount), 0) > b.monthly_limit * 0.85`,
       );
@@ -147,7 +148,7 @@ export async function loadToday() {
            (SELECT count(*) FROM clients WHERE status IN ('ativo', 'recorrente'))::int AS active_clients,
            (SELECT COALESCE(sum(total), 0) FROM proposals WHERE status IN ('Em elaboração', 'Enviado')) AS pipeline,
            (SELECT COALESCE(sum(total), 0) FROM proposals WHERE status = 'Aprovado'
-              AND to_char(updated_at AT TIME ZONE '${TZ}', 'YYYY-MM') = to_char(now() AT TIME ZONE '${TZ}', 'YYYY-MM')) AS won_month,
+              AND ${inMonth("updated_at", MONTH_START)}) AS won_month,
            (SELECT count(*) FROM proposals WHERE status = 'Aprovado')::int AS won_total,
            (SELECT count(*) FROM proposals WHERE status IN ('Aprovado', 'Recusado'))::int AS decided`,
       );
@@ -173,7 +174,7 @@ export async function loadToday() {
            COALESCE(sum(amount) FILTER (WHERE paid_at IS NULL), 0) AS open,
            COALESCE(sum(amount) FILTER (WHERE paid_at IS NULL AND due_date < ${TODAY}), 0) AS overdue,
            COALESCE(sum(amount) FILTER (WHERE paid_at IS NOT NULL
-             AND to_char(paid_at AT TIME ZONE '${TZ}', 'YYYY-MM') = to_char(now() AT TIME ZONE '${TZ}', 'YYYY-MM')), 0) AS received_month
+             AND ${inMonth("paid_at", MONTH_START)}), 0) AS received_month
          FROM crm_payments`,
       );
       const t = totals.rows[0]!;

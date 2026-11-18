@@ -2,8 +2,8 @@ import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { json, readBody, requireSession } from "../../_lib/auth.js";
 import { withAuth } from "../../_lib/db.js";
 import { mapTx } from "../../_lib/finMappers.js";
+import { inMonth, monthOf } from "../../_lib/sqlTime.js";
 
-const TZ = "America/Sao_Paulo";
 
 /**
  * GET ?month=YYYY-MM | ?q=texto → transações (do mês, ou busca nos últimos 2 anos)
@@ -28,7 +28,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             )
           : db.query(
               `SELECT * FROM fin_transactions
-               WHERE to_char(date AT TIME ZONE '${TZ}', 'YYYY-MM') = $1
+               WHERE ${inMonth("date", monthOf("$1"))}
                ORDER BY date DESC LIMIT 3000`,
               [month],
             ),

@@ -19,9 +19,9 @@ export async function withAuth<T>(
 ): Promise<T> {
   const client = await getPool().connect();
   try {
-    await client.query("BEGIN");
+    // Uma ida ao banco só (protocolo simples aceita os dois comandos juntos)
     await client.query(
-      "SELECT set_config('app.authenticated', 'true', true)",
+      "BEGIN; SELECT set_config('app.authenticated', 'true', true)",
     );
     const result = await fn(client);
     await client.query("COMMIT");

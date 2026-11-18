@@ -1,6 +1,7 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { json, requireSession } from "../../_lib/auth.js";
 import { withAuth } from "../../_lib/db.js";
+import { dayStart } from "../../_lib/sqlTime.js";
 
 const TZ = "America/Sao_Paulo";
 
@@ -54,8 +55,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 t.merchant, t.description
          FROM fin_transactions t JOIN fin_accounts a ON a.id = t.account_id
          WHERE NOT t.ignored AND NOT a.hidden
-           AND (t.date AT TIME ZONE '${TZ}') >= $1::date
-           AND (t.date AT TIME ZONE '${TZ}') < ($2::date + interval '1 month')`,
+           AND t.date >= ${dayStart("$1::date")}
+           AND t.date < ${dayStart("($2::date + interval '1 month')::date")}`,
         [`${first}-01`, `${month}-01`],
       );
       return rows.map(

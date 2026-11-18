@@ -71,6 +71,7 @@ const sqlFiles = [
   resolve("db/015_crm_recurring.sql"),
   resolve("db/016_crm_payments.sql"),
   resolve("db/017_crm_projects.sql"),
+  resolve("db/018_perf_indexes.sql"),
 ];
 const pool = new Pool({ connectionString: url });
 const client = await pool.connect();

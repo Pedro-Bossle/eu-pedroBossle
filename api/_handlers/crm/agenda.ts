@@ -3,6 +3,7 @@ import type { PoolClient } from "@neondatabase/serverless";
 import { json, requireSession } from "../../_lib/auth.js";
 import { withAuth } from "../../_lib/db.js";
 import { TASK_COLS, TASK_FROM, mapTask } from "../../_lib/crm.js";
+import { dayStart } from "../../_lib/sqlTime.js";
 
 const TZ = "America/Sao_Paulo";
 const DAY = /^\d{4}-\d{2}-\d{2}$/;
@@ -49,7 +50,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         ...(await part(db, async () => {
           const { rows } = await db.query(
             `SELECT ${TASK_COLS}, to_char(${local("t.due_at")}, 'YYYY-MM-DD') AS d, to_char(${local("t.due_at")}, 'HH24:MI') AS hm
-             FROM ${TASK_FROM} WHERE t.due_at IS NOT NULL AND ${local("t.due_at")}::date BETWEEN $1 AND $2`,
+             FROM ${TASK_FROM} WHERE t.due_at >= ${dayStart("$1::date")} AND t.due_at < ${dayStart("$2::date + 1")}`,
             [from, to],
           );
           return rows.map((r) => {
@@ -109,8 +110,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           const { rows } = await db.query(
             `SELECT id, kind, caption, status, to_char(${local("COALESCE(published_at, scheduled_at)")}, 'YYYY-MM-DD') AS d,
                     to_char(${local("COALESCE(published_at, scheduled_at)")}, 'HH24:MI') AS hm
-             FROM ig_posts WHERE COALESCE(published_at, scheduled_at) IS NOT NULL
-               AND ${local("COALESCE(published_at, scheduled_at)")}::date BETWEEN $1 AND $2 AND status <> 'rascunho'`,
+             FROM ig_posts
+             WHERE status <> 'rascunho' AND (
+               (published_at >= ${dayStart("$1::date")} AND published_at < ${dayStart("$2::date + 1")})
+               OR (published_at IS NULL AND scheduled_at >= ${dayStart("$1::date")} AND scheduled_at < ${dayStart("$2::date + 1")}))`,
             [from, to],
           );
           return rows.map((r) => ({
