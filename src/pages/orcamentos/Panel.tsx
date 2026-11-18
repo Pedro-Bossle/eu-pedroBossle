@@ -1,4 +1,6 @@
 import {
+  lazy,
+  Suspense,
   useCallback,
   useEffect,
   useMemo,
@@ -45,7 +47,6 @@ import {
 } from "./downloadProposalPdf";
 import { money, uid } from "./money";
 import ProposalPdfDocument from "./ProposalPdfDocument";
-import Funnel from "./Funnel";
 import {
   appRoot,
   btn,
@@ -59,7 +60,6 @@ import {
   shellClass,
   textareaClass,
 } from "./panelStyles";
-import Instagram from "./Instagram";
 import Select from "./ui/Select";
 import Sheet from "./ui/Sheet";
 import QuickMenu from "./ui/QuickMenu";
@@ -73,7 +73,11 @@ import Today, { type TodayNav } from "./crm/Today";
 import Results from "./crm/Results";
 import { CLIENT_CREATED, convertToClient } from "./crm/events";
 import type { CrmSearchResult, CrmTask, CrmToday } from "../../types/orcamentos";
-import Finance from "./Finance";
+
+// Telas pesadas carregam só quando abertas (gráficos, calendário, widget da Pluggy)
+const Funnel = lazy(() => import("./Funnel"));
+const Instagram = lazy(() => import("./Instagram"));
+const Finance = lazy(() => import("./Finance"));
 
 type Tab =
   | "today"
@@ -164,6 +168,17 @@ function statusChipClass(status: string) {
   if (s.includes("recus") || s.includes("cancel"))
     return "border-red-500/35 text-red-700 hover:bg-red-500/10 dark:text-red-300";
   return "border-line-strong text-muted hover:bg-sunken";
+}
+
+/** Placeholder enquanto uma tela carregada sob demanda chega. */
+function TabSkeleton() {
+  return (
+    <div className="space-y-4" aria-busy="true" aria-label="Carregando">
+      <div className="h-10 w-56 animate-pulse rounded-xl bg-sunken motion-reduce:animate-none" />
+      <div className="h-28 animate-pulse rounded-2xl bg-sunken/70 motion-reduce:animate-none" />
+      <div className="h-72 animate-pulse rounded-2xl bg-sunken/70 motion-reduce:animate-none" />
+    </div>
+  );
 }
 
 function TrafficLights({ compact }: { compact?: boolean }) {
@@ -2172,12 +2187,12 @@ function Panel({
           ) : null}
 
           {!editing && tab === "prospects" ? (
-            <Funnel showToast={showToast} />
+            <Suspense fallback={<TabSkeleton />}><Funnel showToast={showToast} /></Suspense>
           ) : null}
 
-          {!editing && tab === "instagram" ? <Instagram showToast={showToast} /> : null}
+          {!editing && tab === "instagram" ? <Suspense fallback={<TabSkeleton />}><Instagram showToast={showToast} /></Suspense> : null}
 
-          {!editing && tab === "finance" ? <Finance showToast={showToast} /> : null}
+          {!editing && tab === "finance" ? <Suspense fallback={<TabSkeleton />}><Finance showToast={showToast} /></Suspense> : null}
 
           {!editing && tab === "inbox" ? (
             <section>
