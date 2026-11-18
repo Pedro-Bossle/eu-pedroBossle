@@ -52,8 +52,9 @@ export default function Tasks({ clients, version, onOpenTask, onOpenClient, show
     const done = !t.doneAt;
     setTasks((list) => list?.map((x) => (x.id === t.id ? { ...x, doneAt: done ? new Date().toISOString() : null } : x)) ?? null);
     try {
-      await orcamentosApi.crmToggleTask(t.id, done);
-      window.setTimeout(() => setTasks((list) => list?.filter((x) => x.id !== t.id) ?? null), 450);
+      const { next } = await orcamentosApi.crmToggleTask(t.id, done);
+      window.setTimeout(() => setTasks((list) => [...(list?.filter((x) => x.id !== t.id) ?? []), ...(next ? [next] : [])]), 450);
+      if (next) showToast(`Próxima: ${new Date(next.dueAt ?? "").toLocaleDateString("pt-BR", { weekday: "short", day: "2-digit", month: "short" })}`);
     } catch (e) {
       showToast(e instanceof Error ? e.message : "Erro");
       load();

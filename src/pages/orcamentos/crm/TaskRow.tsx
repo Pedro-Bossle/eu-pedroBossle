@@ -2,7 +2,7 @@ import { useState } from "react";
 import type { CrmTask } from "../../../types/orcamentos";
 import { focusRing } from "../panelStyles";
 import Icon from "../ui/Icon";
-import { TASK_KIND_ICON, TASK_KIND_LABEL, dueLabel } from "./model";
+import { REPEAT_ICON, REPEAT_LABEL, TASK_KIND_ICON, TASK_KIND_LABEL, dueLabel } from "./model";
 
 const TONE: Record<string, string> = {
   late: "text-danger",
@@ -57,6 +57,12 @@ export default function TaskRow({
             {task.kind !== "tarefa" ? `${TASK_KIND_LABEL[task.kind]} · ` : ""}
             {due.text}
           </span>
+          {task.repeat && task.repeat !== "none" ? (
+            <span className="inline-flex items-center gap-1 text-faint" title={REPEAT_LABEL[task.repeat]}>
+              <Icon d={REPEAT_ICON} className="size-3.5" />
+              <span className="sr-only">{REPEAT_LABEL[task.repeat]}</span>
+            </span>
+          ) : null}
           {task.priority === 2 && !done ? <span className="rounded-full bg-danger-soft px-1.5 py-px text-[10px] font-medium text-danger">Alta</span> : null}
           {task.notes ? <Icon d="M4 6h16M4 12h16M4 18h10" className="size-3.5 text-faint" /> : null}
           {showClient && related ? <span className="truncate text-muted sm:hidden">· {related}</span> : null}

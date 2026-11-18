@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { orcamentosApi } from "../../../lib/orcamentos/api";
-import type { CrmTask, CrmTaskKind, OrcamentoClient } from "../../../types/orcamentos";
+import type { CrmTask, CrmTaskKind, CrmTaskRepeat, OrcamentoClient } from "../../../types/orcamentos";
 import { btn, btnDanger, btnPrimary, focusRing, inputClass, labelClass, textareaClass } from "../panelStyles";
 import Select from "../ui/Select";
 import Sheet from "../ui/Sheet";
-import { PRIORITIES, TASK_KINDS, addDays, ymd, type TaskDraft } from "./model";
+import { PRIORITIES, REPEATS, TASK_KINDS, addDays, ymd, type TaskDraft } from "./model";
 
 const splitDue = (iso: string | null | undefined, allDay: boolean | undefined) => {
   if (!iso) return { date: "", time: "" };
@@ -35,6 +35,7 @@ export default function TaskEditor({
   const [date, setDate] = useState(start.date);
   const [time, setTime] = useState(start.time);
   const [clientId, setClientId] = useState(initial.clientId ?? "");
+  const [repeat, setRepeat] = useState<CrmTaskRepeat>(initial.repeat ?? "none");
   const [busy, setBusy] = useState(false);
 
   const quick = [
@@ -58,6 +59,7 @@ export default function TaskEditor({
         priority: Number(priority),
         dueAt,
         allDay: !time,
+        repeat: date ? repeat : "none",
         clientId: clientId || null,
         proposalId: initial.proposalId ?? null,
         leadId: initial.leadId ?? null,
@@ -161,7 +163,7 @@ export default function TaskEditor({
               </button>
             ))}
           </div>
-          <div className="mt-2 grid grid-cols-2 gap-2">
+          <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-[1fr_1fr_1.2fr]">
             <input type="date" className={inputClass} value={date} onChange={(e) => setDate(e.target.value)} aria-label="Data" />
             <input
               type="time"
@@ -171,6 +173,9 @@ export default function TaskEditor({
               disabled={!date}
               aria-label="Horário (opcional)"
             />
+            <div className="col-span-2 sm:col-span-1">
+              <Select ariaLabel="Repetir" disabled={!date} value={repeat} onChange={(v) => setRepeat(v as CrmTaskRepeat)} options={REPEATS} />
+            </div>
           </div>
         </div>
 

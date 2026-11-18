@@ -70,8 +70,8 @@ export default function Today({ name, version, onNavigate, onOpenClient, onOpenP
     // Otimista: some da lista com um pequeno atraso para a animação do check aparecer
     setData((d) => (d?.tasks ? { ...d, tasks: mapTasks(d.tasks, (x) => (x.id === t.id ? { ...x, doneAt: done ? new Date().toISOString() : null } : x)) } : d));
     try {
-      await orcamentosApi.crmToggleTask(t.id, done);
-      if (done) showToast("Tarefa concluída");
+      const { next } = await orcamentosApi.crmToggleTask(t.id, done);
+      if (done) showToast(next ? "Concluída — a próxima já está agendada" : "Tarefa concluída");
       window.setTimeout(load, 600);
     } catch (e) {
       showToast(e instanceof Error ? e.message : "Erro");

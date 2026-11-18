@@ -3,7 +3,7 @@ const iso = (v: unknown) => (v == null ? null : v instanceof Date ? v.toISOStrin
 export const TASK_KINDS = ["tarefa", "follow-up", "reuniao", "ligacao", "entrega", "cobranca"] as const;
 export const ACTIVITY_KINDS = ["nota", "ligacao", "reuniao", "email", "whatsapp", "pagamento", "entrega"] as const;
 
-export const TASK_COLS = `t.id, t.title, t.notes, t.kind, t.priority, t.due_at, t.all_day, t.done_at,
+export const TASK_COLS = `t.id, t.title, t.notes, t.kind, t.priority, t.due_at, t.all_day, t.done_at, t.repeat,
   t.client_id, t.proposal_id, t.lead_id, t.created_at,
   c.name AS client_name, COALESCE(NULLIF(p.company, ''), p.id) AS proposal_label, l.name AS lead_name`;
 export const TASK_FROM = `crm_tasks t
@@ -21,6 +21,7 @@ export function mapTask(r: Record<string, unknown>) {
     dueAt: iso(r.due_at),
     allDay: Boolean(r.all_day),
     doneAt: iso(r.done_at),
+    repeat: String(r.repeat ?? "none"),
     clientId: r.client_id ? String(r.client_id) : null,
     clientName: r.client_name ? String(r.client_name) : null,
     proposalId: r.proposal_id ? String(r.proposal_id) : null,
@@ -40,5 +41,7 @@ export function mapActivity(r: Record<string, unknown>) {
     at: iso(r.at),
   };
 }
+
+export const REPEATS = ["none", "daily", "weekdays", "weekly", "monthly"] as const;
 
 export const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;

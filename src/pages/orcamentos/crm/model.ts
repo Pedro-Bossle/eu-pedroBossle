@@ -12,6 +12,16 @@ export const TASK_KINDS: { value: CrmTaskKind; label: string; icon: string }[] =
 export const TASK_KIND_LABEL = Object.fromEntries(TASK_KINDS.map((k) => [k.value, k.label])) as Record<CrmTaskKind, string>;
 export const TASK_KIND_ICON = Object.fromEntries(TASK_KINDS.map((k) => [k.value, k.icon])) as Record<CrmTaskKind, string>;
 
+export const REPEATS = [
+  { value: "none", label: "Não repetir" },
+  { value: "daily", label: "Todo dia" },
+  { value: "weekdays", label: "Dias úteis" },
+  { value: "weekly", label: "Toda semana" },
+  { value: "monthly", label: "Todo mês" },
+];
+export const REPEAT_LABEL = Object.fromEntries(REPEATS.map((r) => [r.value, r.label])) as Record<string, string>;
+export const REPEAT_ICON = "M17 1l4 4-4 4M3 11V9a4 4 0 0 1 4-4h14M7 23l-4-4 4-4M21 13v2a4 4 0 0 1-4 4H3";
+
 export const PRIORITIES = [
   { value: "0", label: "Baixa" },
   { value: "1", label: "Normal" },
@@ -104,6 +114,7 @@ export function draftFromTask(t: CrmTask): TaskDraft {
     priority: t.priority,
     dueAt: t.dueAt,
     allDay: t.allDay,
+    repeat: t.repeat ?? "none",
     clientId: t.clientId,
     proposalId: t.proposalId,
     leadId: t.leadId,

@@ -116,7 +116,8 @@ export default function ClientSheet({
     const done = !t.doneAt;
     setTasks((l) => l?.map((x) => (x.id === t.id ? { ...x, doneAt: done ? new Date().toISOString() : null } : x)) ?? null);
     try {
-      await orcamentosApi.crmToggleTask(t.id, done);
+      const { next } = await orcamentosApi.crmToggleTask(t.id, done);
+      if (next) load();
     } catch {
       load();
     }

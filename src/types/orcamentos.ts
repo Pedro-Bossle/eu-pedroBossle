@@ -424,6 +424,8 @@ export type CrmTask = {
   dueAt: string | null;
   allDay: boolean;
   doneAt: string | null;
+  /** none | daily | weekdays | weekly | monthly */
+  repeat?: CrmTaskRepeat;
   clientId: string | null;
   clientName: string | null;
   proposalId: string | null;
@@ -442,10 +444,13 @@ export type CrmTaskInput = {
   priority?: number;
   dueAt?: string | null;
   allDay?: boolean;
+  repeat?: CrmTaskRepeat;
   clientId?: string | null;
   proposalId?: string | null;
   leadId?: string | null;
 };
+
+export type CrmTaskRepeat = "none" | "daily" | "weekdays" | "weekly" | "monthly";
 
 export type CrmActivityKind = "nota" | "ligacao" | "reuniao" | "email" | "whatsapp" | "pagamento" | "entrega";
 export type CrmActivity = { id: string; clientId: string; kind: CrmActivityKind; body: string; at: string | null };

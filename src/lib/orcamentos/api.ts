@@ -398,7 +398,7 @@ export const orcamentosApi = {
   crmSaveTask: (task: CrmTaskInput) =>
     request<{ task: CrmTask }>("/api/orcamentos/crm/tasks", { method: "POST", body: JSON.stringify(task) }),
   crmToggleTask: (id: string, done: boolean) =>
-    request<{ task: CrmTask }>("/api/orcamentos/crm/tasks", { method: "PATCH", body: JSON.stringify({ id, done }) }),
+    request<{ task: CrmTask; next: CrmTask | null }>("/api/orcamentos/crm/tasks", { method: "PATCH", body: JSON.stringify({ id, done }) }),
   crmDeleteTask: (id: string) =>
     request<{ ok: boolean }>(`/api/orcamentos/crm/tasks?id=${encodeURIComponent(id)}`, { method: "DELETE" }),
   crmActivities: (clientId: string) =>
