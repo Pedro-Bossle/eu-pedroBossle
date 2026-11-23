@@ -1,5 +1,6 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { json, readBody, requireSession } from "../../_lib/auth.js";
+import { blobUploadMode } from "./upload.js";
 import { withAuth } from "../../_lib/db.js";
 import { connectIg, deleteIgCredential, loadIgCredential } from "../../_lib/instagram.js";
 import { POST_COLS, mapComment, mapMedia, mapPost } from "../../_lib/igMappers.js";
@@ -40,7 +41,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         ...data,
         features: {
           oauth: Boolean(process.env.META_APP_ID && process.env.META_APP_SECRET),
-          upload: Boolean(process.env.BLOB_READ_WRITE_TOKEN),
+          upload: Boolean(blobUploadMode()),
+          uploadMode: blobUploadMode(),
           cron: Boolean(process.env.CRON_SECRET),
         },
       });

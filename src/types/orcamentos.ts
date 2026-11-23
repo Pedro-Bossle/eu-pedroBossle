@@ -305,7 +305,7 @@ export type IgOverview = {
   posts: IgPost[];
   media: IgMedia[];
   comments: IgComment[];
-  features: { oauth: boolean; upload: boolean; cron: boolean };
+  features: { oauth: boolean; upload: boolean; uploadMode?: "token" | "presigned" | null; cron: boolean };
 };
 
 // ---------- Finanças (012) ----------
