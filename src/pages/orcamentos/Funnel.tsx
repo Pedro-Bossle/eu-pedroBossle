@@ -87,8 +87,15 @@ const isExit = (s: string) => (EXITS as readonly string[]).includes(s);
 const channelOf = (l: ProspectLead) =>
   l.whatsapp.replace(/\D/g, "").length >= 10 ? "whatsapp" : /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(l.email.trim()) ? "email" : "none";
 
-const mailtoUrl = (l: ProspectLead, body: string) =>
-  `mailto:${encodeURIComponent(l.email.trim())}?subject=${encodeURIComponent(`Sobre o site da ${l.name}`)}&body=${encodeURIComponent(body)}`;
+/** Abre a tela de "Escrever" do Gmail no navegador, já com destinatário, assunto e mensagem. */
+const gmailComposeUrl = (to: string, subject = "", body = "") => {
+  const params: [string, string][] = [["view", "cm"], ["fs", "1"], ["to", to.trim()]];
+  if (subject) params.push(["su", subject]);
+  if (body) params.push(["body", body]);
+  return `https://mail.google.com/mail/?${params.map(([k, v]) => `${k}=${encodeURIComponent(v)}`).join("&")}`;
+};
+
+const leadGmailUrl = (l: ProspectLead, body: string) => gmailComposeUrl(l.email, `Sobre o site da ${l.name}`, body);
 
 const inputClass = `${control} w-full min-h-10 px-3 py-2 text-base sm:text-sm`;
 const areaClass = `${control} w-full min-h-40 resize-y px-3.5 py-3 text-base leading-relaxed sm:text-sm`;
@@ -282,7 +289,7 @@ function LeadCard({
         </Row>
         {lead.email ? (
           <Row label="E-mail">
-            <a href={`mailto:${lead.email}`} className={`${linkClass} break-all`}>
+            <a href={gmailComposeUrl(lead.email)} target="_blank" rel="noopener noreferrer" className={`${linkClass} break-all`}>
               {lead.email}
             </a>
           </Row>
@@ -421,8 +428,8 @@ function LeadCard({
         ) : null}
         {stage === "aprovado" && channelOf(lead) === "email" ? (
           <>
-            <a href={mailtoUrl(lead, message)} className={btnPrimary}>
-              Abrir no e-mail
+            <a href={leadGmailUrl(lead, message)} target="_blank" rel="noopener noreferrer" className={btnPrimary}>
+              Abrir no Gmail
             </a>
             <button type="button" className={btn} disabled={busy} onClick={() => move("enviado", { note: "enviado por e-mail" })}>
               Marcar como enviado
