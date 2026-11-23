@@ -80,29 +80,34 @@ export const PROSPECTOR_CREATE: readonly Stage[] = [
 ];
 
 export function canMove(actor: Actor, from: Stage, to: Stage): boolean {
+  // Pedro pode trocar fechado ↔ perdido sem sair do Resultado
+  if (actor === "pedro") return from !== to || to === "resultado";
   if (from === to) return false;
-  if (actor === "pedro") return true;
   return (BOT_TRANSITIONS[actor][from] ?? []).includes(to);
 }
 
-/** Saídas exigem motivo; aprovação exige mensagem e WhatsApp. */
+/**
+ * O que impede o movimento, ou null. Para todos: saída exige motivo, aprovar exige
+ * mensagem e canal, resultado exige fechado/perdido. Só para os bots: nota 70+ para
+ * ir à aprovação (Pedro decide sozinho o que manda para a fila dele).
+ */
 export function validateMove(
   lead: { whatsapp: string; email?: string; message: string; score: number | null },
   to: Stage,
-  opts: { note: string; result?: string },
+  opts: { note: string; result?: string; actor?: Actor },
 ): string | null {
   if ((EXIT_STAGES as readonly string[]).includes(to) && !opts.note.trim()) {
     return "Informe o motivo da saída do funil";
   }
-  if (to === "aguardando" && (lead.score == null || lead.score < 70)) {
+  if (to === "aguardando" && opts.actor !== "pedro" && (lead.score == null || lead.score < 70)) {
     return "Só lead A (nota 70 ou mais) vai para aprovação";
   }
   if (to === "aprovado") {
-    if (!lead.message.trim()) return "Lead sem mensagem para aprovar";
-    if (leadChannel(lead) === "none") return "Lead sem WhatsApp nem e-mail válido";
+    if (!lead.message.trim()) return "Escreva a mensagem antes de aprovar";
+    if (leadChannel(lead) === "none") return "Lead sem WhatsApp nem e-mail válido: edite o contato antes de aprovar";
   }
   if (to === "resultado" && opts.result !== "fechado" && opts.result !== "perdido") {
-    return "Resultado deve ser fechado ou perdido";
+    return "Escolha fechado ou perdido";
   }
   return null;
 }
@@ -143,7 +148,8 @@ export async function moveLead(db: PoolClient, input: MoveInput): Promise<MoveRe
       }
     | undefined;
   if (!cur) return { ok: false, status: 404, error: "Lead não encontrado" };
-  if (input.to === "followup" && !cur.followup_approved_at) {
+  // O bot só manda follow-up aprovado; Pedro pode registrar um que mandou por fora
+  if (input.to === "followup" && input.actor !== "pedro" && !cur.followup_approved_at) {
     return { ok: false, status: 409, error: "Follow-up ainda não aprovado por Pedro" };
   }
 
@@ -160,7 +166,7 @@ export async function moveLead(db: PoolClient, input: MoveInput): Promise<MoveRe
     input.actor === "pedro" && typeof input.message === "string"
       ? input.message.trim().slice(0, 2000)
       : cur.message;
-  const problem = validateMove({ ...cur, message }, input.to, { note, result: input.result });
+  const problem = validateMove({ ...cur, message }, input.to, { note, result: input.result, actor: input.actor });
   if (problem) return { ok: false, status: 400, error: problem };
 
   const now = "now()";
@@ -170,7 +176,12 @@ export async function moveLead(db: PoolClient, input: MoveInput): Promise<MoveRe
   if ((EXIT_STAGES as readonly string[]).includes(input.to)) {
     params.push(note);
     sets.push(`exit_reason = $${params.length}`);
+  } else {
+    // Voltou para o funil: o motivo da saída antiga não vale mais
+    sets.push(`exit_reason = ''`);
   }
+  // Saiu do Resultado: limpa fechado/perdido para não mostrar selo antigo
+  if (input.to !== "resultado") sets.push(`result = ''`);
   if (input.to === "resultado") {
     params.push(input.result);
     sets.push(`result = $${params.length}`);
