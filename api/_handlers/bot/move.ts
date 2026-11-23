@@ -2,22 +2,23 @@ import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { json, readBody } from "../../_lib/auth.js";
 import { withAuth } from "../../_lib/db.js";
 import { mapProspect } from "../../_lib/prospects.js";
-import { botActorFor, isStage, moveLead, requireBot, type Stage } from "../../_lib/prospectFunnel.js";
+import { botActorFor, botLabel, isFullBot, isStage, moveLead, requireBot, type Stage } from "../../_lib/prospectFunnel.js";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 /**
  * Chaves com funil ou mensagens. POST { id, to, note?, replyText? } → move de etapa
  * seguindo as setas permitidas (ver BOT_TRANSITIONS): funil usa as do Dev Bossle,
- * mensagens as do WhatsApp.
+ * mensagens as do WhatsApp. Com funil_total move para qualquer etapa (como o Pedro), aceitando
+ * também result (fechado/perdido) e message (texto aprovado).
  */
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  const bot = await requireBot(req, res, ["funil", "mensagens"]);
+  const bot = await requireBot(req, res, ["funil", "mensagens", "funil_total"]);
   if (!bot) return;
   if (req.method !== "POST") return json(res, 405, { error: "Method not allowed" });
 
   try {
-    const body = readBody<{ id?: string; to?: string; note?: string; replyText?: string }>(req);
+    const body = readBody<{ id?: string; to?: string; note?: string; replyText?: string; result?: string; message?: string }>(req);
     const id = String(body?.id ?? "").trim();
     if (!UUID.test(id)) return json(res, 400, { error: "id inválido" });
     if (!isStage(body?.to)) return json(res, 400, { error: "Etapa inválida" });
@@ -31,7 +32,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       if (!actor) {
         return { ok: false as const, status: 409, error: `Esta chave não pode mover ${from} → ${to}` };
       }
-      return moveLead(db, { id, to, actor, note: body?.note, replyText: body?.replyText });
+      const full = isFullBot(bot);
+      return moveLead(db, {
+        id,
+        to,
+        actor,
+        note: body?.note,
+        replyText: body?.replyText,
+        ...(full ? { result: body?.result, message: body?.message, label: botLabel(bot) } : {}),
+      });
     });
     if (!out.ok) return json(res, out.status, { error: out.error });
     return json(res, 200, { lead: mapProspect(out.row) });

@@ -197,7 +197,7 @@ export type ProspectEvent = {
   at: string;
 };
 
-export type BotScope = "funil" | "mensagens" | "instagram";
+export type BotScope = "funil" | "mensagens" | "instagram" | "funil_total";
 
 export type BotToken = {
   id: string;

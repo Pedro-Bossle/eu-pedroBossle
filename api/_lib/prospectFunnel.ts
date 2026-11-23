@@ -123,6 +123,8 @@ export type MoveInput = {
   /** Pedro aprova o texto que está vendo na tela. */
   message?: string;
   replyText?: string;
+  /** Nome no histórico (padrão: ACTOR_LABEL do actor). */
+  label?: string;
 };
 
 export type MoveResult =
@@ -204,7 +206,7 @@ export async function moveLead(db: PoolClient, input: MoveInput): Promise<MoveRe
   await db.query(
     `INSERT INTO prospect_events (lead_id, from_stage, to_stage, actor, note)
      VALUES ($1, $2, $3, $4, $5)`,
-    [input.id, cur.stage, input.to, ACTOR_LABEL[input.actor], note],
+    [input.id, cur.stage, input.to, input.label ?? ACTOR_LABEL[input.actor], note],
   );
   return { ok: true, row: upd.rows[0] as Record<string, unknown> };
 }
@@ -220,8 +222,11 @@ export function newBotToken() {
   return { token, hash: hashToken(token), last4: token.slice(-4) };
 }
 
-/** Grupos de rotas que uma chave pode liberar (escolhidos no painel ao criar). */
-export const BOT_SCOPES = ["funil", "mensagens", "instagram"] as const;
+/**
+ * Grupos de rotas que uma chave pode liberar (escolhidos no painel).
+ * funil_total: o bot age como o Pedro no funil (qualquer etapa, aprovar, editar, apagar, regras).
+ */
+export const BOT_SCOPES = ["funil", "mensagens", "instagram", "funil_total"] as const;
 export type BotScope = (typeof BOT_SCOPES)[number];
 export const isBotScope = (v: unknown): v is BotScope =>
   typeof v === "string" && (BOT_SCOPES as readonly string[]).includes(v);
@@ -258,8 +263,16 @@ export async function readBot(req: VercelRequest): Promise<BotIdentity | null> {
   });
 }
 
+/** Chave com controle total do funil (age como o Pedro). */
+export const isFullBot = (bot: BotIdentity) => bot.scopes.includes("funil_total");
+
+/** Como o bot aparece no histórico do lead. */
+export const botLabel = (bot: BotIdentity) =>
+  `bot:${bot.name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "bot"}`;
+
 /** Papel no funil que este bot usa para mover um lead de `from` para `to`, ou null. */
-export function botActorFor(bot: BotIdentity, from: Stage, to: Stage): BotRole | null {
+export function botActorFor(bot: BotIdentity, from: Stage, to: Stage): Actor | null {
+  if (isFullBot(bot)) return canMove("pedro", from, to) ? "pedro" : null;
   if (bot.scopes.includes("funil") && canMove("prospector", from, to)) return "prospector";
   if (bot.scopes.includes("mensagens") && canMove("executor", from, to)) return "executor";
   return null;
