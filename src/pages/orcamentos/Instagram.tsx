@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type DragEvent, type ReactNode } from "react";
 import { upload } from "@vercel/blob/client";
 import Select from "./ui/Select";
+import Icon from "./ui/Icon";
 import InstagramIcon from "../../components/icons/InstagramIcon";
 import { orcamentosApi } from "../../lib/orcamentos/api";
 import { peek, remember } from "../../lib/orcamentos/cache";
@@ -12,7 +13,7 @@ import type {
   IgPostInput,
   IgPostKind,
 } from "../../types/orcamentos";
-import { btn, btnDanger, btnDangerSm, btnPrimary, btnSm, cardClass, control, focusRing, inputClass, labelClass, pill, tabItem, tabList } from "./panelStyles";
+import { btn, btnDanger, btnDangerSm, btnGhost, btnPrimary, btnSm, cardClass, control, focusRing, inputClass, labelClass, pill, tabItem, tabList } from "./panelStyles";
 
 type Props = { showToast: (msg: string) => void };
 type View = "calendario" | "posts" | "biblioteca" | "comentarios" | "conta";
@@ -40,14 +41,45 @@ const STATUS_LABEL: Record<string, string> = {
   erro: "Erro",
 };
 
-const STATUS_CHIP: Record<string, string> = {
-  rascunho: "border-line-strong bg-sunken text-muted",
-  agendado: "border-sky-300 bg-sky-50 text-sky-900 dark:border-sky-800 dark:bg-sky-950/60 dark:text-sky-200",
-  publicando: "border-amber-300 bg-amber-50 text-amber-900 dark:border-amber-800 dark:bg-amber-950/60 dark:text-amber-200",
-  publicado: "border-emerald-300 bg-emerald-50 text-emerald-900 dark:border-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-200",
-  erro: "border-red-300 bg-red-50 text-red-900 dark:border-red-800 dark:bg-red-950/60 dark:text-red-200",
-  instagram: "border-fuchsia-200 bg-fuchsia-50 text-fuchsia-900 dark:border-fuchsia-900 dark:bg-fuchsia-950/50 dark:text-fuchsia-200",
+/** Cor do status em ponto (calendário, listas). */
+const STATUS_DOT: Record<string, string> = {
+  rascunho: "bg-faint",
+  agendado: "bg-sky-500",
+  publicando: "bg-amber-500",
+  publicado: "bg-accent",
+  erro: "bg-danger",
+  instagram: "bg-gradient-to-tr from-amber-400 via-fuchsia-500 to-violet-600",
 };
+
+const ICON = {
+  close: "M18 6 6 18M6 6l12 12",
+  image: "M4 5h16v14H4zM4 15l4-4 5 5M14 14l2-2 4 4M15.5 8.5h.01",
+  carousel: "M7 7h12v12H7zM4 16V4h12",
+  reel: "M4 4h16v16H4zM4 9h16M9 4l2 5M15 4l2 5M10 12.5v4l3.5-2z",
+  story: "M12 3a9 9 0 1 0 9 9M12 3a9 9 0 0 1 7.8 4.5M12 8v8M8 12h8",
+  upload: "M12 16V4M7 9l5-5 5 5M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3",
+  link: "M10 14a4 4 0 0 0 5.66 0l3-3a4 4 0 0 0-5.66-5.66l-1 1M14 10a4 4 0 0 0-5.66 0l-3 3a4 4 0 0 0 5.66 5.66l1-1",
+  left: "M15 6l-6 6 6 6",
+  right: "M9 6l6 6-6 6",
+  trash: "M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3",
+  heart: "M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z",
+  comment: "M20 12a8 8 0 0 1-11.6 7.1L4 20l1-4.1A8 8 0 1 1 20 12z",
+  send: "M21 3 10 14M21 3l-7 18-4-7-7-4z",
+  save: "M6 3h12v18l-6-4-6 4z",
+  clock: "M12 7v5l3 2M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18z",
+  plus: "M12 5v14M5 12h14",
+  external: "M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5",
+  info: "M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM12 11v5M12 8h.01",
+};
+
+function StatusLabel({ status }: { status: string }) {
+  return (
+    <span className="inline-flex items-center gap-1.5 text-xs font-medium text-ink">
+      <span className={`size-2 rounded-full ${STATUS_DOT[status] ?? "bg-faint"}`} aria-hidden />
+      {STATUS_LABEL[status] ?? status}
+    </span>
+  );
+}
 
 const areaClass = `${control} w-full min-h-36 resize-y px-3.5 py-2.5 text-base leading-relaxed sm:text-sm`;
 const smallLabel = labelClass;
@@ -148,33 +180,66 @@ function Thumb({ url, className = "" }: { url: string; className?: string }) {
   return <img src={url} alt="" loading="lazy" className={`object-cover ${className}`} />;
 }
 
-function Modal({ title, onClose, children, wide }: { title: string; onClose: () => void; children: ReactNode; wide?: boolean }) {
+function Modal({
+  title,
+  subtitle,
+  onClose,
+  children,
+  footer,
+  wide,
+}: {
+  title: string;
+  subtitle?: ReactNode;
+  onClose: () => void;
+  children: ReactNode;
+  footer?: ReactNode;
+  wide?: boolean;
+}) {
+  const panelRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    const previous = document.activeElement as HTMLElement | null;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && !document.querySelector("[role=listbox]")) onClose();
+    };
     window.addEventListener("keydown", onKey);
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
+    panelRef.current?.focus();
     return () => {
       window.removeEventListener("keydown", onKey);
       document.body.style.overflow = prev;
+      previous?.focus?.();
     };
   }, [onClose]);
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-ink/30 backdrop-blur-[2px] sm:items-center sm:p-4" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-ink/40 backdrop-blur-sm sm:items-center sm:p-6" onClick={onClose}>
       <div
+        ref={panelRef}
+        tabIndex={-1}
         role="dialog"
         aria-modal="true"
         aria-label={title}
-        className={`adm-pop max-h-[94dvh] w-full overflow-y-auto rounded-t-2xl border border-line bg-surface shadow-float sm:rounded-2xl ${wide ? "sm:max-w-5xl" : "sm:max-w-xl"}`}
+        className={`adm-pop flex max-h-[94dvh] w-full flex-col overflow-hidden rounded-t-3xl border border-line bg-surface shadow-float outline-none sm:rounded-3xl ${wide ? "sm:max-w-5xl" : "sm:max-w-xl"}`}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-line bg-surface px-5 py-3">
-          <h3 className="text-base font-semibold">{title}</h3>
-          <button type="button" onClick={onClose} className={`${btnSm} border-transparent`} aria-label="Fechar">
-            ✕
+        <header className="flex items-start gap-4 border-b border-line px-5 py-4 sm:px-6">
+          <div className="min-w-0 flex-1">
+            <h3 className="text-lg font-semibold tracking-tight">{title}</h3>
+            {subtitle ? <div className="mt-0.5 text-sm text-muted">{subtitle}</div> : null}
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className={`-mr-1.5 inline-flex size-9 shrink-0 items-center justify-center rounded-full text-muted transition-colors hover:bg-sunken hover:text-ink ${focusRing}`}
+            aria-label="Fechar"
+          >
+            <Icon d={ICON.close} />
           </button>
-        </div>
-        <div className="p-5">{children}</div>
+        </header>
+        <div className="min-h-0 flex-1 overflow-y-auto px-5 py-5 sm:px-6">{children}</div>
+        {footer ? (
+          <footer className="flex flex-wrap items-center gap-2 border-t border-line bg-sunken/40 px-5 py-3.5 sm:px-6">{footer}</footer>
+        ) : null}
       </div>
     </div>
   );
@@ -303,82 +368,127 @@ function Composer({
   };
 
   const preview = form.mediaUrls[0] ?? "";
+  const [dropping, setDropping] = useState(false);
+  const [showUrl, setShowUrl] = useState(!features.upload);
+  const vertical = form.kind === "story" || form.kind === "reel";
+
+  // Atalhos de horário (horários comuns de post)
+  const quickTimes = useMemo(() => {
+    const now = new Date();
+    const at = (addDays: number, h: number) => new Date(now.getFullYear(), now.getMonth(), now.getDate() + addDays, h, 0);
+    const opts: { label: string; date: Date }[] = [];
+    for (const h of [12, 18]) if (at(0, h).getTime() > now.getTime() + 15 * 60000) opts.push({ label: `Hoje ${h}h`, date: at(0, h) });
+    opts.push({ label: "Amanhã 12h", date: at(1, 12) }, { label: "Amanhã 18h", date: at(1, 18) });
+    return opts.slice(0, 3);
+  }, []);
+
+  const kindIcon: Record<IgPostKind, string> = { image: ICON.image, carousel: ICON.carousel, reel: ICON.reel, story: ICON.story };
+  const kindHint: Record<IgPostKind, string> = { image: "1 imagem", carousel: "2 a 10", reel: "vídeo vertical", story: "24 horas" };
+
+  const footer = (
+    <>
+      {form.id ? (
+        <button type="button" className={`${btnGhost} text-danger hover:bg-danger-soft hover:text-danger max-sm:order-last max-sm:w-full`} disabled={!!busy} onClick={remove}>
+          <Icon d={ICON.trash} className="size-4" /> Excluir
+        </button>
+      ) : null}
+      <p className="mr-auto hidden text-xs text-muted sm:block">
+        {problems.length ? `${problems.length} pendência${problems.length > 1 ? "s" : ""} para publicar` : form.scheduledAt ? `Sai em ${fmtDateTime(form.scheduledAt)}` : "Sem data: fica como rascunho"}
+      </p>
+      <button type="button" className={`${btnGhost} max-sm:flex-1`} disabled={!!busy} onClick={() => save("agora")}>
+        {busy === "agora" ? "Publicando…" : "Publicar agora"}
+      </button>
+      <button type="button" className={`${btn} max-sm:flex-1`} disabled={!!busy} onClick={() => save("rascunho")}>
+        {busy === "rascunho" ? "Salvando…" : "Salvar rascunho"}
+      </button>
+      <button type="button" className={`${btnPrimary} max-sm:order-first max-sm:w-full`} disabled={!!busy} onClick={() => save("agendado")}>
+        <Icon d={ICON.clock} className="size-4" />
+        {busy === "agendado" ? "Agendando…" : "Agendar"}
+      </button>
+    </>
+  );
 
   return (
-    <Modal title={form.id ? "Editar post" : "Novo post"} onClose={onClose} wide>
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_320px]">
-        <div className="space-y-5">
-          <div>
-            <p className={smallLabel}>Formato</p>
-            <div className={`${tabList} mt-2 grid grid-cols-4`} role="radiogroup" aria-label="Formato">
-              {(Object.keys(KIND_LABEL) as IgPostKind[]).map((k) => (
-                <button
-                  key={k}
-                  type="button"
-                  role="radio"
-                  aria-checked={form.kind === k}
-                  onClick={() =>
-                    setForm((f) => ({ ...f, kind: k, mediaUrls: k === "carousel" ? f.mediaUrls : f.mediaUrls.slice(0, 1) }))
-                  }
-                  className={`${tabItem(form.kind === k)} min-h-9`}
-                >
-                  {KIND_LABEL[k]}
-                </button>
-              ))}
+    <Modal
+      title={form.id ? "Editar post" : "Novo post"}
+      subtitle={username ? `Publica em @${username}` : "Conecte a conta para publicar"}
+      onClose={onClose}
+      footer={footer}
+      wide
+    >
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_300px]">
+        <div className="space-y-6">
+          {/* Formato */}
+          <fieldset>
+            <legend className={smallLabel}>Formato</legend>
+            <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-4" role="radiogroup" aria-label="Formato">
+              {(Object.keys(KIND_LABEL) as IgPostKind[]).map((k) => {
+                const on = form.kind === k;
+                return (
+                  <button
+                    key={k}
+                    type="button"
+                    role="radio"
+                    aria-checked={on}
+                    onClick={() =>
+                      setForm((f) => ({ ...f, kind: k, mediaUrls: k === "carousel" ? f.mediaUrls : f.mediaUrls.slice(0, 1) }))
+                    }
+                    className={`flex items-center gap-2.5 rounded-xl border px-3 py-2.5 text-left transition-colors ${focusRing} ${
+                      on ? "border-accent bg-accent-soft text-accent-text" : "border-line bg-surface text-ink hover:border-line-strong"
+                    }`}
+                  >
+                    <Icon d={kindIcon[k]} className="size-5" />
+                    <span className="leading-tight">
+                      <span className="block text-sm font-medium">{KIND_LABEL[k]}</span>
+                      <span className={`block text-[11px] ${on ? "text-accent-text/80" : "text-muted"}`}>{kindHint[k]}</span>
+                    </span>
+                  </button>
+                );
+              })}
             </div>
-          </div>
+          </fieldset>
 
-          <div>
-            <p className={smallLabel}>
-              Mídia {form.kind === "carousel" ? `(${form.mediaUrls.length}/10)` : ""}
-            </p>
+          {/* Mídia */}
+          <section aria-label="Mídia">
+            <div className="flex items-baseline justify-between">
+              <p className={smallLabel}>Mídia</p>
+              {form.kind === "carousel" ? <span className="text-xs tabular-nums text-muted">{form.mediaUrls.length}/10</span> : null}
+            </div>
             {form.mediaUrls.length ? (
               <ul className="mt-2 grid grid-cols-3 gap-2 sm:grid-cols-5">
                 {form.mediaUrls.map((u, i) => (
-                  <li key={`${u}-${i}`} className="group relative">
+                  <li key={`${u}-${i}`} className="group relative overflow-hidden rounded-xl border border-line">
                     <Thumb url={u} className="aspect-square w-full" />
-                    <span className="absolute top-1 left-1 bg-black/70 px-1.5 text-[10px] font-bold text-white">{i + 1}</span>
-                    <div className="mt-1 flex gap-1">
-                      {form.kind === "carousel" ? (
-                        <>
-                          <button type="button" className={`${btnSm} flex-1 px-1`} onClick={() => move(i, -1)} aria-label="Mover para a esquerda">
-                            ←
-                          </button>
-                          <button type="button" className={`${btnSm} flex-1 px-1`} onClick={() => move(i, 1)} aria-label="Mover para a direita">
-                            →
-                          </button>
-                        </>
-                      ) : null}
-                      <button
-                        type="button"
-                        className={`${btnDangerSm} flex-1 px-1 `}
-                        onClick={() => set("mediaUrls", form.mediaUrls.filter((_, j) => j !== i))}
-                        aria-label="Remover mídia"
-                      >
-                        ✕
-                      </button>
-                    </div>
+                    {form.kind === "carousel" ? (
+                      <span className="absolute top-1.5 left-1.5 inline-flex size-5 items-center justify-center rounded-full bg-black/65 text-[10px] font-semibold text-white tabular-nums">
+                        {i + 1}
+                      </span>
+                    ) : null}
+                    <button
+                      type="button"
+                      className={`absolute top-1.5 right-1.5 inline-flex size-7 items-center justify-center rounded-full bg-black/65 text-white transition-opacity hover:bg-black/80 sm:opacity-0 sm:group-hover:opacity-100 sm:focus-visible:opacity-100 ${focusRing}`}
+                      onClick={() => set("mediaUrls", form.mediaUrls.filter((_, j) => j !== i))}
+                      aria-label={`Remover mídia ${i + 1}`}
+                    >
+                      <Icon d={ICON.close} className="size-3.5" />
+                    </button>
+                    {form.kind === "carousel" && form.mediaUrls.length > 1 ? (
+                      <div className="absolute inset-x-1.5 bottom-1.5 flex justify-between sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100">
+                        <button type="button" disabled={i === 0} className={`inline-flex size-7 items-center justify-center rounded-full bg-black/65 text-white disabled:invisible ${focusRing}`} onClick={() => move(i, -1)} aria-label="Mover para a esquerda">
+                          <Icon d={ICON.left} className="size-3.5" />
+                        </button>
+                        <button type="button" disabled={i === form.mediaUrls.length - 1} className={`inline-flex size-7 items-center justify-center rounded-full bg-black/65 text-white disabled:invisible ${focusRing}`} onClick={() => move(i, 1)} aria-label="Mover para a direita">
+                          <Icon d={ICON.right} className="size-3.5" />
+                        </button>
+                      </div>
+                    ) : null}
                   </li>
                 ))}
               </ul>
             ) : null}
+
             {form.mediaUrls.length < maxMedia ? (
-              <div className="mt-2 flex flex-col gap-2 sm:flex-row">
-                <input
-                  className={inputClass}
-                  placeholder="https://… (JPEG, MP4 ou MOV público)"
-                  value={urlDraft}
-                  onChange={(e) => setUrlDraft(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      e.preventDefault();
-                      addUrl(urlDraft);
-                    }
-                  }}
-                />
-                <button type="button" className={btn} onClick={() => addUrl(urlDraft)}>
-                  Adicionar URL
-                </button>
+              <div className="mt-2 space-y-2">
                 {features.upload ? (
                   <>
                     <input
@@ -389,19 +499,60 @@ function Composer({
                       className="hidden"
                       onChange={(e) => onFiles(e.target.files)}
                     />
-                    <button type="button" className={btn} disabled={uploading > 0} onClick={() => fileRef.current?.click()}>
-                      {uploading > 0 ? `Enviando ${uploading}…` : "Enviar arquivo"}
+                    <button
+                      type="button"
+                      disabled={uploading > 0}
+                      onClick={() => fileRef.current?.click()}
+                      onDragOver={(e) => {
+                        e.preventDefault();
+                        setDropping(true);
+                      }}
+                      onDragLeave={() => setDropping(false)}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        setDropping(false);
+                        void onFiles(e.dataTransfer.files);
+                      }}
+                      className={`flex w-full flex-col items-center justify-center gap-1.5 rounded-xl border border-dashed px-4 py-6 text-center transition-colors ${focusRing} ${
+                        dropping ? "border-accent bg-accent-soft" : "border-line-strong bg-sunken/40 hover:border-accent/60 hover:bg-sunken/70"
+                      }`}
+                    >
+                      <Icon d={ICON.upload} className="size-6 text-muted" />
+                      <span className="text-sm font-medium">{uploading > 0 ? `Enviando ${uploading} arquivo${uploading > 1 ? "s" : ""}…` : "Arraste ou clique para enviar"}</span>
+                      <span className="text-xs text-muted">
+                        {form.kind === "reel" ? "MP4 ou MOV, vertical" : form.kind === "carousel" ? "Até 10 imagens ou vídeos" : "JPEG, PNG ou vídeo"}
+                      </span>
                     </button>
                   </>
-                ) : null}
+                ) : (
+                  <p className="text-xs text-muted">Para enviar arquivos direto daqui, conecte um Blob store ao projeto na Vercel.</p>
+                )}
+                {showUrl ? (
+                  <div className="flex gap-2">
+                    <input
+                      className={inputClass}
+                      placeholder="https://… (imagem ou vídeo público)"
+                      value={urlDraft}
+                      onChange={(e) => setUrlDraft(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          addUrl(urlDraft);
+                        }
+                      }}
+                    />
+                    <button type="button" className={btn} onClick={() => addUrl(urlDraft)} disabled={!urlDraft.trim()}>
+                      Adicionar
+                    </button>
+                  </div>
+                ) : (
+                  <button type="button" className={`${btnGhost} -ml-3`} onClick={() => setShowUrl(true)}>
+                    <Icon d={ICON.link} className="size-4" /> Usar um link
+                  </button>
+                )}
               </div>
             ) : null}
-            {!features.upload ? (
-              <p className="mt-1.5 text-xs text-muted">
-                Para enviar arquivos direto daqui, conecte um Blob store ao projeto na Vercel.
-              </p>
-            ) : null}
-          </div>
+          </section>
 
           {form.kind === "reel" ? (
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
@@ -416,94 +567,154 @@ function Composer({
             </div>
           ) : null}
 
+          {/* Legenda */}
           {form.kind !== "story" ? (
-            <label className="block">
-              <span className="flex items-baseline justify-between">
-                <span className={smallLabel}>Legenda</span>
-                <span className={`text-xs tabular-nums ${form.caption.length > 2200 || hashtags > 30 ? "text-danger" : "text-muted"}`}>
-                  {nf.format(form.caption.length)}/2.200 · {hashtags}/30 #
-                </span>
-              </span>
-              <textarea className={`${areaClass} mt-2`} value={form.caption} onChange={(e) => set("caption", e.target.value)} placeholder="Escreva a legenda…" />
-            </label>
+            <div>
+              <label htmlFor="ig-caption" className={smallLabel}>
+                Legenda
+              </label>
+              <div className={`${control} mt-2 overflow-hidden focus-within:border-accent focus-within:bg-surface focus-within:ring-4 focus-within:ring-accent/10`}>
+                <textarea
+                  id="ig-caption"
+                  className="block min-h-40 w-full resize-y bg-transparent px-3.5 py-3 text-base leading-relaxed outline-none sm:text-sm"
+                  value={form.caption}
+                  onChange={(e) => set("caption", e.target.value)}
+                  placeholder="Escreva a legenda…"
+                />
+                <div className="flex items-center justify-end gap-3 border-t border-line px-3.5 py-1.5 text-[11px] tabular-nums text-muted">
+                  <span className={hashtags > 30 ? "font-medium text-danger" : ""}>{hashtags}/30 hashtags</span>
+                  <span className={form.caption.length > 2200 ? "font-medium text-danger" : ""}>{nf.format(form.caption.length)}/2.200</span>
+                </div>
+              </div>
+            </div>
           ) : (
-            <p className="text-xs text-muted">Stories não têm legenda pela API.</p>
+            <p className="rounded-xl bg-sunken/70 px-4 py-3 text-sm text-muted">Stories não levam legenda pela API.</p>
           )}
 
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <label className="block">
-              <span className={smallLabel}>Data e hora</span>
+          {/* Quando */}
+          <div>
+            <label htmlFor="ig-when" className={smallLabel}>
+              Quando publicar
+            </label>
+            <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-center">
               <input
+                id="ig-when"
                 type="datetime-local"
-                className={`${inputClass} mt-2`}
+                className={`${inputClass} sm:max-w-60`}
                 value={toLocalInput(form.scheduledAt)}
                 onChange={(e) => set("scheduledAt", fromLocalInput(e.target.value))}
               />
-            </label>
-            <label className="block">
-              <span className={smallLabel}>Etiquetas (vírgula)</span>
-              <input className={`${inputClass} mt-2`} value={tagsDraft} onChange={(e) => setTagsDraft(e.target.value)} placeholder="cliente, bastidores" />
-            </label>
+              <div className="flex flex-wrap gap-1.5">
+                {quickTimes.map((q) => (
+                  <button
+                    key={q.label}
+                    type="button"
+                    className={pill(!!form.scheduledAt && new Date(form.scheduledAt).getTime() === q.date.getTime())}
+                    onClick={() => set("scheduledAt", q.date.toISOString())}
+                  >
+                    {q.label}
+                  </button>
+                ))}
+                {form.scheduledAt ? (
+                  <button type="button" className={pill(false)} onClick={() => set("scheduledAt", null)}>
+                    Sem data
+                  </button>
+                ) : null}
+              </div>
+            </div>
           </div>
-          <label className="block">
-            <span className={smallLabel}>Notas internas</span>
-            <textarea className={`${areaClass} mt-2 min-h-20`} value={form.notes} onChange={(e) => set("notes", e.target.value)} />
-          </label>
+
+          <details className="group rounded-xl border border-line" open={!!(form.notes || form.tags.length)}>
+            <summary className={`flex list-none items-center justify-between rounded-xl px-4 py-3 text-sm font-medium ${focusRing}`}>
+              Organização interna
+              <span className="text-xs font-normal text-muted">{tags.length ? tags.map((t) => `#${t}`).join(" ") : "etiquetas e notas"}</span>
+            </summary>
+            <div className="space-y-4 border-t border-line px-4 py-4">
+              <label className="block">
+                <span className={smallLabel}>Etiquetas, separadas por vírgula</span>
+                <input className={`${inputClass} mt-2`} value={tagsDraft} onChange={(e) => setTagsDraft(e.target.value)} placeholder="cliente, bastidores" />
+              </label>
+              <label className="block">
+                <span className={smallLabel}>Notas (só aparecem no painel)</span>
+                <textarea className={`${areaClass} mt-2 min-h-20`} value={form.notes} onChange={(e) => set("notes", e.target.value)} />
+              </label>
+            </div>
+          </details>
 
           {problems.length ? (
-            <ul className="space-y-1 text-xs text-amber-800 dark:text-amber-300">
-              {problems.map((p) => (
-                <li key={p}>• {p}</li>
-              ))}
-            </ul>
+            <div role="status" className="flex gap-3 rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-900 dark:text-amber-200">
+              <Icon d={ICON.info} className="mt-0.5 size-4" />
+              <ul className="space-y-0.5">
+                {problems.map((p) => (
+                  <li key={p}>{p}</li>
+                ))}
+              </ul>
+            </div>
           ) : null}
-
-          <div className="flex flex-wrap gap-2 border-t border-line pt-4">
-            <button type="button" className={btnPrimary} disabled={!!busy} onClick={() => save("agendado")}>
-              {busy === "agendado" ? "Agendando…" : "Agendar"}
-            </button>
-            <button type="button" className={btn} disabled={!!busy} onClick={() => save("rascunho")}>
-              {busy === "rascunho" ? "Salvando…" : "Salvar rascunho"}
-            </button>
-            <button type="button" className={btn} disabled={!!busy} onClick={() => save("agora")}>
-              {busy === "agora" ? "Publicando…" : "Publicar agora"}
-            </button>
-            {form.id ? (
-              <button type="button" className={`${btnDanger} ml-auto `} disabled={!!busy} onClick={remove}>
-                Excluir
-              </button>
-            ) : null}
-          </div>
         </div>
 
-        {/* Prévia */}
-        <aside aria-label="Prévia" className="lg:sticky lg:top-16 lg:self-start">
+        {/* Prévia: como o post aparece no app */}
+        <aside aria-label="Prévia" className="lg:sticky lg:top-0 lg:self-start">
           <p className={smallLabel}>Prévia</p>
-          <div className="mt-2 border border-line bg-surface text-ink">
-            <div className="flex items-center gap-2 px-3 py-2">
-              <span className="size-7 rounded-full bg-gradient-to-tr from-amber-400 via-fuchsia-500 to-violet-600 p-[2px]">
-                <span className="block size-full rounded-full bg-surface" />
-              </span>
-              <span className="text-xs font-semibold">{username || "seu_perfil"}</span>
-              <span className="ml-auto text-[10px] tracking-wide text-muted">{KIND_LABEL[form.kind]}</span>
-            </div>
-            <div className={form.kind === "story" || form.kind === "reel" ? "aspect-[9/16] max-h-[460px]" : "aspect-[4/5]"}>
-              <Thumb url={preview} className="size-full" />
-            </div>
-            {form.kind === "carousel" && form.mediaUrls.length > 1 ? (
-              <div className="flex justify-center gap-1 py-1.5">
-                {form.mediaUrls.map((u, i) => (
-                  <span key={`${u}-${i}`} className={`size-1.5 rounded-full ${i === 0 ? "bg-sky-500" : "bg-neutral-300"}`} />
-                ))}
+          <div className="mt-2 overflow-hidden rounded-[22px] border border-line bg-surface shadow-float">
+            {vertical ? (
+              <div className="relative aspect-[9/16] max-h-[520px] bg-black">
+                <Thumb url={preview} className="size-full" />
+                <div className="absolute inset-x-0 top-0 bg-gradient-to-b from-black/55 to-transparent px-3 pt-3 pb-8">
+                  {form.kind === "story" ? <div className="mb-2 h-0.5 rounded-full bg-white/80" /> : null}
+                  <div className="flex items-center gap-2 text-white">
+                    <span className="size-7 rounded-full bg-gradient-to-tr from-amber-400 via-fuchsia-500 to-violet-600 p-[2px]">
+                      <span className="block size-full rounded-full bg-neutral-800" />
+                    </span>
+                    <span className="text-xs font-semibold">{username || "seu_perfil"}</span>
+                  </div>
+                </div>
+                {form.kind === "reel" ? (
+                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent px-3 pt-10 pb-3 text-white">
+                    <p className="line-clamp-2 text-xs leading-relaxed">{form.caption || "Sua legenda aparece aqui"}</p>
+                  </div>
+                ) : null}
               </div>
-            ) : null}
-            {form.kind !== "story" ? (
-              <p className="line-clamp-4 px-3 pt-1 pb-3 text-xs leading-relaxed whitespace-pre-wrap">
-                <strong>{username || "seu_perfil"}</strong> {form.caption || <span className="text-faint">Sua legenda aparece aqui</span>}
-              </p>
-            ) : null}
+            ) : (
+              <>
+                <div className="flex items-center gap-2 px-3 py-2.5">
+                  <span className="size-8 rounded-full bg-gradient-to-tr from-amber-400 via-fuchsia-500 to-violet-600 p-[2px]">
+                    <span className="block size-full rounded-full border-2 border-surface bg-sunken" />
+                  </span>
+                  <span className="text-[13px] font-semibold">{username || "seu_perfil"}</span>
+                </div>
+                <div className="relative aspect-[4/5] bg-sunken">
+                  <Thumb url={preview} className="size-full" />
+                  {form.kind === "carousel" && form.mediaUrls.length > 1 ? (
+                    <span className="absolute top-2.5 right-2.5 rounded-full bg-black/65 px-2 py-0.5 text-[11px] font-medium text-white tabular-nums">
+                      1/{form.mediaUrls.length}
+                    </span>
+                  ) : null}
+                </div>
+                <div className="flex items-center gap-3.5 px-3 pt-2.5 text-ink">
+                  <Icon d={ICON.heart} className="size-[22px]" />
+                  <Icon d={ICON.comment} className="size-[22px]" />
+                  <Icon d={ICON.send} className="size-[22px]" />
+                  {form.kind === "carousel" && form.mediaUrls.length > 1 ? (
+                    <span className="mx-auto flex gap-1" aria-hidden>
+                      {form.mediaUrls.map((u, i) => (
+                        <span key={`${u}-${i}`} className={`size-1.5 rounded-full ${i === 0 ? "bg-sky-500" : "bg-line-strong"}`} />
+                      ))}
+                    </span>
+                  ) : (
+                    <span className="mx-auto" />
+                  )}
+                  <Icon d={ICON.save} className="size-[22px]" />
+                </div>
+                <p className="line-clamp-4 px-3 pt-2 pb-3.5 text-[13px] leading-snug whitespace-pre-wrap">
+                  <strong className="font-semibold">{username || "seu_perfil"}</strong>{" "}
+                  {form.caption || <span className="text-faint">Sua legenda aparece aqui</span>}
+                </p>
+              </>
+            )}
           </div>
-          <p className="mt-2 text-xs text-muted">
+          <p className="mt-3 flex items-center gap-1.5 text-xs text-muted">
+            <Icon d={ICON.clock} className="size-3.5" />
             {form.scheduledAt ? `Sai em ${fmtDateTime(form.scheduledAt)}` : "Sem data: fica como rascunho"}
           </p>
         </aside>
@@ -582,14 +793,18 @@ function Calendar({
     onMove(p, next);
   };
 
+  const entryClass = `flex items-center gap-1.5 rounded-lg text-left text-[11px] leading-tight transition-colors sm:w-full sm:border sm:border-line sm:bg-surface sm:p-0.5 sm:pr-1.5 sm:hover:border-line-strong sm:hover:bg-sunken/60 max-sm:p-1 ${focusRing}`;
+
   return (
-    <div className={`${cardClass} p-0 xl:p-0`}>
-      <div className="flex flex-wrap items-center gap-2 border-b border-line px-4 py-3">
-        <h3 className="text-base font-semibold">{monthLabel}</h3>
-        <span className="text-xs text-muted">{scheduledThisMonth} agendado(s)</span>
-        <div className="ml-auto flex gap-1">
-          <button type="button" className={btnSm} onClick={() => shift(-1)} aria-label="Mês anterior">
-            ←
+    <div className="overflow-hidden rounded-2xl border border-line bg-surface">
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-2 px-4 py-3.5 sm:px-5">
+        <h3 className="text-lg font-semibold tracking-tight">{monthLabel}</h3>
+        <span className="text-sm text-muted">
+          {scheduledThisMonth ? `${scheduledThisMonth} agendado${scheduledThisMonth > 1 ? "s" : ""}` : "Nada agendado"}
+        </span>
+        <div className="ml-auto flex items-center gap-1">
+          <button type="button" className={`${btnSm} px-2`} onClick={() => shift(-1)} aria-label="Mês anterior">
+            <Icon d={ICON.left} className="size-4" />
           </button>
           <button
             type="button"
@@ -601,12 +816,12 @@ function Calendar({
           >
             Hoje
           </button>
-          <button type="button" className={btnSm} onClick={() => shift(1)} aria-label="Próximo mês">
-            →
+          <button type="button" className={`${btnSm} px-2`} onClick={() => shift(1)} aria-label="Próximo mês">
+            <Icon d={ICON.right} className="size-4" />
           </button>
         </div>
       </div>
-      <div className="grid grid-cols-7 border-b border-line text-center text-[11px] font-medium tracking-wide text-muted">
+      <div className="grid grid-cols-7 border-y border-line bg-sunken/50 text-center text-xs font-medium text-muted">
         {WEEKDAYS.map((w) => (
           <div key={w} className="py-2">
             {w}
@@ -614,11 +829,12 @@ function Calendar({
         ))}
       </div>
       <div className="grid grid-cols-7">
-        {days.map((d) => {
+        {days.map((d, i) => {
           const k = dayKey(d);
           const inMonth = d.getMonth() === cursor.getMonth();
           const entries = byDay.get(k) ?? [];
           const past = k < todayKey;
+          const isToday = k === todayKey;
           return (
             <div
               key={k}
@@ -628,14 +844,14 @@ function Calendar({
               }}
               onDragLeave={() => setDragOver((v) => (v === k ? "" : v))}
               onDrop={(e) => onDrop(e, d)}
-              className={`group relative min-h-24 border-r border-b border-line p-1 text-left sm:min-h-28 sm:p-1.5 ${
-                inMonth ? "" : "bg-sunken/50 text-faint dark:bg-sunken/50"
-              } ${dragOver === k ? "bg-emerald-50 dark:bg-emerald-950/30" : ""}`}
+              className={`group relative min-h-24 border-b border-line p-1 text-left sm:min-h-32 sm:p-1.5 ${(i + 1) % 7 ? "border-r" : ""} ${
+                !inMonth ? "bg-sunken/40" : past ? "bg-sunken/20" : ""
+              } ${dragOver === k ? "bg-accent-soft ring-2 ring-accent/40 ring-inset" : ""}`}
             >
               <div className="flex items-center justify-between">
                 <span
-                  className={`inline-flex size-6 items-center justify-center text-xs tabular-nums ${
-                    k === todayKey ? "rounded-full bg-ink font-semibold text-canvas" : ""
+                  className={`inline-flex size-6 items-center justify-center rounded-full text-xs tabular-nums ${
+                    isToday ? "bg-accent font-semibold text-accent-ink" : inMonth ? (past ? "text-muted" : "text-ink") : "text-faint"
                   }`}
                 >
                   {d.getDate()}
@@ -644,15 +860,15 @@ function Calendar({
                   <button
                     type="button"
                     onClick={() => onNew(new Date(d.getFullYear(), d.getMonth(), d.getDate(), 10, 0))}
-                    className={`size-6 text-sm text-faint opacity-100 hover:text-ink sm:opacity-0 sm:group-hover:opacity-100 ${focusRing}`}
+                    className={`inline-flex size-6 items-center justify-center rounded-full text-faint opacity-100 transition-colors hover:bg-accent-soft hover:text-accent-text sm:opacity-0 sm:group-hover:opacity-100 sm:focus-visible:opacity-100 ${focusRing}`}
                     aria-label={`Novo post em ${d.toLocaleDateString("pt-BR")}`}
                   >
-                    +
+                    <Icon d={ICON.plus} className="size-3.5" />
                   </button>
                 ) : null}
               </div>
-              <ul className="mt-0.5 space-y-0.5">
-                {entries.slice(0, 4).map((e) =>
+              <ul className="mt-1 flex flex-wrap gap-0.5 sm:block sm:space-y-1">
+                {entries.slice(0, 3).map((e) =>
                   e.type === "post" ? (
                     <li key={e.post.id}>
                       <button
@@ -661,45 +877,56 @@ function Calendar({
                         onDragStart={(ev) => ev.dataTransfer.setData("text/ig-post", e.post.id)}
                         onClick={() => onOpenPost(e.post)}
                         title={`${STATUS_LABEL[e.post.status]} · ${KIND_LABEL[e.post.kind]} · ${e.post.caption.slice(0, 80)}`}
-                        className={`flex w-full items-center gap-1 truncate rounded-md border px-1.5 py-0.5 text-left text-[10px] leading-tight sm:text-[11px] ${STATUS_CHIP[e.post.status]} ${focusRing}`}
+                        className={`${entryClass} ${e.post.status === "erro" ? "border-danger/40" : ""} ${e.post.status === "rascunho" ? "border-dashed" : ""}`}
                       >
-                        <span className="tabular-nums">{timeOf(e.at)}</span>
-                        <span className="hidden truncate sm:inline">{e.post.caption || KIND_LABEL[e.post.kind]}</span>
+                        <span className="relative shrink-0">
+                          <Thumb url={e.post.mediaUrls[0] ?? ""} className="hidden size-6 rounded-md sm:block" />
+                          <span className={`block size-2.5 rounded-full sm:absolute sm:size-2 sm:-right-0.5 sm:-bottom-0.5 sm:ring-2 sm:ring-surface ${STATUS_DOT[e.post.status]}`} />
+                        </span>
+                        <span className="hidden min-w-0 sm:block">
+                          <span className="hidden font-medium tabular-nums sm:block">{timeOf(e.at)}</span>
+                          <span className="hidden truncate text-muted sm:block">{e.post.caption || KIND_LABEL[e.post.kind]}</span>
+                        </span>
                       </button>
                     </li>
                   ) : (
                     <li key={e.media.id}>
-                      <button
-                        type="button"
-                        onClick={() => onOpenMedia(e.media)}
-                        title={e.media.caption.slice(0, 80)}
-                        className={`flex w-full items-center gap-1 truncate rounded-md border px-1.5 py-0.5 text-left text-[10px] leading-tight sm:text-[11px] ${STATUS_CHIP.instagram} ${focusRing}`}
-                      >
-                        <span className="tabular-nums">{timeOf(e.at)}</span>
-                        <span className="hidden truncate sm:inline">{e.media.caption || e.media.mediaType}</span>
+                      <button type="button" onClick={() => onOpenMedia(e.media)} title={e.media.caption.slice(0, 80)} className={entryClass}>
+                        <span className="relative shrink-0">
+                          <Thumb url={e.media.thumbnailUrl || e.media.mediaUrl} className="hidden size-6 rounded-md sm:block" />
+                          <span className={`block size-2.5 rounded-full sm:absolute sm:size-2 sm:-right-0.5 sm:-bottom-0.5 sm:ring-2 sm:ring-surface ${STATUS_DOT.instagram}`} />
+                        </span>
+                        <span className="hidden min-w-0 sm:block">
+                          <span className="hidden font-medium tabular-nums sm:block">{timeOf(e.at)}</span>
+                          <span className="hidden truncate text-muted sm:block">{e.media.caption || e.media.mediaType}</span>
+                        </span>
                       </button>
                     </li>
                   ),
                 )}
-                {entries.length > 4 ? <li className="px-1 text-[10px] text-muted">+{entries.length - 4}</li> : null}
+                {entries.length > 3 ? <li className="px-1 text-[11px] font-medium text-muted">+{entries.length - 3}<span className="hidden sm:inline"> mais</span></li> : null}
               </ul>
             </div>
           );
         })}
       </div>
-      <div className="flex flex-wrap gap-3 px-4 py-3 text-[11px] text-muted">
-        {["rascunho", "agendado", "publicado", "erro"].map((s) => (
-          <span key={s} className="inline-flex items-center gap-1.5">
-            <span className={`size-2.5 rounded-sm border ${STATUS_CHIP[s]}`} />
-            {STATUS_LABEL[s]}
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3 text-xs text-muted sm:px-5">
+        {["rascunho", "agendado", "publicado", "erro"].map((st) => (
+          <span key={st} className="inline-flex items-center gap-1.5">
+            <span className={`size-2 rounded-full ${STATUS_DOT[st]}`} />
+            {STATUS_LABEL[st]}
           </span>
         ))}
         <span className="inline-flex items-center gap-1.5">
-          <span className={`size-2.5 rounded-sm border ${STATUS_CHIP.instagram}`} />
-          Postado fora do painel
+          <span className={`size-2 rounded-full ${STATUS_DOT.instagram}`} />
+          Publicado fora do painel
         </span>
-        <span className="ml-auto hidden sm:inline">Arraste um post para outro dia para reagendar.</span>
+        <span className="ml-auto hidden sm:inline">Arraste um post para outro dia para reagendar</span>
       </div>
+      <p className="flex gap-2 border-t border-line bg-sunken/40 px-4 py-3 text-xs text-muted sm:px-5">
+        <Icon d={ICON.info} className="mt-px size-4" />
+        Posts agendados no Meta Business Suite só aparecem aqui depois de publicados: a API do Instagram não dá acesso à fila de agendamento de lá. Agende pelo painel para ver tudo no calendário.
+      </p>
     </div>
   );
 }
@@ -959,44 +1186,46 @@ function PostList({ posts, onOpen, onRetry }: { posts: IgPost[]; onOpen: (p: IgP
           </button>
         ))}
       </div>
-      {!filtered.length ? <p className="py-8 text-center text-sm text-muted">Nada por aqui.</p> : null}
-      <ul className="space-y-2">
+      {!filtered.length ? (
+        <div className={`${cardClass} py-10 text-center`}>
+          <p className="text-sm text-muted">{filter === "pendentes" ? "Nenhum post pendente." : "Nenhum post neste filtro."}</p>
+        </div>
+      ) : null}
+      <ul className="divide-y divide-line overflow-hidden rounded-2xl border border-line bg-surface">
         {filtered.map((p) => (
-          <li key={p.id} className={`${cardClass} flex gap-4 p-3 xl:p-3`}>
-            <Thumb url={p.mediaUrls[0] ?? ""} className="size-20 shrink-0" />
+          <li key={p.id} className="flex gap-4 p-3 sm:p-4">
+            <Thumb url={p.mediaUrls[0] ?? ""} className="size-16 shrink-0 rounded-xl sm:size-20" />
             <div className="min-w-0 flex-1">
-              <div className="flex flex-wrap items-center gap-2 text-xs">
-                <span className={`rounded-full border px-2 py-0.5 font-medium ${STATUS_CHIP[p.status]}`}>{STATUS_LABEL[p.status]}</span>
-                <span className="text-muted">{KIND_LABEL[p.kind]}</span>
-                <span className="tabular-nums text-muted">{fmtDateTime(p.publishedAt ?? p.scheduledAt)}</span>
-                {p.tags.map((t) => (
-                  <span key={t} className="text-muted">#{t}</span>
-                ))}
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                <StatusLabel status={p.status} />
+                <span className="text-xs text-muted">{KIND_LABEL[p.kind]}</span>
+                <span className="text-xs tabular-nums text-muted">{fmtDateTime(p.publishedAt ?? p.scheduledAt)}</span>
               </div>
               <p className="mt-1.5 line-clamp-2 text-sm">{p.caption || <span className="text-faint">Sem legenda</span>}</p>
-              {p.error ? <p className="mt-1 text-xs text-danger">{p.error}</p> : null}
-              <div className="mt-2 flex flex-wrap gap-1.5">
-                {p.status === "publicado" ? (
-                  p.permalink ? (
-                    <a className={btnSm} href={p.permalink} target="_blank" rel="noreferrer">
-                      Ver no Instagram ↗
-                    </a>
-                  ) : null
-                ) : p.status === "publicando" ? (
-                  <span className="text-xs text-muted">O Instagram está processando a mídia…</span>
-                ) : (
-                  <>
-                    <button type="button" className={btnSm} onClick={() => onOpen(p)}>
-                      Editar
+              {p.tags.length ? <p className="mt-1 truncate text-xs text-muted">{p.tags.map((t) => `#${t}`).join(" ")}</p> : null}
+              {p.error ? <p className="mt-1.5 rounded-lg bg-danger-soft px-2.5 py-1.5 text-xs text-danger">{p.error}</p> : null}
+            </div>
+            <div className="flex shrink-0 flex-col items-end justify-center gap-1.5 sm:flex-row sm:items-center">
+              {p.status === "publicado" ? (
+                p.permalink ? (
+                  <a className={btnSm} href={p.permalink} target="_blank" rel="noreferrer">
+                    Ver no Instagram <Icon d={ICON.external} className="size-3.5" />
+                  </a>
+                ) : null
+              ) : p.status === "publicando" ? (
+                <span className="text-xs text-muted">Processando…</span>
+              ) : (
+                <>
+                  {p.status === "erro" ? (
+                    <button type="button" className={btnSm} onClick={() => onRetry(p)}>
+                      Corrigir e reagendar
                     </button>
-                    {p.status === "erro" ? (
-                      <button type="button" className={btnSm} onClick={() => onRetry(p)}>
-                        Corrigir e reagendar
-                      </button>
-                    ) : null}
-                  </>
-                )}
-              </div>
+                  ) : null}
+                  <button type="button" className={btnSm} onClick={() => onOpen(p)}>
+                    Editar
+                  </button>
+                </>
+              )}
             </div>
           </li>
         ))}
@@ -1067,16 +1296,16 @@ function Library({ media, onOpen, connected, onSync, syncing }: { media: IgMedia
           const eng = engagement(m);
           return (
             <li key={m.id}>
-              <button type="button" onClick={() => onOpen(m)} className={`block w-full rounded-xl border border-line bg-surface text-left ${focusRing}`}>
-                <div className="relative">
-                  <Thumb url={m.thumbnailUrl || m.mediaUrl} className="aspect-square w-full" />
-                  <span className="absolute top-1.5 right-1.5 bg-black/70 px-1.5 py-0.5 text-[10px] font-semibold text-white">
+              <button type="button" onClick={() => onOpen(m)} className={`group block w-full overflow-hidden rounded-2xl border border-line bg-surface text-left transition-colors hover:border-line-strong ${focusRing}`}>
+                <div className="relative overflow-hidden">
+                  <Thumb url={m.thumbnailUrl || m.mediaUrl} className="aspect-[4/5] w-full transition-transform duration-300 group-hover:scale-[1.03] motion-reduce:transition-none" />
+                  <span className="absolute top-2 right-2 rounded-full bg-black/60 px-2 py-0.5 text-[10px] font-medium text-white backdrop-blur-sm">
                     {m.productType === "REELS" ? "Reels" : m.mediaType === "CAROUSEL_ALBUM" ? "Carrossel" : m.productType === "STORY" ? "Story" : "Foto"}
                   </span>
                 </div>
-                <div className="p-2.5">
-                  <p className="text-[11px] text-muted">{m.postedAt ? new Date(m.postedAt).toLocaleDateString("pt-BR") : ""}</p>
-                  <dl className="mt-1 grid grid-cols-3 gap-1 text-xs tabular-nums">
+                <div className="p-3">
+                  <p className="text-[11px] text-muted">{m.postedAt ? new Date(m.postedAt).toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" }) : ""}</p>
+                  <dl className="mt-1.5 grid grid-cols-3 gap-1 text-xs tabular-nums">
                     <div>
                       <dt className="text-[10px] text-muted">Curtidas</dt>
                       <dd className="font-semibold">{fmtNum(m.likes)}</dd>
@@ -1142,46 +1371,59 @@ function MediaDetail({
     ["Compartilh.", media.shares],
     ["Engajamento", eng == null ? null : `${eng.toFixed(1).replace(".", ",")}%`],
   ];
+  const kind = media.productType === "REELS" ? "Reels" : media.mediaType === "CAROUSEL_ALBUM" ? "Carrossel" : media.productType === "STORY" ? "Story" : "Foto";
   return (
-    <Modal title="Post publicado" onClose={onClose} wide>
-      <div className="grid grid-cols-1 gap-5 md:grid-cols-[minmax(0,380px)_1fr]">
-        {media.mediaType === "VIDEO" && media.mediaUrl ? (
-          <video src={media.mediaUrl} poster={media.thumbnailUrl} controls className="w-full bg-black" />
-        ) : (
-          <Thumb url={media.thumbnailUrl || media.mediaUrl} className="aspect-square w-full" />
-        )}
-        <div className="space-y-4">
-          <p className="text-xs text-muted">{media.postedAt ? new Date(media.postedAt).toLocaleString("pt-BR") : ""}</p>
-          <dl className="grid grid-cols-3 gap-3 sm:grid-cols-4">
-            {stats.map(([k, v]) => (
-              <div key={k}>
+    <Modal
+      title="Post publicado"
+      subtitle={`${kind}${media.postedAt ? ` · ${new Date(media.postedAt).toLocaleString("pt-BR", { day: "2-digit", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" })}` : ""}`}
+      onClose={onClose}
+      wide
+      footer={
+        <>
+          {media.permalink ? (
+            <a className={`${btnGhost} mr-auto`} href={media.permalink} target="_blank" rel="noreferrer">
+              Abrir no Instagram <Icon d={ICON.external} className="size-4" />
+            </a>
+          ) : (
+            <span className="mr-auto" />
+          )}
+          <button type="button" className={btn} onClick={() => onReuse(media)}>
+            Reutilizar legenda
+          </button>
+          <button type="button" className={btnPrimary} disabled={busy} onClick={save}>
+            {busy ? "Salvando…" : "Salvar"}
+          </button>
+        </>
+      }
+    >
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-[minmax(0,360px)_1fr]">
+        <div className="overflow-hidden rounded-2xl border border-line bg-black md:self-start">
+          {media.mediaType === "VIDEO" && media.mediaUrl ? (
+            <video src={media.mediaUrl} poster={media.thumbnailUrl} controls className="w-full" />
+          ) : (
+            <Thumb url={media.thumbnailUrl || media.mediaUrl} className="aspect-[4/5] w-full" />
+          )}
+        </div>
+        <div className="space-y-5">
+          <dl className="grid grid-cols-3 gap-px overflow-hidden rounded-2xl border border-line bg-line sm:grid-cols-4">
+            {stats.map(([k, v], i) => (
+              <div key={k} className={`bg-surface p-3 ${i === stats.length - 1 ? "col-span-3 sm:col-span-2" : ""}`}>
                 <dt className="text-[11px] text-muted">{k}</dt>
-                <dd className="text-lg font-semibold tabular-nums">{typeof v === "string" ? v : fmtNum(v)}</dd>
+                <dd className="mt-0.5 text-lg font-semibold tabular-nums">{typeof v === "string" ? v : fmtNum(v)}</dd>
               </div>
             ))}
           </dl>
-          <p className="max-h-40 overflow-y-auto text-sm whitespace-pre-wrap">{media.caption}</p>
+          {media.caption ? (
+            <div className="max-h-44 overflow-y-auto rounded-xl bg-sunken/60 px-4 py-3 text-sm leading-relaxed whitespace-pre-wrap">{media.caption}</div>
+          ) : null}
           <label className="block">
             <span className={smallLabel}>Etiquetas</span>
             <input className={`${inputClass} mt-2`} value={tags} onChange={(e) => setTags(e.target.value)} placeholder="campanha, cliente-x" />
           </label>
           <label className="block">
             <span className={smallLabel}>Notas</span>
-            <textarea className={`${areaClass} mt-2 min-h-20`} value={notes} onChange={(e) => setNotes(e.target.value)} />
+            <textarea className={`${areaClass} mt-2 min-h-20`} value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="O que funcionou neste post?" />
           </label>
-          <div className="flex flex-wrap gap-2">
-            <button type="button" className={btnPrimary} disabled={busy} onClick={save}>
-              Salvar
-            </button>
-            <button type="button" className={btn} onClick={() => onReuse(media)}>
-              Reutilizar legenda
-            </button>
-            {media.permalink ? (
-              <a className={btn} href={media.permalink} target="_blank" rel="noreferrer">
-                Abrir ↗
-              </a>
-            ) : null}
-          </div>
         </div>
       </div>
     </Modal>
@@ -1276,32 +1518,36 @@ function Comments({
         ) : null}
       </div>
       {!connected ? <p className="text-xs text-muted">Conecte a conta para responder pelo painel.</p> : null}
-      {!list.length ? <p className="py-8 text-center text-sm text-muted">{status === "novo" ? "Nenhum comentário esperando resposta. 🎉" : "Nada por aqui."}</p> : null}
-      <ul className="space-y-2">
+      {!list.length ? (
+        <div className={`${cardClass} py-10 text-center`}>
+          <p className="text-sm text-muted">{status === "novo" ? "Nenhum comentário esperando resposta." : "Nenhum comentário neste filtro."}</p>
+        </div>
+      ) : null}
+      <ul className="divide-y divide-line overflow-hidden rounded-2xl border border-line bg-surface">
         {list.map((c) => (
-          <li key={c.id} className={`${cardClass} p-3 xl:p-4 ${c.hidden ? "opacity-60" : ""}`}>
+          <li key={c.id} className={`p-4 ${c.hidden ? "opacity-60" : ""}`}>
             <div className="flex gap-3">
-              <a href={c.mediaPermalink || undefined} target="_blank" rel="noreferrer" className="shrink-0" title={c.mediaCaption}>
-                <Thumb url={c.mediaThumb} className="size-12" />
-              </a>
+              <span className="inline-flex size-9 shrink-0 items-center justify-center rounded-full bg-sunken text-sm font-semibold text-muted uppercase" aria-hidden>
+                {c.username.slice(0, 1)}
+              </span>
               <div className="min-w-0 flex-1">
                 <p className="text-sm">
                   <a className="font-semibold hover:underline" href={`https://instagram.com/${c.username}`} target="_blank" rel="noreferrer">
                     @{c.username}
                   </a>{" "}
-                  <span className="text-xs text-muted">{relTime(c.postedAt)}</span>
-                  {c.parentId ? <span className="ml-1 text-xs text-muted">· em uma thread</span> : null}
-                  {c.hidden ? <span className="ml-1 text-xs text-muted">· oculto</span> : null}
+                  <span className="text-xs text-muted">há {relTime(c.postedAt)}</span>
+                  {c.parentId ? <span className="ml-1.5 text-xs text-muted">respondendo em uma conversa</span> : null}
+                  {c.hidden ? <span className="ml-1.5 rounded-full bg-sunken px-2 py-0.5 text-[11px] text-muted">Oculto</span> : null}
                 </p>
-                <p className="mt-0.5 text-sm break-words whitespace-pre-wrap">{c.text}</p>
+                <p className="mt-1 text-sm leading-relaxed break-words whitespace-pre-wrap">{c.text}</p>
                 {repliesOf(c.id).map((r) => (
-                  <p key={r.id} className="mt-1.5 border-l-2 border-emerald-500 pl-2 text-xs text-muted">
-                    Você: {r.text}
+                  <p key={r.id} className="mt-2 border-l-2 border-accent pl-3 text-sm text-muted">
+                    <span className="font-medium text-ink">Você:</span> {r.text}
                   </p>
                 ))}
 
                 {replying === c.id ? (
-                  <div className="mt-2 space-y-2">
+                  <div className="mt-3 space-y-2 rounded-xl bg-sunken/60 p-3">
                     <div className="flex flex-wrap gap-1">
                       {quick.map((qr) => (
                         <button key={qr} type="button" className={btnSm} onClick={() => setDraft(`@${c.username} ${qr}`)}>
@@ -1365,6 +1611,9 @@ function Comments({
                   </div>
                 )}
               </div>
+              <a href={c.mediaPermalink || undefined} target="_blank" rel="noreferrer" className={`shrink-0 rounded-lg ${focusRing}`} title={c.mediaCaption || "Post"}>
+                <Thumb url={c.mediaThumb} className="size-12 rounded-lg" />
+              </a>
             </div>
           </li>
         ))}
