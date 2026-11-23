@@ -31,7 +31,7 @@ Além do Neon, configure (Production + Preview):
 
 ## 3. Schema + RLS
 
-No SQL Editor do Neon, rode os arquivos `001`…`018` (nesta ordem), **ou**:
+No SQL Editor do Neon, rode os arquivos `001`…`021` (nesta ordem), **ou**:
 
 ```bash
 # com DATABASE_URL no ambiente
@@ -52,6 +52,9 @@ npm run db:migrate
 - `016` — Cobranças (`crm_payments`).
 - `017` — Projetos (`crm_projects`); proposta aprovada vira projeto em Briefing.
 - `018` — Índices de desempenho (inclui `pg_trgm` para busca por texto).
+- `019` — Regras do funil (cidades, aceitar site ruim).
+- `020` — Eventos do webhook da Meta.
+- `021` — Permissões das chaves dos bots (`bot_tokens.scopes`: funil, mensagens, instagram) e `prospect_leads.bot_message` (texto original do bot).
 
 ### Prospecção
 

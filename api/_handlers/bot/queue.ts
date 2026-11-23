@@ -4,13 +4,13 @@ import { withAuth } from "../../_lib/db.js";
 import { DAILY_FIRST_CONTACTS, inSendWindow, requireBot } from "../../_lib/prospectFunnel.js";
 
 /**
- * Bot Whatsapp (executor). GET → o que pode ser enviado agora.
+ * Chave com permissão "mensagens" (bot WhatsApp). GET → o que pode ser enviado agora.
  * Só devolve leads Aprovados por Pedro e follow-ups que ele aprovou,
  * respeitando a janela de envio e o limite diário. Leads só com e-mail
  * ficam de fora: Pedro envia pelo painel.
  */
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  if (!(await requireBot(req, res, ["executor"]))) return;
+  if (!(await requireBot(req, res, ["mensagens"]))) return;
   if (req.method !== "GET") return json(res, 405, { error: "Method not allowed" });
 
   try {

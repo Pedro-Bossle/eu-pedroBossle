@@ -1,6 +1,6 @@
 # API do funil de prospecção — guia para os bots
 
-Dois bots trabalham no mesmo funil de leads da Dev Bossle:
+Os bots da Dev Bossle trabalham no mesmo funil de leads (e no calendário do Instagram):
 
 | Bot | Papel (`role`) | O que faz |
 |---|---|---|
@@ -19,14 +19,24 @@ O **Pedro** é o único que aprova mensagens e follow-ups, pelo painel. Nenhum b
 - **Limite:** 120 pedidos por minuto por IP. Acima disso a resposta é `429` com o cabeçalho `Retry-After` (segundos).
 - **Token:** é secreto. Não o escreva em mensagens, logs, commits ou respostas ao usuário. Se vazar, avise o Pedro para revogar e criar outro.
 
-Cada token tem um papel fixo. Usar a rota do outro bot devolve `403`.
+Cada chave tem **permissões** escolhidas pelo Pedro ao criá-la (Funil → ⋯ → Chaves dos bots). Uma chave pode ter uma ou mais. Usar uma rota sem a permissão devolve `403`.
 
-| Rota | `prospector` | `executor` |
+| Permissão | Para quem | Libera |
 |---|---|---|
-| `GET /bot/leads` | sim | não |
-| `POST /bot/leads` | sim | não |
-| `GET /bot/queue` | não | sim |
-| `POST /bot/move` | sim | sim |
+| `funil` | Dev Bossle | cadastrar e qualificar leads (antigo papel `prospector`) |
+| `mensagens` | WhatsApp | fila de envio e registro dos envios (antigo papel `executor`) |
+| `instagram` | bot de conteúdo | criar posts no calendário do Instagram |
+
+| Rota | `funil` | `mensagens` | `instagram` |
+|---|---|---|---|
+| `GET /bot/leads?stage=…` (lista da etapa) | sim | sim | não |
+| `GET /bot/leads?name=…` (duplicado) | sim | não | não |
+| `POST /bot/leads` | sim | não | não |
+| `GET /bot/queue` | não | sim | não |
+| `POST /bot/move` | sim | sim | não |
+| `POST /bot/instagram/posts` | não | não | sim |
+
+Chaves criadas antes das permissões continuam valendo: `prospector` = `funil`, `executor` = `mensagens`.
 
 ---
 
@@ -40,6 +50,8 @@ Saídas (o lead para de andar, mas fica registrado para não ser pesquisado de n
 `descartado`, `banco_b`, `revisar`, `nao_contatar`, `sem_resposta`, `invalido`.
 
 ### Quem pode mover o quê
+
+Com `funil` valem as linhas `prospector`; com `mensagens`, as `executor`.
 
 | Papel | De | Para |
 |---|---|---|
@@ -144,6 +156,52 @@ Resposta: `201` (criado) ou `200` (atualizado), com `{ "lead": { … } }`.
 
 Veja a seção 5. Ex.: `{"id":"…","to":"banco_b","note":"Nota 55, abaixo do corte"}`.
 
+### 3.4 Ver o que o Pedro aprovou e como ele editou — `GET /bot/leads?stage=aprovado`
+
+Lista os leads de uma etapa (`funil` ou `mensagens`). Use para saber quem foi aprovado, por qual canal, e para **estudar as edições**: compare `botMessage` (o que você mandou) com `message` (o texto final que o Pedro aprovou) e ajuste as próximas mensagens ao estilo dele.
+
+Query:
+
+| Campo | Obrigatório | Observação |
+|---|---|---|
+| `stage` | sim | Qualquer etapa, ex.: `aprovado`, `enviado`, `respondeu`. |
+| `since` | não | Data ISO 8601; só leads que entraram na etapa a partir dela. |
+| `limit` | não | 1–200, padrão 50. Mais recentes primeiro. |
+
+```
+GET /bot/leads?stage=aprovado&since=2026-11-01T00:00:00-03:00
+```
+
+Resposta `200`:
+
+```json
+{
+  "stage": "aprovado",
+  "count": 1,
+  "leads": [
+    {
+      "id": "uuid",
+      "name": "Mecânica Zanella",
+      "niche": "oficina mecânica",
+      "city": "Caxias do Sul",
+      "stage": "aprovado",
+      "channel": "email",
+      "email": "contato@zanella.com.br",
+      "whatsapp": "",
+      "message": "texto final aprovado pelo Pedro",
+      "botMessage": "texto que o bot mandou",
+      "edited": true,
+      "approvedAt": "2026-11-23T14:02:11.000Z",
+      "stageChangedAt": "2026-11-23T14:02:11.000Z"
+    }
+  ]
+}
+```
+
+- `channel`: `whatsapp`, `email` ou `none`. Leads por e-mail o Pedro envia pelo painel.
+- `edited`: `true` quando o Pedro mudou o texto.
+- `botMessage` vem vazio em leads cadastrados antes desse registro existir.
+
 ---
 
 ## 4. Bot WhatsApp (`executor`)
@@ -193,9 +251,30 @@ Registre **logo depois** de cada envio. Se o registro falhar, o lead continua na
 
 ---
 
+## 4b. Instagram (`instagram`)
+
+### Criar post — `POST /bot/instagram/posts`
+
+Cria um post novo no calendário do painel. Bots não editam nem apagam posts existentes (mandar `id` devolve `403`).
+
+| Campo | Tipo | Observação |
+|---|---|---|
+| `kind` | `image`, `carousel`, `reel` ou `story` | Padrão `image`. |
+| `caption` | texto (2200) | No máximo 30 hashtags. |
+| `mediaUrls` | lista de URLs `https` públicas | Até 10. Obrigatória para agendar ou publicar. |
+| `coverUrl` | URL `https` | Capa do reel (opcional). |
+| `shareToFeed` | booleano | Reel também no feed (padrão `true`). |
+| `mode` | `rascunho`, `agendado` ou `agora` | Padrão `rascunho`. Prefira `rascunho` para o Pedro revisar. |
+| `scheduledAt` | data ISO 8601 | Obrigatória com `agendado`. |
+| `tags`, `notes` | | Organização no painel. |
+
+Resposta `200`: `{ "post": { … } }` (com `mode: "agora"`, também `publish`).
+
+---
+
 ## 5. Mover de etapa — `POST /bot/move`
 
-Disponível para os dois papéis, respeitando a tabela da seção 2.
+Disponível para chaves com `funil` ou `mensagens`, respeitando a tabela da seção 2.
 
 Corpo:
 
@@ -218,7 +297,7 @@ Todos devolvem `{ "error": "mensagem" }`.
 |---|---|
 | `400` | Dado inválido ou regra do funil quebrada (cidade fora da área, lead com site em `aguardando`, motivo faltando). A mensagem diz o quê. |
 | `401` | Token ausente, errado ou revogado. Pare e avise o Pedro. |
-| `403` | O token é do papel errado para a rota, ou o prospector tentou uma etapa que não pode registrar. |
+| `403` | A chave não tem a permissão da rota, ou o Dev Bossle tentou uma etapa que não pode registrar. |
 | `404` | Lead não encontrado. |
 | `405` | Método HTTP errado. |
 | `409` | Transição não permitida, follow-up ainda não aprovado, ou lead duplicado em etapa que o bot não pode editar. |

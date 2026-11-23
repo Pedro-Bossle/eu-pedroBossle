@@ -3,6 +3,7 @@ import { json, readBody, requireSession } from "../../_lib/auth.js";
 import { withAuth } from "../../_lib/db.js";
 import { POST_COLS, cleanTags, mapPost } from "../../_lib/igMappers.js";
 import { publishDue } from "../../_lib/instagram.js";
+import { hasBotToken, requireBot } from "../../_lib/prospectFunnel.js";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const KINDS = ["image", "carousel", "reel", "story"] as const;
@@ -35,14 +36,22 @@ function validUrl(u: string) {
  * POST → cria/atualiza (e publica na hora com mode "agora")
  * PATCH { id, scheduledAt } → arrasta no calendário
  * DELETE ?id → apaga (posts publicados só somem do painel, não do Instagram)
+ *
+ * Também em /bot/instagram/posts com chave de bot que tenha "instagram":
+ * só POST de post novo (sem id), para não mexer nos posts do Pedro.
  */
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  if (!(await requireSession(req, res))) return;
+  const viaBot = hasBotToken(req);
+  if (viaBot) {
+    if (!(await requireBot(req, res, ["instagram"]))) return;
+    if (req.method !== "POST") return json(res, 405, { error: "Bots só criam posts (POST)" });
+  } else if (!(await requireSession(req, res))) return;
 
   try {
     if (req.method === "POST") {
       const b = readBody<Body>(req);
       if (!b) return json(res, 400, { error: "JSON inválido" });
+      if (viaBot && b.id) return json(res, 403, { error: "Bots não editam posts existentes; crie um novo" });
       const kind = (KINDS as readonly string[]).includes(String(b.kind)) ? String(b.kind) : "image";
       const caption = String(b.caption ?? "").slice(0, 2200);
       const urls = (Array.isArray(b.mediaUrls) ? b.mediaUrls : [])

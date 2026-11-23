@@ -40,6 +40,7 @@ const loaders: Record<string, () => Promise<{ default: RouteHandler }>> = {
   "bot/leads": () => import("./_handlers/bot/leads.js"),
   "bot/queue": () => import("./_handlers/bot/queue.js"),
   "bot/move": () => import("./_handlers/bot/move.js"),
+  "bot/instagram/posts": () => import("./_handlers/instagram/posts.js"),
   // Instagram (011)
   instagram: () => import("./_handlers/instagram/index.js"),
   "instagram/oauth": () => import("./_handlers/instagram/oauth.js"),

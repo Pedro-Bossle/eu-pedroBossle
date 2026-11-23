@@ -197,10 +197,13 @@ export type ProspectEvent = {
   at: string;
 };
 
+export type BotScope = "funil" | "mensagens" | "instagram";
+
 export type BotToken = {
   id: string;
   name: string;
-  role: "prospector" | "executor";
+  role: "prospector" | "executor" | null;
+  scopes: BotScope[];
   last4: string;
   created_at: string;
   last_used_at: string | null;

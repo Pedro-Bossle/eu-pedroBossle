@@ -209,7 +209,16 @@ export function newBotToken() {
   return { token, hash: hashToken(token), last4: token.slice(-4) };
 }
 
-export type BotIdentity = { id: string; name: string; role: BotRole };
+/** Grupos de rotas que uma chave pode liberar (escolhidos no painel ao criar). */
+export const BOT_SCOPES = ["funil", "mensagens", "instagram"] as const;
+export type BotScope = (typeof BOT_SCOPES)[number];
+export const isBotScope = (v: unknown): v is BotScope =>
+  typeof v === "string" && (BOT_SCOPES as readonly string[]).includes(v);
+
+/** Chaves criadas antes do 021 só têm papel: funil (prospector) ou mensagens (executor). */
+const ROLE_SCOPE: Record<BotRole, BotScope> = { prospector: "funil", executor: "mensagens" };
+
+export type BotIdentity = { id: string; name: string; scopes: BotScope[] };
 
 /** Lê `Authorization: Bearer dbb_…` e devolve o bot, ou null. */
 export async function readBot(req: VercelRequest): Promise<BotIdentity | null> {
@@ -218,22 +227,36 @@ export async function readBot(req: VercelRequest): Promise<BotIdentity | null> {
   if (!m) return null;
   const hash = hashToken(m[1]);
   return withAuth(async (db) => {
+    // to_jsonb(...)->'scopes' não quebra se o 021 ainda não rodou (vem null)
     const { rows } = await db.query(
       `UPDATE bot_tokens SET last_used_at = now()
        WHERE token_hash = $1 AND revoked_at IS NULL
-       RETURNING id, name, role, token_hash`,
+       RETURNING id, name, role, token_hash, to_jsonb(bot_tokens.*) -> 'scopes' AS scopes`,
       [hash],
     );
     const row = rows[0] as
-      | { id: string; name: string; role: BotRole; token_hash: string }
+      | { id: string; name: string; role: BotRole | null; token_hash: string; scopes: unknown }
       | undefined;
     if (!row) return null;
     const a = Buffer.from(row.token_hash, "hex");
     const b = Buffer.from(hash, "hex");
     if (a.length !== b.length || !timingSafeEqual(a, b)) return null;
-    return { id: row.id, name: row.name, role: row.role };
+    let scopes = (Array.isArray(row.scopes) ? row.scopes : []).filter(isBotScope);
+    if (!scopes.length && row.role && ROLE_SCOPE[row.role]) scopes = [ROLE_SCOPE[row.role]];
+    return { id: row.id, name: row.name, scopes };
   });
 }
+
+/** Papel no funil que este bot usa para mover um lead de `from` para `to`, ou null. */
+export function botActorFor(bot: BotIdentity, from: Stage, to: Stage): BotRole | null {
+  if (bot.scopes.includes("funil") && canMove("prospector", from, to)) return "prospector";
+  if (bot.scopes.includes("mensagens") && canMove("executor", from, to)) return "executor";
+  return null;
+}
+
+/** Diz se a requisição traz uma chave de bot (para rotas que também aceitam a sessão do Pedro). */
+export const hasBotToken = (req: VercelRequest) =>
+  /^Bearer\s+dbb_/.test(String(req.headers.authorization ?? ""));
 
 /** Só dígitos, sem o 55 do país: usado para achar o mesmo WhatsApp escrito de jeitos diferentes. */
 export function phoneKey(raw: string): string {
@@ -245,11 +268,11 @@ export function phoneKey(raw: string): string {
 // ---------- Autenticação dos bots nas rotas ----------
 
 
-/** Exige token de bot com o papel certo. Responde 401/403/429 e devolve null quando falha. */
+/** Exige chave de bot com pelo menos uma das permissões. Responde 401/403/429 e devolve null quando falha. */
 export async function requireBot(
   req: VercelRequest,
   res: VercelResponse,
-  roles: readonly BotRole[],
+  scopes: readonly BotScope[],
 ): Promise<BotIdentity | null> {
   const limit = rateLimit(`bot:${clientIp(req)}`, 120, 60_000);
   if (!limit.ok) {
@@ -262,8 +285,8 @@ export async function requireBot(
     json(res, 401, { error: "Token de bot ausente ou revogado" });
     return null;
   }
-  if (!roles.includes(bot.role)) {
-    json(res, 403, { error: "Este bot não tem permissão para esta rota" });
+  if (!bot.scopes.some((s) => scopes.includes(s))) {
+    json(res, 403, { error: `Esta chave não tem permissão para esta rota (precisa de: ${scopes.join(" ou ")})` });
     return null;
   }
   return bot;

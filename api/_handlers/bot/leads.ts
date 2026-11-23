@@ -50,14 +50,73 @@ async function findExisting(
 }
 
 /**
- * Bot Dev Bossle (prospector).
+ * Leads de uma etapa com a mensagem final (a que Pedro aprovou) e a que o bot escreveu,
+ * para o bot comparar as edições. `since` filtra pela data em que o lead entrou na etapa.
+ */
+async function listStage(req: VercelRequest, res: VercelResponse, stage: Stage) {
+  const limit = Math.max(1, Math.min(200, Number.parseInt(String(req.query.limit ?? "50"), 10) || 50));
+  const sinceRaw = clip(req.query.since, 40);
+  const since = sinceRaw ? new Date(sinceRaw) : null;
+  if (since && Number.isNaN(since.getTime())) return json(res, 400, { error: "since inválido (use ISO 8601)" });
+
+  const rows = await withAuth(async (db) => {
+    const { rows } = await db.query(
+      `SELECT l.id, l.name, l.niche, l.city, l.stage, l.email, l.whatsapp, l.message,
+              coalesce(to_jsonb(l.*) ->> 'bot_message', '') AS bot_message,
+              l.stage_changed_at,
+              (SELECT max(e.created_at) FROM prospect_events e
+                WHERE e.lead_id = l.id AND e.to_stage = 'aprovado') AS approved_at
+       FROM prospect_leads l
+       WHERE l.stage = $1 AND ($2::timestamptz IS NULL OR l.stage_changed_at >= $2)
+       ORDER BY l.stage_changed_at DESC
+       LIMIT $3`,
+      [stage, since, limit],
+    );
+    return rows;
+  });
+
+  const leads = rows.map((r) => {
+    const message = String(r.message ?? "");
+    const botMessage = String(r.bot_message ?? "");
+    return {
+      id: String(r.id),
+      name: String(r.name ?? ""),
+      niche: String(r.niche ?? ""),
+      city: String(r.city ?? ""),
+      stage: String(r.stage),
+      channel: leadChannel({ whatsapp: String(r.whatsapp ?? ""), email: String(r.email ?? "") }),
+      email: String(r.email ?? ""),
+      whatsapp: String(r.whatsapp ?? ""),
+      /** Texto final, como Pedro aprovou. */
+      message,
+      /** Texto como o bot mandou ("" em leads antigos, de antes do registro). */
+      botMessage,
+      edited: Boolean(botMessage) && botMessage.trim() !== message.trim(),
+      approvedAt: r.approved_at ?? null,
+      stageChangedAt: r.stage_changed_at ?? null,
+    };
+  });
+  return json(res, 200, { stage, count: leads.length, leads });
+}
+
+/**
+ * GET ?stage=aprovado[&since=&limit=] → leads da etapa com e-mail, WhatsApp e mensagem final
+ *   (chaves com funil ou mensagens).
+ * Bot Dev Bossle (chave com funil):
  * GET ?name=&city=&whatsapp= → { exists, stage } para checar duplicado antes de pesquisar.
  * POST { ...lead, stage, note?, score, ... } → cria ou atualiza o lead (só em Encontrado/Aguardando).
  */
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  if (!(await requireBot(req, res, ["prospector"]))) return;
+  const listing = req.method === "GET" && req.query.stage !== undefined;
+  const bot = await requireBot(req, res, listing ? ["funil", "mensagens"] : ["funil"]);
+  if (!bot) return;
 
   try {
+    if (listing) {
+      if (!isStage(req.query.stage)) return json(res, 400, { error: "Etapa inválida" });
+      return await listStage(req, res, req.query.stage);
+    }
+
     if (req.method === "GET") {
       const hit = await withAuth((db) =>
         findExisting(db, clip(req.query.name, 200), clip(req.query.city, 120), clip(req.query.whatsapp, 40)),
@@ -159,6 +218,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
            VALUES ($1, '', $2, 'bot:dev-bossle', $3)`,
           [id, stage, note],
         );
+      }
+
+      // Guarda o texto do bot para comparar com o aprovado (savepoint: não quebra sem o 021)
+      await db.query("SAVEPOINT bot_message");
+      try {
+        await db.query(`UPDATE prospect_leads SET bot_message = $2 WHERE id = $1`, [id, clean.message]);
+        await db.query("RELEASE SAVEPOINT bot_message");
+      } catch {
+        await db.query("ROLLBACK TO SAVEPOINT bot_message");
       }
 
       const { rows } = await db.query(`SELECT * FROM prospect_leads WHERE id = $1`, [id]);
