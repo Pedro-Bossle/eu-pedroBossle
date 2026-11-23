@@ -9,7 +9,7 @@ import {
   prospectsToCsv,
   whatsappUrl,
 } from "../../lib/orcamentos/prospects";
-import type { BotToken, ProspectEvent, ProspectInput, ProspectLead, ProspectRules } from "../../types/orcamentos";
+import type { BotScope, BotToken, ProspectEvent, ProspectInput, ProspectLead, ProspectRules } from "../../types/orcamentos";
 import Icon from "./ui/Icon";
 import QuickMenu from "./ui/QuickMenu";
 import Select from "./ui/Select";
@@ -554,10 +554,17 @@ function LeadCard({
 
 // ---------- Tokens dos bots ----------
 
+const SCOPE_OPTIONS: { value: BotScope; label: string; hint: string }[] = [
+  { value: "funil", label: "Funil", hint: "cadastrar e qualificar leads (Dev Bossle)" },
+  { value: "mensagens", label: "Mensagens", hint: "fila de envio e registro no WhatsApp" },
+  { value: "instagram", label: "Instagram", hint: "criar posts no calendário" },
+];
+const SCOPE_LABEL: Record<BotScope, string> = { funil: "Funil", mensagens: "Mensagens", instagram: "Instagram" };
+
 function BotTokens({ showToast }: { showToast: (msg: string) => void }) {
   const [tokens, setTokens] = useState<BotToken[]>([]);
   const [name, setName] = useState("");
-  const [role, setRole] = useState<BotToken["role"]>("prospector");
+  const [scopes, setScopes] = useState<BotScope[]>(["funil"]);
   const [fresh, setFresh] = useState("");
   const [busy, setBusy] = useState(false);
 
@@ -576,8 +583,7 @@ function BotTokens({ showToast }: { showToast: (msg: string) => void }) {
     <div className="space-y-4">
       <div>
         <p className="text-sm text-muted">
-          <span className="font-mono">prospector</span> (Dev Bossle) cadastra e qualifica leads;{" "}
-          <span className="font-mono">executor</span> (WhatsApp) envia as mensagens aprovadas. O token aparece uma única vez.
+          Escolha o que cada chave pode fazer. Dê a cada bot só o que ele usa. O token aparece uma única vez.
         </p>
       </div>
       {fresh ? (
@@ -601,13 +607,13 @@ function BotTokens({ showToast }: { showToast: (msg: string) => void }) {
         </div>
       ) : null}
       <form
-        className="grid grid-cols-1 gap-2 sm:grid-cols-[1fr_auto_auto]"
+        className="space-y-3"
         onSubmit={async (e) => {
           e.preventDefault();
-          if (!name.trim()) return;
+          if (!name.trim() || !scopes.length) return;
           setBusy(true);
           try {
-            const r = await orcamentosApi.createBotToken(name.trim(), role);
+            const r = await orcamentosApi.createBotToken(name.trim(), scopes);
             setFresh(r.token);
             setName("");
             await load();
@@ -625,16 +631,30 @@ function BotTokens({ showToast }: { showToast: (msg: string) => void }) {
           placeholder="Nome do bot"
           aria-label="Nome do bot"
         />
-        <Select
-          ariaLabel="Papel do bot"
-          value={role}
-          onChange={(v) => setRole(v)}
-          options={[
-            { value: "prospector", label: "Prospector", hint: "Dev Bossle" },
-            { value: "executor", label: "Executor", hint: "WhatsApp" },
-          ]}
-        />
-        <button type="submit" className={btnPrimary} disabled={busy || !name.trim()}>
+        <fieldset className="space-y-1.5">
+          <legend className="mb-1 text-sm font-medium">Permissões</legend>
+          {SCOPE_OPTIONS.map((o) => (
+            <label key={o.value} className="flex cursor-pointer items-start gap-2 text-sm">
+              <input
+                type="checkbox"
+                className="mt-0.5 accent-[var(--adm-accent)]"
+                checked={scopes.includes(o.value)}
+                onChange={(e) =>
+                  setScopes((cur) =>
+                    e.target.checked
+                      ? SCOPE_OPTIONS.map((x) => x.value).filter((v) => v === o.value || cur.includes(v))
+                      : cur.filter((v) => v !== o.value),
+                  )
+                }
+              />
+              <span>
+                {o.label} <span className="text-muted">· {o.hint}</span>
+              </span>
+            </label>
+          ))}
+          {!scopes.length ? <p className="text-xs text-muted">Marque pelo menos uma.</p> : null}
+        </fieldset>
+        <button type="submit" className={btnPrimary} disabled={busy || !name.trim() || !scopes.length}>
           Criar token
         </button>
       </form>
@@ -642,7 +662,7 @@ function BotTokens({ showToast }: { showToast: (msg: string) => void }) {
         {tokens.map((t) => (
           <li key={t.id} className="flex flex-wrap items-center justify-between gap-2 py-2">
             <span className={t.revoked_at ? "text-faint line-through" : ""}>
-              {t.name} · <span className="font-mono">{t.role}</span> · …{t.last4}
+              {t.name} · {(t.scopes ?? []).map((sc) => SCOPE_LABEL[sc] ?? sc).join(", ") || t.role} · …{t.last4}
               <span className="text-muted">
                 {" "}
                 · {t.last_used_at ? `usado ${fmtWhen(t.last_used_at)}` : "nunca usado"}

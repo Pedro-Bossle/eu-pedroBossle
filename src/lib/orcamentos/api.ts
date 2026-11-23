@@ -268,10 +268,10 @@ export const orcamentosApi = {
     }),
   listBotTokens: () =>
     request<{ tokens: BotToken[] }>("/api/orcamentos/prospects/bot-tokens"),
-  createBotToken: (name: string, role: BotToken["role"]) =>
+  createBotToken: (name: string, scopes: BotToken["scopes"]) =>
     request<{ token: string }>("/api/orcamentos/prospects/bot-tokens", {
       method: "POST",
-      body: JSON.stringify({ name, role }),
+      body: JSON.stringify({ name, scopes }),
     }),
   revokeBotToken: (id: string) =>
     request<{ ok: boolean }>(
