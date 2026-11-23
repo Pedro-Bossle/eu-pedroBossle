@@ -1536,8 +1536,8 @@ function Account({ data, showToast, onChanged }: { data: IgOverview; showToast: 
           </dl>
           <ul className="mt-5 space-y-1.5 text-sm text-muted">
             <li>
-              Token {daysLeft == null ? "sem validade conhecida" : daysLeft > 0 ? `válido por ~${daysLeft} dias` : "expirado — conecte de novo"}
-              {a.expiryGuessed ? " (estimado)" : ""}. Ele é renovado sozinho pelo agendador diário.
+              Token {daysLeft == null ? "sem validade (não expira)" : daysLeft > 0 ? `válido por ~${daysLeft} dias` : "expirado — conecte de novo"}
+              {a.expiryGuessed ? " (estimado)" : ""}.{daysLeft == null ? "" : " Ele é renovado sozinho pelo agendador diário."}
             </li>
             <li>{data.features.cron ? "Agendador configurado (CRON_SECRET)." : "⚠ Defina CRON_SECRET para os posts agendados saírem sozinhos."}</li>
             {a.insightsAt ? <li>Métricas atualizadas {relTime(a.insightsAt)} atrás.</li> : null}
@@ -1559,7 +1559,7 @@ function Account({ data, showToast, onChanged }: { data: IgOverview; showToast: 
         <div className="mt-4 space-y-2">
           <label className="block">
             <span className={smallLabel}>Token de acesso</span>
-            <input className={`${inputClass} mt-2 font-mono`} type="password" autoComplete="off" value={token} onChange={(e) => setToken(e.target.value)} placeholder="IGAA…" />
+            <input className={`${inputClass} mt-2 font-mono`} type="password" autoComplete="off" value={token} onChange={(e) => setToken(e.target.value)} placeholder="EAA… ou IGAA…" />
           </label>
           <button type="button" className={`${btn} w-full`} disabled={busy || token.trim().length < 20} onClick={connect}>
             {busy ? "Validando…" : "Salvar token"}
@@ -1568,10 +1568,10 @@ function Account({ data, showToast, onChanged }: { data: IgOverview; showToast: 
         <details className="mt-4 text-sm text-muted">
           <summary className="cursor-pointer font-medium">Como gerar o token</summary>
           <ol className="mt-2 list-decimal space-y-1 pl-5">
-            <li>Em developers.facebook.com crie um app do tipo Business e adicione o produto “Instagram” (API com login do Instagram).</li>
-            <li>Em “Gerar tokens de acesso”, adicione sua conta e gere o token (permissões: basic, content_publish, manage_comments, manage_insights).</li>
-            <li>Cole aqui. O token fica criptografado no banco e é renovado automaticamente.</li>
-            <li>Opcional: defina META_APP_ID e META_APP_SECRET na Vercel para usar o botão “Entrar com Instagram”.</li>
+            <li>Em developers.facebook.com → seu app → Instagram API → “API setup with Unified login”, crie a configuração (passo 1).</li>
+            <li>No passo 2, clique em “Generate token” na linha da sua conta e cole o token (EAA…) aqui. Ele não expira.</li>
+            <li>Apps antigos com login do Instagram: o token começa com IGAA e é renovado automaticamente.</li>
+            <li>Para o botão “Entrar com Instagram”: defina META_APP_ID, META_APP_SECRET e META_LOGIN_CONFIG_ID (ID da configuração) na Vercel.</li>
           </ol>
         </details>
       </div>

@@ -2,12 +2,22 @@ import type { PoolClient } from "@neondatabase/serverless";
 import { open, seal } from "./secretBox.js";
 
 /**
- * Instagram API com login do Instagram (graph.instagram.com).
- * Escopos: instagram_business_basic, instagram_business_content_publish,
+ * Dois jeitos de falar com a API do Instagram, escolhidos pelo token:
+ * - Login do Instagram (token "IGAA…", 60 dias): graph.instagram.com. Apps antigos.
+ * - Unified login (Facebook Login for Business; token "EAA…" de usuário do sistema,
+ *   não expira): graph.facebook.com, sempre com o ID da conta do Instagram explícito.
+ *   Apps criados a partir de ~out/2026 só têm este.
+ * Escopos (login do Instagram): instagram_business_basic, instagram_business_content_publish,
  * instagram_business_manage_comments, instagram_business_manage_insights.
  */
-const GRAPH = "https://graph.instagram.com";
+const IG_GRAPH = "https://graph.instagram.com";
+const FB_GRAPH = "https://graph.facebook.com";
 const version = () => process.env.META_GRAPH_VERSION?.trim() || "v24.0";
+
+/** Token do login do Instagram (graph.instagram.com)? Os do Unified login são tokens do Facebook. */
+export function isInstagramLoginToken(token: string): boolean {
+  return /^IG/.test(token.trim());
+}
 
 export const IG_SCOPES = [
   "instagram_business_basic",
@@ -32,7 +42,8 @@ export async function ig<T = Record<string, unknown>>(
   opts: { method?: "GET" | "POST" | "DELETE"; params?: Params; versioned?: boolean } = {},
 ): Promise<T> {
   const method = opts.method ?? "GET";
-  const base = opts.versioned === false ? GRAPH : `${GRAPH}/${version()}`;
+  const host = isInstagramLoginToken(token) ? IG_GRAPH : FB_GRAPH;
+  const base = opts.versioned === false ? host : `${host}/${version()}`;
   const url = new URL(path.startsWith("http") ? path : `${base}/${path.replace(/^\//, "")}`);
   const params = new URLSearchParams();
   for (const [k, v] of Object.entries(opts.params ?? {})) {
@@ -137,7 +148,53 @@ type MeResponse = {
   account_type?: string;
 };
 
+/**
+ * Unified login: descobre o ID da conta do Instagram liberada para o token.
+ * META_IG_USER_ID força uma conta (útil se o token enxergar mais de uma).
+ */
+async function resolveUnifiedIgUserId(token: string): Promise<string> {
+  const forced = process.env.META_IG_USER_ID?.trim();
+  if (forced && /^\d{5,30}$/.test(forced)) return forced;
+  try {
+    const r = await ig<{ data?: { id?: string; username?: string }[] }>(token, "me/assigned_instagram_accounts", {
+      params: { fields: "id,username" },
+    });
+    const id = r.data?.[0]?.id;
+    if (id) return String(id);
+  } catch {
+    /* tenta pelas páginas (Facebook Login clássico) */
+  }
+  try {
+    const r = await ig<{ data?: { instagram_business_account?: { id?: string } }[] }>(token, "me/accounts", {
+      params: { fields: "instagram_business_account" },
+    });
+    const id = r.data?.find((p) => p.instagram_business_account?.id)?.instagram_business_account?.id;
+    if (id) return String(id);
+  } catch {
+    /* sem páginas */
+  }
+  throw new IgError(
+    "Esse token não enxerga nenhuma conta do Instagram. Gere o token na linha do @ da conta (Meta for Developers → Instagram API → Generate token) ou defina META_IG_USER_ID.",
+  );
+}
+
 export async function fetchProfile(token: string): Promise<Omit<IgAccountMeta, "connectedAt" | "refreshedAt">> {
+  if (!isInstagramLoginToken(token)) {
+    const id = await resolveUnifiedIgUserId(token);
+    const u = await ig<MeResponse>(token, id, {
+      params: { fields: "id,username,name,profile_picture_url,followers_count,follows_count,media_count" },
+    });
+    return {
+      userId: String(u.id ?? id),
+      username: u.username ?? "",
+      name: u.name ?? "",
+      picture: u.profile_picture_url ?? "",
+      followers: u.followers_count ?? null,
+      follows: u.follows_count ?? null,
+      mediaCount: u.media_count ?? null,
+      accountType: "BUSINESS",
+    };
+  }
   const me = await ig<MeResponse>(token, "me", {
     params: {
       fields:
@@ -161,7 +218,7 @@ export async function fetchProfile(token: string): Promise<Omit<IgAccountMeta, "
 /** Troca token curto (OAuth) por um de 60 dias. Exige META_APP_SECRET. */
 export async function exchangeLongLived(token: string): Promise<{ token: string; expiresIn: number } | null> {
   const secret = process.env.META_APP_SECRET;
-  if (!secret) return null;
+  if (!secret || !isInstagramLoginToken(token)) return null;
   try {
     const r = await ig<{ access_token: string; expires_in: number }>(token, "access_token", {
       versioned: false,
@@ -176,6 +233,14 @@ export async function exchangeLongLived(token: string): Promise<{ token: string;
 /** Conecta com um token (colado no painel ou vindo do OAuth). */
 export async function connectIg(db: PoolClient, rawToken: string): Promise<IgAccountMeta> {
   let token = rawToken.trim();
+  if (!isInstagramLoginToken(token)) {
+    // Unified login: token de usuário do sistema, não expira e não tem renovação
+    const profile = await fetchProfile(token);
+    const now = new Date().toISOString();
+    const meta: IgAccountMeta = { ...profile, connectedAt: now, refreshedAt: now, expiryGuessed: false };
+    await saveIgCredential(db, token, meta, null);
+    return meta;
+  }
   let expiresAt: Date;
   let guessed = false;
   const exchanged = await exchangeLongLived(token);
@@ -210,6 +275,7 @@ async function refreshToken(token: string) {
 
 /** Renova o token se faltar menos de `days` dias (o Instagram só renova tokens com 24h+). */
 export async function refreshIfNeeded(db: PoolClient, cred: IgCredential, days = 20): Promise<IgCredential> {
+  if (!isInstagramLoginToken(cred.token)) return cred; // Unified login: não expira
   const left = cred.expiresAt ? cred.expiresAt.getTime() - Date.now() : 0;
   const age = Date.now() - new Date(cred.meta.refreshedAt || 0).getTime();
   if (left > days * 86400_000 || age < 86400_000) return cred;
