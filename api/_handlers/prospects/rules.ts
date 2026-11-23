@@ -1,14 +1,17 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { json, readBody, requireSession } from "../../_lib/auth.js";
 import { withAuth } from "../../_lib/db.js";
-import { loadRules } from "../../_lib/prospectFunnel.js";
+import { hasBotToken, loadRules, requireBot } from "../../_lib/prospectFunnel.js";
 
 /**
  * Regras do funil que valem para os bots.
  * GET → { rules }   PUT { cities: string[], allowWebsite: boolean } → { rules }
+ * Também em /bot/rules para chaves com funil_total.
  */
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  if (!(await requireSession(req, res))) return;
+  if (hasBotToken(req)) {
+    if (!(await requireBot(req, res, ["funil_total"]))) return;
+  } else if (!(await requireSession(req, res))) return;
 
   try {
     if (req.method === "GET") {

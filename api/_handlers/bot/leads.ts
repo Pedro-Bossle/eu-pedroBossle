@@ -5,13 +5,16 @@ import {
   EXIT_STAGES,
   PROSPECTOR_CREATE,
   PROSPECTOR_EDITABLE,
+  botLabel,
   cityAllowed,
+  isFullBot,
   isStage,
   leadChannel,
   loadRules,
   moveLead,
   phoneKey,
   requireBot,
+  type BotIdentity,
   type Stage,
 } from "../../_lib/prospectFunnel.js";
 import { mapProspect, sanitizeProspect, type ProspectInput } from "../../_lib/prospects.js";
@@ -28,6 +31,10 @@ type BotLeadBody = ProspectInput & {
   siteCheck?: string;
   activity?: string;
   detail?: string;
+  /** Só com funil_total. */
+  result?: string;
+  followupMessage?: string;
+  approveFollowup?: boolean;
   projectType?: string;
 };
 
@@ -133,11 +140,16 @@ async function saveBotLead(
   current: { id: string; stage: Stage; row: Record<string, unknown> } | null,
   stage: Stage,
   note: string,
+  bot: BotIdentity,
 ): Promise<Outcome> {
   const fail = (error: string): Outcome => ({ status: 400, body: { error } });
-  const sent = LEAD_FIELDS.filter((k) => body[k] !== undefined);
+  // funil_total age como o Pedro: sem as travas de qualidade do Dev Bossle
+  const full = isFullBot(bot);
+  const label = full ? botLabel(bot) : "bot:dev-bossle";
+  const sent: string[] = LEAD_FIELDS.filter((k) => body[k] !== undefined);
+  if (full) for (const k of ["followupMessage", "approveFollowup", "result"] as const) if (body[k] !== undefined) sent.push(k);
   const merged: BotLeadBody = current ? { ...rowToBody(current.row) } : {};
-  for (const k of sent) (merged as Record<string, unknown>)[k] = body[k];
+  for (const k of LEAD_FIELDS) if (body[k] !== undefined) (merged as Record<string, unknown>)[k] = body[k];
 
   const clean = sanitizeProspect({ ...merged, source: "bot", sent: false, replied: false });
   if (!clean.name || !clean.city) return fail("Nome e cidade são obrigatórios");
@@ -164,12 +176,12 @@ async function saveBotLead(
 
   // Regras editáveis no painel (Funil → Regras do funil)
   const rules = await loadRules(db);
-  if (!cityAllowed(rules, clean.city)) {
+  if (!full && !cityAllowed(rules, clean.city)) {
     return fail(`Cidade fora da área configurada no painel: ${rules.cities.join(", ")}`);
   }
 
   // Regras garantidas no servidor: só lead A, confirmado, vai para aprovação
-  if (stage === "aguardando") {
+  if (stage === "aguardando" && !full) {
     if (clean.website && !rules.allowWebsite) return fail("Lead com site não entra no funil (regra do painel)");
     if (!extra.siteCheck) return fail("Descreva as checagens de site (siteCheck)");
     if (score == null || score < 70) return fail("Só lead A (nota 70 ou mais)");
@@ -194,8 +206,10 @@ async function saveBotLead(
   if (current) {
     id = current.id;
     await db.query(`UPDATE prospect_leads SET ${cols}, updated_at = now() WHERE id = $1`, [id, ...params]);
-    if (current.stage !== stage) {
-      const moved = await moveLead(db, { id, to: stage, actor: "prospector", note });
+    if (current.stage !== stage || (full && stage === "resultado" && body.result !== undefined)) {
+      const moved = await moveLead(db, {
+        id, to: stage, actor: full ? "pedro" : "prospector", note, label, result: body.result,
+      });
       if (!moved.ok) return { status: moved.status, body: { error: moved.error } };
     }
   } else {
@@ -208,14 +222,37 @@ async function saveBotLead(
        ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16::jsonb,$17,$18,$19,$20,$21,
          'bot', $22, $23)
        RETURNING id`,
-      [...params, stage, (EXIT_STAGES as readonly string[]).includes(stage) ? note : ""],
+      // funil_total entra em Encontrado e anda pelo moveLead (valida e registra como o painel)
+      [...params, full ? "encontrado" : stage, !full && (EXIT_STAGES as readonly string[]).includes(stage) ? note : ""],
     );
     id = String(rows[0].id);
     await db.query(
       `INSERT INTO prospect_events (lead_id, from_stage, to_stage, actor, note)
-       VALUES ($1, '', $2, 'bot:dev-bossle', $3)`,
-      [id, stage, note],
+       VALUES ($1, '', $2, $3, $4)`,
+      [id, full ? "encontrado" : stage, label, full ? "" : note],
     );
+    if (full && stage !== "encontrado") {
+      const moved = await moveLead(db, { id, to: stage, actor: "pedro", note, label, result: body.result });
+      if (!moved.ok) return { status: moved.status, body: { error: moved.error } };
+    }
+  }
+
+  // Follow-up (só funil_total): texto e aprovação
+  if (full && (body.followupMessage !== undefined || body.approveFollowup === true)) {
+    const fu = body.followupMessage !== undefined ? clip(body.followupMessage, 1000) : null;
+    await db.query(
+      `UPDATE prospect_leads SET followup_message = coalesce($2, followup_message),
+         followup_approved_at = CASE WHEN $3 THEN now() ELSE followup_approved_at END, updated_at = now()
+       WHERE id = $1`,
+      [id, fu, body.approveFollowup === true],
+    );
+    if (body.approveFollowup === true) {
+      await db.query(
+        `INSERT INTO prospect_events (lead_id, from_stage, to_stage, actor, note)
+         SELECT id, stage, stage, $2, 'follow-up aprovado' FROM prospect_leads WHERE id = $1`,
+        [id, label],
+      );
+    }
   }
 
   // Guarda o texto do bot para comparar com o aprovado (savepoint: não quebra sem o 021)
@@ -245,11 +282,18 @@ async function saveBotLead(
  *   Ao atualizar, campos que não vierem continuam como estão.
  * PATCH { id, ...só os campos que mudam, stage?, note? } → edita trechos de um lead
  *   em Encontrado, Aguardando ou Revisar.
+ * Com funil_total (age como o Pedro): cria, edita e move em qualquer etapa, aprova,
+ *   define result / followupMessage / approveFollowup, e DELETE ?id= apaga.
  */
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   const listing = req.method === "GET" && req.query.stage !== undefined;
-  const bot = await requireBot(req, res, listing ? ["funil", "mensagens"] : ["funil"]);
+  const bot = await requireBot(
+    req,
+    res,
+    listing ? ["funil", "mensagens", "funil_total"] : ["funil", "funil_total"],
+  );
   if (!bot) return;
+  const full = isFullBot(bot);
 
   try {
     if (listing) {
@@ -262,6 +306,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         findExisting(db, clip(req.query.name, 200), clip(req.query.city, 120), clip(req.query.whatsapp, 40)),
       );
       return json(res, 200, { exists: Boolean(hit), stage: hit?.stage ?? null, id: hit?.id ?? null });
+    }
+
+    if (req.method === "DELETE") {
+      if (!full) return json(res, 403, { error: "Apagar lead exige a permissão funil_total" });
+      const id = String(req.query.id ?? "").trim();
+      if (!UUID.test(id)) return json(res, 400, { error: "id inválido" });
+      const gone = await withAuth(async (db) => {
+        const { rowCount } = await db.query(`DELETE FROM prospect_leads WHERE id = $1`, [id]);
+        return Boolean(rowCount);
+      });
+      return gone ? json(res, 200, { ok: true }) : json(res, 404, { error: "Lead não encontrado" });
     }
 
     if (req.method !== "POST" && req.method !== "PATCH") return json(res, 405, { error: "Method not allowed" });
@@ -279,7 +334,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const row = rows[0] as Record<string, unknown> | undefined;
         if (!row) return { status: 404, body: { error: "Lead não encontrado" } };
         const curStage = String(row.stage) as Stage;
-        if (!PROSPECTOR_EDITABLE.includes(curStage)) {
+        if (!full && !PROSPECTOR_EDITABLE.includes(curStage)) {
           return {
             status: 409,
             body: {
@@ -289,23 +344,24 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           };
         }
         const stage = (body.stage as Stage | undefined) ?? curStage;
-        if (stage !== curStage && !PROSPECTOR_CREATE.includes(stage)) {
+        if (!full && stage !== curStage && !PROSPECTOR_CREATE.includes(stage)) {
           return { status: 403, body: { error: `O Dev Bossle não pode mover para ${stage}` } };
         }
         if (stage !== curStage && (EXIT_STAGES as readonly string[]).includes(stage) && !note) {
           return { status: 400, body: { error: "Informe o motivo (note) para descartado, banco_b ou revisar" } };
         }
-        if (!LEAD_FIELDS.some((k) => body[k] !== undefined) && stage === curStage) {
+        const extras = full && (body.followupMessage !== undefined || body.approveFollowup === true || body.result !== undefined);
+        if (!LEAD_FIELDS.some((k) => body[k] !== undefined) && stage === curStage && !extras) {
           return { status: 400, body: { error: "Nada para mudar: mande ao menos um campo" } };
         }
-        return saveBotLead(db, body, { id, stage: curStage, row }, stage, note);
+        return saveBotLead(db, body, { id, stage: curStage, row }, stage, note, bot);
       });
       return json(res, result.status, result.body);
     }
 
     // POST: cria ou atualiza pelo mesmo nome + cidade / WhatsApp
     const stage: Stage = isStage(body.stage) ? body.stage : "encontrado";
-    if (!PROSPECTOR_CREATE.includes(stage)) {
+    if (!full && !PROSPECTOR_CREATE.includes(stage)) {
       return json(res, 403, { error: `O Dev Bossle não pode registrar na etapa ${stage}` });
     }
     if ((EXIT_STAGES as readonly string[]).includes(stage) && !note) {
@@ -317,7 +373,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const result = await withAuth(async (db): Promise<Outcome> => {
       const existing = await findExisting(db, clip(body.name, 200), clip(body.city, 120), clip(body.whatsapp, 40));
-      if (existing && !PROSPECTOR_EDITABLE.includes(existing.stage)) {
+      if (existing && !full && !PROSPECTOR_EDITABLE.includes(existing.stage)) {
         return { status: 409, body: { error: "duplicado", id: existing.id, stage: existing.stage } };
       }
       let current = null;
@@ -325,7 +381,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const { rows } = await db.query(`SELECT * FROM prospect_leads WHERE id = $1 FOR UPDATE`, [existing.id]);
         current = { id: existing.id, stage: existing.stage, row: rows[0] as Record<string, unknown> };
       }
-      return saveBotLead(db, body, current, stage, note);
+      return saveBotLead(db, body, current, stage, note, bot);
     });
 
     return json(res, result.status, result.body);

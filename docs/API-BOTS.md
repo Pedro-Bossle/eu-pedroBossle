@@ -26,6 +26,7 @@ Cada chave tem **permissões** escolhidas pelo Pedro ao criá-la (Funil → ⋯ 
 | `funil` | Dev Bossle | cadastrar e qualificar leads (antigo papel `prospector`) |
 | `mensagens` | WhatsApp | fila de envio e registro dos envios (antigo papel `executor`) |
 | `instagram` | bot de conteúdo | criar posts no calendário do Instagram |
+| `funil_total` | bot de confiança | **age como o Pedro no funil**: cria, edita e move qualquer lead para qualquer etapa (inclusive aprovar e marcar resultado), aprova follow-up, apaga leads e muda as regras do funil |
 
 | Rota | `funil` | `mensagens` | `instagram` |
 |---|---|---|---|
@@ -36,6 +37,8 @@ Cada chave tem **permissões** escolhidas pelo Pedro ao criá-la (Funil → ⋯ 
 | `GET /bot/queue` | não | sim | não |
 | `POST /bot/move` | sim | sim | não |
 | `POST /bot/instagram/posts` | não | não | sim |
+
+Com `funil_total` a chave usa todas as rotas do funil acima (menos Instagram) sem as travas do Dev Bossle, mais `DELETE /bot/leads?id=…` e `GET`/`PUT /bot/rules`. Veja a seção 4c.
 
 Chaves criadas antes das permissões continuam valendo: `prospector` = `funil`, `executor` = `mensagens`.
 
@@ -287,6 +290,18 @@ Cria um post novo no calendário do painel. Bots não editam nem apagam posts ex
 | `tags`, `notes` | | Organização no painel. |
 
 Resposta `200`: `{ "post": { … } }` (com `mode: "agora"`, também `publish`).
+
+## 4c. Controle total do funil (`funil_total`)
+
+A chave faz o que o Pedro faz no painel. No histórico do lead aparece como `bot:<nome-da-chave>`.
+
+- **Mover** (`POST /bot/move`): de qualquer etapa para qualquer etapa. Campos extras: `result` (`fechado`/`perdido`, obrigatório para `resultado`) e `message` (texto aprovado, ao mover para `aprovado`).
+- **Criar** (`POST /bot/leads`): em qualquer etapa. Sem as exigências de nota 70+, `siteCheck`, 2 fontes e área de cidades. Atualiza lead existente em qualquer etapa.
+- **Editar** (`PATCH /bot/leads`): qualquer lead, qualquer etapa. Campos extras: `result`, `followupMessage` e `approveFollowup: true` (aprova o follow-up para o bot do WhatsApp enviar).
+- **Apagar** (`DELETE /bot/leads?id=…`): remove o lead e o histórico. Não tem volta; prefira mover para uma saída.
+- **Regras** (`GET /bot/rules`, `PUT /bot/rules` com `{ "cities": ["Caxias do Sul"], "allowWebsite": true }`): a área de cidades e se lead com site entra. Valem para as chaves comuns.
+
+Continuam valendo só as regras básicas do painel: saída exige `note`, `aprovado` exige mensagem e um contato válido, `resultado` exige `result`.
 
 ---
 

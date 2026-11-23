@@ -10,7 +10,7 @@ import { DAILY_FIRST_CONTACTS, inSendWindow, requireBot } from "../../_lib/prosp
  * ficam de fora: Pedro envia pelo painel.
  */
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  if (!(await requireBot(req, res, ["mensagens"]))) return;
+  if (!(await requireBot(req, res, ["mensagens", "funil_total"]))) return;
   if (req.method !== "GET") return json(res, 405, { error: "Method not allowed" });
 
   try {

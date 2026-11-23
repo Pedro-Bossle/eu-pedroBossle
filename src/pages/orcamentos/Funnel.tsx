@@ -613,8 +613,18 @@ const SCOPE_OPTIONS: { value: BotScope; label: string; hint: string }[] = [
   { value: "funil", label: "Funil", hint: "cadastrar e qualificar leads (Dev Bossle)" },
   { value: "mensagens", label: "Mensagens", hint: "fila de envio e registro no WhatsApp" },
   { value: "instagram", label: "Instagram", hint: "criar posts no calendário" },
+  {
+    value: "funil_total",
+    label: "Funil completo",
+    hint: "age como você: move para qualquer etapa, aprova, edita, apaga e muda as regras",
+  },
 ];
-const SCOPE_LABEL: Record<BotScope, string> = { funil: "Funil", mensagens: "Mensagens", instagram: "Instagram" };
+const SCOPE_LABEL: Record<BotScope, string> = {
+  funil: "Funil",
+  mensagens: "Mensagens",
+  instagram: "Instagram",
+  funil_total: "Funil completo",
+};
 
 function ScopePicker({ value, onChange }: { value: BotScope[]; onChange: (next: BotScope[]) => void }) {
   return (
