@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type DragEvent, type ReactNode } from "react";
-import { upload } from "@vercel/blob/client";
+import { upload, uploadPresigned } from "@vercel/blob/client";
 import Select from "./ui/Select";
 import Icon from "./ui/Icon";
 import InstagramIcon from "../../components/icons/InstagramIcon";
@@ -312,7 +312,8 @@ function Composer({
       try {
         const file = await toJpeg(raw);
         const safe = file.name.toLowerCase().replace(/[^a-z0-9.]+/g, "-");
-        const blob = await upload(`instagram/${safe}`, file, {
+        const send = features.uploadMode === "presigned" ? uploadPresigned : upload;
+        const blob = await send(`instagram/${safe}`, file, {
           access: "public",
           handleUploadUrl: "/api/orcamentos/instagram/upload",
           contentType: file.type,
