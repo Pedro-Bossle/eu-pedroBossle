@@ -48,6 +48,7 @@ A Vercel gratuita só roda tarefa automática 1×/dia (06:23, horário de Brasí
 - [ ] Caminho rápido: em *Gerar tokens de acesso*, adicione sua conta, gere o token e cole em **Instagram → Conta** no painel.
 - [ ] Caminho com botão (opcional): em *Configurações de login* coloque o redirect `https://orcamentos.devbossle.com.br/api/orcamentos/instagram/oauth-callback`, copie App ID e App Secret do Instagram para `META_APP_ID`/`META_APP_SECRET`.
 - [ ] Depois de conectar: **Sincronizar** (biblioteca, métricas e comentários) e criar um post de teste com “Publicar agora”.
+- [ ] **Webhook (opcional, comentários em tempo real):** rode a migration `020_meta_webhook.sql`, defina `META_APP_SECRET` na Vercel e abra **Instagram → Conta → Webhook da Meta**. Copie a URL de callback e o verify token para *Instagram → Configurar webhooks* no app da Meta, clique em *Verificar e salvar* e assine `comments` e `mentions`. O verify token é gerado pelo painel; `META_WEBHOOK_VERIFY_TOKEN` só serve para usar um valor seu.
 
 ## 5. Finanças (Pluggy)
 

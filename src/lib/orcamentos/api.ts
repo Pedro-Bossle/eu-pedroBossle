@@ -284,6 +284,14 @@ export const orcamentosApi = {
       { method: "DELETE" },
     ),
   // ---------- Instagram ----------
+  metaWebhook: () =>
+    request<{
+      url: string | null;
+      verifyToken: string;
+      customToken: boolean;
+      appSecret: boolean;
+      events: { object: string; field: string; at: string }[];
+    }>("/api/orcamentos/meta/webhook-setup"),
   igOverview: () => request<IgOverview>("/api/orcamentos/instagram"),
   igConnect: (token: string) =>
     request<{ account: IgOverview["account"] }>("/api/orcamentos/instagram", {

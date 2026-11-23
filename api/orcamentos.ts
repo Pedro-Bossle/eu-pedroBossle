@@ -72,6 +72,8 @@ const loaders: Record<string, () => Promise<{ default: RouteHandler }>> = {
   "crm/agenda": () => import("./_handlers/crm/agenda.js"),
   "crm/counts": () => import("./_handlers/crm/counts.js"),
   // Vercel Cron / GitHub Actions (Bearer CRON_SECRET)
+  "meta/webhook": () => import("./_handlers/meta/webhook.js"),
+  "meta/webhook-setup": () => import("./_handlers/meta/webhookSetup.js"),
   cron: () => import("./_handlers/cron.js"),
 };
 
@@ -91,6 +93,7 @@ function routeKey(req: VercelRequest): string {
     const pathOnly = String(raw).split("?")[0] ?? "";
     // Endereço curto do webhook da Pluggy (rewrite em vercel.json)
     if (/^\/webhooks\/pluggy\/?$/.test(pathOnly)) return "finance/webhook";
+    if (/^\/webhooks\/meta\/?$/.test(pathOnly)) return "meta/webhook";
     const marker = "/api/orcamentos/";
     const idx = pathOnly.indexOf(marker);
     if (idx >= 0) {
