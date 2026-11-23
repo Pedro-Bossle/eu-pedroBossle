@@ -292,6 +292,14 @@ export const orcamentosApi = {
     }),
   igDisconnect: () =>
     request<{ ok: boolean }>("/api/orcamentos/instagram", { method: "DELETE" }),
+  igWebhookInfo: () =>
+    request<{
+      callbackUrl: string | null;
+      verifyToken: string | null;
+      appSecretConfigured: boolean;
+      tableReady: boolean;
+      events: { id: string; object: string; field: string; entryId: string; error: string; receivedAt: string }[];
+    }>("/api/orcamentos/instagram/webhook"),
   igOauthStart: () =>
     request<{ url: string; redirectUri: string }>("/api/orcamentos/instagram/oauth"),
   igSync: () =>
