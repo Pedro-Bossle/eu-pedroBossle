@@ -3174,7 +3174,7 @@ function Panel({
         <div
           role="status"
           aria-live="polite"
-          className="adm-pop fixed bottom-[calc(4.5rem+env(safe-area-inset-bottom))] left-1/2 z-50 -translate-x-1/2 rounded-xl bg-ink px-4 py-2.5 text-sm font-medium text-canvas shadow-float md:bottom-6"
+          className="adm-pop fixed bottom-[calc(4.5rem+env(safe-area-inset-bottom))] left-1/2 z-[100] -translate-x-1/2 rounded-xl bg-ink px-4 py-2.5 text-sm font-medium text-canvas shadow-float md:bottom-6"
         >
           {toast}
         </div>

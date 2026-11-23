@@ -83,6 +83,23 @@ const STAGE_HINT: Record<string, string> = {
 
 const isExit = (s: string) => (EXITS as readonly string[]).includes(s);
 
+/** O que falta para Pedro mover o lead (espelha validateMove da API), ou "". */
+function moveProblem(
+  lead: ProspectLead,
+  to: string,
+  opts: { note: string; message: string; result: string },
+): string {
+  if (!to) return "";
+  if (to === lead.stage && to !== "resultado") return "O lead já está nesta etapa";
+  if (isExit(to) && !opts.note.trim()) return "Escreva o motivo da saída";
+  if (to === "aprovado") {
+    if (!opts.message.trim()) return "Escreva a mensagem antes de aprovar";
+    if (channelOf(lead) === "none") return "Sem WhatsApp nem e-mail válido: edite o contato primeiro";
+  }
+  if (to === "resultado" && opts.result !== "fechado" && opts.result !== "perdido") return "Escolha fechado ou perdido";
+  return "";
+}
+
 /** Canal do primeiro contato (espelha leadChannel da API). */
 const channelOf = (l: ProspectLead) =>
   l.whatsapp.replace(/\D/g, "").length >= 10 ? "whatsapp" : /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(l.email.trim()) ? "email" : "none";
@@ -183,19 +200,24 @@ function LeadCard({
   showToast: (msg: string) => void;
 }) {
   const stage = lead.stage;
+  const editable = stage === "encontrado" || stage === "aguardando" || stage === "aprovado";
   const { best, onlyLandline } = contactInfo(lead);
   const [message, setMessage] = useState(lead.message);
   const [followup, setFollowup] = useState(lead.followupMessage);
   const [note, setNote] = useState("");
   const [target, setTarget] = useState("");
+  const [result, setResult] = useState<"fechado" | "perdido">(lead.result === "perdido" ? "perdido" : "fechado");
   const [busy, setBusy] = useState(false);
+  const noteRef = useRef<HTMLInputElement>(null);
   const [showHistory, setShowHistory] = useState(false);
   const [showScore, setShowScore] = useState(false);
 
   const move = async (to: string, extra: { note?: string; result?: string; message?: string } = {}) => {
     setBusy(true);
     try {
-      const { lead: saved } = await orcamentosApi.moveProspect(lead.id, to, extra);
+      // Leva o texto editado na tela para não perder a edição ao mover
+      const payload = editable && extra.message === undefined && message !== lead.message ? { ...extra, message } : extra;
+      const { lead: saved } = await orcamentosApi.moveProspect(lead.id, to, payload);
       onChange(saved);
       setNote("");
       setTarget("");
@@ -221,7 +243,7 @@ function LeadCard({
   };
 
   const needsNote = isExit(target);
-  const editable = stage === "encontrado" || stage === "aguardando" || stage === "aprovado";
+  const problem = moveProblem(lead, target, { note, message, result });
   const phones = [lead.whatsapp, lead.phone].filter((p, i, all) => p.trim() && all.indexOf(p) === i);
   const address = [lead.address, lead.neighborhood].filter(Boolean).join(" – ");
 
@@ -496,9 +518,13 @@ function LeadCard({
           <button
             type="button"
             className={btnDanger}
-            disabled={busy || !note.trim()}
-            title={note.trim() ? "" : "Escreva o motivo abaixo"}
-            onClick={() => move("descartado", { note })}
+            disabled={busy}
+            onClick={() => {
+              if (note.trim()) return void move("descartado", { note });
+              setTarget("descartado");
+              noteRef.current?.focus();
+              showToast("Escreva o motivo da recusa e confirme");
+            }}
           >
             Recusar
           </button>
@@ -506,30 +532,59 @@ function LeadCard({
       </div>
 
       {/* Mover manualmente */}
-      <div className="grid grid-cols-1 gap-2 border-t border-line pt-3 sm:grid-cols-[1fr_1fr_auto]">
-        <Select
-          ariaLabel="Mover para a etapa"
-          placeholder="Mover para…"
-          value={target}
-          onChange={setTarget}
-          options={[...FUNNEL, ...EXITS]
-            .filter((s) => s !== stage)
-            .map((s) => ({ value: s, label: STAGE_LABEL[s] ?? s, hint: isExit(s) ? "saída" : "" }))}
-        />
-        <input
-          className={inputClass}
-          value={note}
-          onChange={(e) => setNote(e.target.value)}
-          placeholder={needsNote ? "Motivo (obrigatório)" : "Observação / motivo"}
-        />
-        <button
-          type="button"
-          className={btnSm}
-          disabled={busy || !target || (needsNote && !note.trim())}
-          onClick={() => move(target, { note, ...(target === "resultado" ? { result: "fechado" } : {}) })}
-        >
-          Mover
-        </button>
+      <div className="space-y-2 border-t border-line pt-3">
+        <p className={smallLabel}>Mover para outra etapa</p>
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+          <Select
+            ariaLabel="Mover para a etapa"
+            placeholder="Escolha a etapa…"
+            value={target}
+            onChange={setTarget}
+            options={[...FUNNEL, ...EXITS]
+              .filter((s) => s !== stage || s === "resultado")
+              .map((s) => ({ value: s, label: STAGE_LABEL[s] ?? s, hint: isExit(s) ? "saída" : "" }))}
+          />
+          {target === "resultado" ? (
+            <Select
+              ariaLabel="Resultado"
+              value={result}
+              onChange={(v) => setResult(v as "fechado" | "perdido")}
+              options={[
+                { value: "fechado", label: "Fechado" },
+                { value: "perdido", label: "Perdido" },
+              ]}
+            />
+          ) : (
+            <input
+              ref={noteRef}
+              className={inputClass}
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              placeholder={needsNote ? "Motivo (obrigatório)" : "Observação (opcional)"}
+              aria-label="Motivo ou observação"
+            />
+          )}
+        </div>
+        {target ? (
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <p className={`text-xs ${problem ? "text-amber-700 dark:text-amber-300" : "text-muted"}`}>
+              {problem || STAGE_HINT[target] || ""}
+            </p>
+            <div className="flex gap-2">
+              <button type="button" className={btnSm} disabled={busy} onClick={() => setTarget("")}>
+                Cancelar
+              </button>
+              <button
+                type="button"
+                className={isExit(target) ? btnDanger : btnPrimary}
+                disabled={busy || Boolean(problem)}
+                onClick={() => move(target, { note, ...(target === "resultado" ? { result } : {}) })}
+              >
+                {target === "resultado" ? `Marcar como ${result}` : `Mover para ${STAGE_LABEL[target] ?? target}`}
+              </button>
+            </div>
+          </div>
+        ) : null}
       </div>
 
       <footer className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
@@ -561,6 +616,133 @@ const SCOPE_OPTIONS: { value: BotScope; label: string; hint: string }[] = [
 ];
 const SCOPE_LABEL: Record<BotScope, string> = { funil: "Funil", mensagens: "Mensagens", instagram: "Instagram" };
 
+function ScopePicker({ value, onChange }: { value: BotScope[]; onChange: (next: BotScope[]) => void }) {
+  return (
+    <fieldset className="space-y-1.5">
+      <legend className="mb-1 text-sm font-medium">Permissões</legend>
+      {SCOPE_OPTIONS.map((o) => (
+        <label key={o.value} className="flex cursor-pointer items-start gap-2 text-sm">
+          <input
+            type="checkbox"
+            className="mt-0.5 accent-[var(--adm-accent)]"
+            checked={value.includes(o.value)}
+            onChange={(e) =>
+              onChange(
+                e.target.checked
+                  ? SCOPE_OPTIONS.map((x) => x.value).filter((v) => v === o.value || value.includes(v))
+                  : value.filter((v) => v !== o.value),
+              )
+            }
+          />
+          <span>
+            {o.label} <span className="text-muted">· {o.hint}</span>
+          </span>
+        </label>
+      ))}
+      {!value.length ? <p className="text-xs text-muted">Marque pelo menos uma.</p> : null}
+    </fieldset>
+  );
+}
+
+/** Linha de uma chave: mostra, edita (nome e permissões) e revoga. */
+function BotTokenRow({
+  token: t,
+  onSaved,
+  showToast,
+}: {
+  token: BotToken;
+  onSaved: () => Promise<void>;
+  showToast: (msg: string) => void;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [name, setName] = useState(t.name);
+  const [scopes, setScopes] = useState<BotScope[]>(t.scopes ?? []);
+  const [busy, setBusy] = useState(false);
+
+  if (editing) {
+    return (
+      <li className="my-2 space-y-3 rounded-xl border border-line bg-sunken/40 p-3">
+        <p className="text-sm font-medium">Editar chave …{t.last4}</p>
+        <input
+          className={inputClass}
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          aria-label="Nome do bot"
+        />
+        <ScopePicker value={scopes} onChange={setScopes} />
+        <p className="text-xs text-muted">O token continua o mesmo; o bot não precisa trocar nada.</p>
+        <div className="flex gap-2">
+          <button
+            type="button"
+            className={btnPrimary}
+            disabled={busy || !name.trim() || !scopes.length}
+            onClick={async () => {
+              setBusy(true);
+              try {
+                await orcamentosApi.updateBotToken(t.id, { name: name.trim(), scopes });
+                await onSaved();
+                setEditing(false);
+                showToast("Chave atualizada");
+              } catch (err) {
+                showToast(err instanceof Error ? err.message : "Falha ao salvar a chave");
+              } finally {
+                setBusy(false);
+              }
+            }}
+          >
+            Salvar
+          </button>
+          <button
+            type="button"
+            className={btnSm}
+            disabled={busy}
+            onClick={() => {
+              setName(t.name);
+              setScopes(t.scopes ?? []);
+              setEditing(false);
+            }}
+          >
+            Cancelar
+          </button>
+        </div>
+      </li>
+    );
+  }
+
+  return (
+    <li className="flex flex-wrap items-center justify-between gap-2 py-2">
+      <span className={t.revoked_at ? "text-faint line-through" : ""}>
+        {t.name} · {(t.scopes ?? []).map((sc) => SCOPE_LABEL[sc] ?? sc).join(", ") || t.role} · …{t.last4}
+        <span className="text-muted"> · {t.last_used_at ? `usado ${fmtWhen(t.last_used_at)}` : "nunca usado"}</span>
+      </span>
+      {t.revoked_at ? (
+        <span className="text-xs text-muted">revogado</span>
+      ) : (
+        <span className="flex gap-2">
+          <button type="button" className={btnSm} onClick={() => setEditing(true)}>
+            Editar
+          </button>
+          <button
+            type="button"
+            className={btnDanger}
+            onClick={async () => {
+              if (!window.confirm(`Revogar a chave "${t.name}"? O bot para de funcionar até receber outra.`)) return;
+              try {
+                await orcamentosApi.revokeBotToken(t.id);
+                await onSaved();
+              } catch (err) {
+                showToast(err instanceof Error ? err.message : "Falha ao revogar");
+              }
+            }}
+          >
+            Revogar
+          </button>
+        </span>
+      )}
+    </li>
+  );
+}
+
 function BotTokens({ showToast }: { showToast: (msg: string) => void }) {
   const [tokens, setTokens] = useState<BotToken[]>([]);
   const [name, setName] = useState("");
@@ -583,7 +765,7 @@ function BotTokens({ showToast }: { showToast: (msg: string) => void }) {
     <div className="space-y-4">
       <div>
         <p className="text-sm text-muted">
-          Escolha o que cada chave pode fazer. Dê a cada bot só o que ele usa. O token aparece uma única vez.
+          Escolha o que cada chave pode fazer e dê a cada bot só o que ele usa. Dá para mudar depois em Editar. O token aparece uma única vez.
         </p>
       </div>
       {fresh ? (
@@ -631,62 +813,15 @@ function BotTokens({ showToast }: { showToast: (msg: string) => void }) {
           placeholder="Nome do bot"
           aria-label="Nome do bot"
         />
-        <fieldset className="space-y-1.5">
-          <legend className="mb-1 text-sm font-medium">Permissões</legend>
-          {SCOPE_OPTIONS.map((o) => (
-            <label key={o.value} className="flex cursor-pointer items-start gap-2 text-sm">
-              <input
-                type="checkbox"
-                className="mt-0.5 accent-[var(--adm-accent)]"
-                checked={scopes.includes(o.value)}
-                onChange={(e) =>
-                  setScopes((cur) =>
-                    e.target.checked
-                      ? SCOPE_OPTIONS.map((x) => x.value).filter((v) => v === o.value || cur.includes(v))
-                      : cur.filter((v) => v !== o.value),
-                  )
-                }
-              />
-              <span>
-                {o.label} <span className="text-muted">· {o.hint}</span>
-              </span>
-            </label>
-          ))}
-          {!scopes.length ? <p className="text-xs text-muted">Marque pelo menos uma.</p> : null}
-        </fieldset>
+        <ScopePicker value={scopes} onChange={setScopes} />
         <button type="submit" className={btnPrimary} disabled={busy || !name.trim() || !scopes.length}>
           Criar token
         </button>
       </form>
+      {tokens.length ? <p className={`${smallLabel} border-t border-line pt-4`}>Chaves criadas</p> : null}
       <ul className="divide-y divide-line text-sm">
         {tokens.map((t) => (
-          <li key={t.id} className="flex flex-wrap items-center justify-between gap-2 py-2">
-            <span className={t.revoked_at ? "text-faint line-through" : ""}>
-              {t.name} · {(t.scopes ?? []).map((sc) => SCOPE_LABEL[sc] ?? sc).join(", ") || t.role} · …{t.last4}
-              <span className="text-muted">
-                {" "}
-                · {t.last_used_at ? `usado ${fmtWhen(t.last_used_at)}` : "nunca usado"}
-              </span>
-            </span>
-            {t.revoked_at ? (
-              <span className="text-xs text-muted">revogado</span>
-            ) : (
-              <button
-                type="button"
-                className={btnDanger}
-                onClick={async () => {
-                  try {
-                    await orcamentosApi.revokeBotToken(t.id);
-                    await load();
-                  } catch (err) {
-                    showToast(err instanceof Error ? err.message : "Falha ao revogar");
-                  }
-                }}
-              >
-                Revogar
-              </button>
-            )}
-          </li>
+          <BotTokenRow key={`${t.id}-${t.name}-${(t.scopes ?? []).join(",")}`} token={t} onSaved={load} showToast={showToast} />
         ))}
         {!tokens.length ? <li className="py-2 text-muted">Nenhum token ainda.</li> : null}
       </ul>

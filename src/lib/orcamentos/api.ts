@@ -273,6 +273,11 @@ export const orcamentosApi = {
       method: "POST",
       body: JSON.stringify({ name, scopes }),
     }),
+  updateBotToken: (id: string, changes: { name?: string; scopes?: BotToken["scopes"] }) =>
+    request<{ bot: BotToken }>("/api/orcamentos/prospects/bot-tokens", {
+      method: "PATCH",
+      body: JSON.stringify({ id, ...changes }),
+    }),
   revokeBotToken: (id: string) =>
     request<{ ok: boolean }>(
       `/api/orcamentos/prospects/bot-tokens?id=${encodeURIComponent(id)}`,

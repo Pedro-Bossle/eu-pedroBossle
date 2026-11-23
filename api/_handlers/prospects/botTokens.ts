@@ -10,6 +10,7 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
  * GET → lista (sem o token)
  * POST { name, scopes: ("funil" | "mensagens" | "instagram")[] } → cria e devolve o token UMA vez
  *   (aceita ainda o antigo { role: "prospector" | "executor" })
+ * PATCH { id, name?, scopes? } → muda nome e permissões de uma chave ativa (o token continua o mesmo)
  * DELETE ?id=… → revoga
  */
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -59,6 +60,38 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       });
       // O token em texto só existe nesta resposta
       return json(res, 201, { token: t.token, bot: row });
+    }
+
+    if (req.method === "PATCH") {
+      const body = readBody<{ id?: string; name?: string; scopes?: unknown }>(req);
+      const id = String(body?.id ?? "").trim();
+      if (!UUID.test(id)) return json(res, 400, { error: "id inválido" });
+      const name = body?.name === undefined ? null : String(body.name).trim().slice(0, 60);
+      if (name === "") return json(res, 400, { error: "Dê um nome ao bot" });
+      let scopes: BotScope[] | null = null;
+      if (body?.scopes !== undefined) {
+        scopes = Array.isArray(body.scopes) ? BOT_SCOPES.filter((s) => (body.scopes as unknown[]).includes(s)) : [];
+        if (!scopes.length) {
+          return json(res, 400, { error: "Escolha ao menos uma permissão: funil, mensagens ou instagram" });
+        }
+      }
+      const role = scopes
+        ? scopes.includes("funil") ? "prospector" : scopes.includes("mensagens") ? "executor" : null
+        : undefined;
+      const row = await withAuth(async (db) => {
+        const { rows } = await db.query(
+          `UPDATE bot_tokens SET
+             name = coalesce($2, name),
+             scopes = coalesce($3, scopes),
+             role = CASE WHEN $3::text[] IS NULL THEN role ELSE $4 END
+           WHERE id = $1 AND revoked_at IS NULL
+           RETURNING id, name, role, scopes, last4, created_at, last_used_at, revoked_at`,
+          [id, name, scopes, role ?? null],
+        );
+        return rows[0];
+      });
+      if (!row) return json(res, 404, { error: "Chave não encontrada ou já revogada" });
+      return json(res, 200, { bot: row });
     }
 
     if (req.method === "DELETE") {
