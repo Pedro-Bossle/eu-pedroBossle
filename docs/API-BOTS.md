@@ -32,6 +32,7 @@ Cada chave tem **permissões** escolhidas pelo Pedro ao criá-la (Funil → ⋯ 
 | `GET /bot/leads?stage=…` (lista da etapa) | sim | sim | não |
 | `GET /bot/leads?name=…` (duplicado) | sim | não | não |
 | `POST /bot/leads` | sim | não | não |
+| `PATCH /bot/leads` (editar trechos) | sim | não | não |
 | `GET /bot/queue` | não | sim | não |
 | `POST /bot/move` | sim | sim | não |
 | `POST /bot/instagram/posts` | não | não | sim |
@@ -85,14 +86,14 @@ GET /bot/leads?name=Mecânica%20Zanella&city=Caxias%20do%20Sul
 Resposta `200`:
 
 ```json
-{ "exists": true, "stage": "descartado" }
+{ "exists": true, "stage": "descartado", "id": "uuid" }
 ```
 
 Se `exists` for `true`, **não pesquise nem cadastre de novo**, qualquer que seja a etapa.
 
 ### 3.2 Cadastrar ou atualizar — `POST /bot/leads`
 
-Cria o lead; se já existir (mesmo nome + cidade, ou mesmo WhatsApp), atualiza. Só é possível atualizar leads que ainda estão em `encontrado`, `aguardando` ou `revisar` (reenviar um lead de `revisar` com `stage: "aguardando"` move ele para aprovação); em qualquer outra etapa a resposta é `409` com `{"error":"duplicado","id":"…","stage":"…"}`.
+Cria o lead; se já existir (mesmo nome + cidade, ou mesmo WhatsApp), atualiza. Ao atualizar, **campos que não vierem no pedido continuam como estão** (para apagar um campo, mande `""`). Para mudar só um trecho, prefira o `PATCH` da seção 3.5. Só é possível atualizar leads que ainda estão em `encontrado`, `aguardando` ou `revisar` (reenviar um lead de `revisar` com `stage: "aguardando"` move ele para aprovação); em qualquer outra etapa a resposta é `409` com `{"error":"duplicado","id":"…","stage":"…"}`.
 
 Campos:
 
@@ -151,6 +152,23 @@ curl -X POST "$BASE/bot/leads" \
 ```
 
 Resposta: `201` (criado) ou `200` (atualizado), com `{ "lead": { … } }`.
+
+### 3.5 Editar trechos de um lead — `PATCH /bot/leads`
+
+Muda só os campos enviados; o resto fica como está. Use o `id` que veio no cadastro, no `GET /bot/leads?name=…` ou na lista por etapa.
+
+- Só funciona com o lead em `encontrado`, `aguardando` ou `revisar`. Depois que o Pedro aprova, só ele mexe (resposta `409` com a etapa atual).
+- Aceita os mesmos campos do `POST` (seção 3.2). Para apagar um campo, mande `""` (ou `[]` nas listas).
+- Pode mandar `stage` (e `note`, se for saída) para mover junto, com as mesmas regras do `POST`.
+- Se o lead está em `aguardando`, as regras de aprovação (nota 70+, mensagem, canal, `siteCheck`, 2 fontes do telefone) são conferidas de novo com os dados finais. Se a edição quebrar alguma, a resposta é `400` e nada muda.
+
+```bash
+curl -X PATCH "$BASE/bot/leads" \
+  -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
+  -d '{ "id": "uuid", "message": "Oi, tudo bem? Texto novo...", "email": "contato@zanella.com.br" }'
+```
+
+Resposta `200`: `{ "lead": { … }, "changed": ["message", "email"] }`.
 
 ### 3.3 Descartar um lead — `POST /bot/move`
 
@@ -300,7 +318,7 @@ Todos devolvem `{ "error": "mensagem" }`.
 | `403` | A chave não tem a permissão da rota, ou o Dev Bossle tentou uma etapa que não pode registrar. |
 | `404` | Lead não encontrado. |
 | `405` | Método HTTP errado. |
-| `409` | Transição não permitida, follow-up ainda não aprovado, ou lead duplicado em etapa que o bot não pode editar. |
+| `409` | Transição não permitida, follow-up ainda não aprovado, ou lead (duplicado ou no `PATCH`) em etapa que o bot não pode editar. |
 | `429` | Limite de pedidos. Espere `Retry-After` segundos. |
 | `500` | Falha do servidor. Tente de novo depois de alguns segundos, no máximo 3 vezes. |
 

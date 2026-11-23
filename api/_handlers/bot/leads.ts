@@ -16,6 +16,8 @@ import {
 } from "../../_lib/prospectFunnel.js";
 import { mapProspect, sanitizeProspect, type ProspectInput } from "../../_lib/prospects.js";
 
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 type BotLeadBody = ProspectInput & {
   stage?: string;
   /** Motivo, obrigatório para descartado / banco_b / revisar. */
@@ -99,12 +101,150 @@ async function listStage(req: VercelRequest, res: VercelResponse, stage: Stage) 
   return json(res, 200, { stage, count: leads.length, leads });
 }
 
+/** Campos que o bot pode mandar; os que não vierem no pedido mantêm o valor atual. */
+const LEAD_FIELDS = [
+  "name", "niche", "city", "address", "neighborhood", "website", "email", "whatsapp", "phone",
+  "instagram", "problems", "pitch", "message", "mapsUrl", "score", "scoreBreakdown",
+  "phoneSources", "siteCheck", "activity", "detail", "projectType",
+] as const;
+
+/** Lead do banco no formato do corpo do bot. */
+function rowToBody(row: Record<string, unknown>): BotLeadBody {
+  const l = mapProspect(row);
+  return {
+    name: l.name, niche: l.niche, city: l.city, address: l.address, neighborhood: l.neighborhood,
+    website: l.website, email: l.email, whatsapp: l.whatsapp, phone: l.phone, instagram: l.instagram,
+    problems: l.problems, pitch: l.pitch, message: l.message, mapsUrl: l.mapsUrl,
+    score: l.score ?? undefined, scoreBreakdown: l.scoreBreakdown, phoneSources: l.phoneSources,
+    siteCheck: l.siteCheck, activity: l.activity, detail: l.detail, projectType: l.projectType,
+  };
+}
+
+type Db = Parameters<Parameters<typeof withAuth>[0]>[0];
+type Outcome = { status: number; body: Record<string, unknown> };
+
+/**
+ * Grava o lead do bot. Com `current` (lead já existente) mescla: só os campos
+ * presentes em `body` mudam. Valida as regras de Aguardando sobre o resultado final.
+ */
+async function saveBotLead(
+  db: Db,
+  body: BotLeadBody,
+  current: { id: string; stage: Stage; row: Record<string, unknown> } | null,
+  stage: Stage,
+  note: string,
+): Promise<Outcome> {
+  const fail = (error: string): Outcome => ({ status: 400, body: { error } });
+  const sent = LEAD_FIELDS.filter((k) => body[k] !== undefined);
+  const merged: BotLeadBody = current ? { ...rowToBody(current.row) } : {};
+  for (const k of sent) (merged as Record<string, unknown>)[k] = body[k];
+
+  const clean = sanitizeProspect({ ...merged, source: "bot", sent: false, replied: false });
+  if (!clean.name || !clean.city) return fail("Nome e cidade são obrigatórios");
+  if (body.website !== undefined && String(body.website).trim() && !clean.website) {
+    return fail("website inválido (perfil de rede social não conta como site; mande \"\" para tirar)");
+  }
+
+  const score =
+    typeof merged.score === "number" && Number.isFinite(merged.score)
+      ? Math.max(0, Math.min(100, Math.round(merged.score)))
+      : null;
+  const phoneSources = Array.isArray(merged.phoneSources)
+    ? merged.phoneSources.map((s) => clip(s, 80)).filter(Boolean).slice(0, 6)
+    : [];
+  const extra = {
+    score,
+    breakdown: JSON.stringify(Array.isArray(merged.scoreBreakdown) ? merged.scoreBreakdown.slice(0, 12) : []),
+    phoneSources,
+    siteCheck: clip(merged.siteCheck, 500),
+    activity: clip(merged.activity, 500),
+    detail: clip(merged.detail, 300),
+    projectType: merged.projectType === "sistema" ? "sistema" : "landing",
+  };
+
+  // Regras editáveis no painel (Funil → Regras do funil)
+  const rules = await loadRules(db);
+  if (!cityAllowed(rules, clean.city)) {
+    return fail(`Cidade fora da área configurada no painel: ${rules.cities.join(", ")}`);
+  }
+
+  // Regras garantidas no servidor: só lead A, confirmado, vai para aprovação
+  if (stage === "aguardando") {
+    if (clean.website && !rules.allowWebsite) return fail("Lead com site não entra no funil (regra do painel)");
+    if (!extra.siteCheck) return fail("Descreva as checagens de site (siteCheck)");
+    if (score == null || score < 70) return fail("Só lead A (nota 70 ou mais)");
+    if (!clean.message) return fail("Lead A precisa da mensagem pronta");
+    const channel = leadChannel(clean);
+    if (channel === "none") return fail("Lead precisa de WhatsApp ou e-mail válido");
+    if (channel === "whatsapp" && phoneSources.length < 2) return fail("Telefone precisa de 2 fontes oficiais");
+  }
+
+  const cols = `name = $2, niche = $3, city = $4, address = $5, neighborhood = $6, website = $7,
+    email = $8, whatsapp = $9, phone = $10, instagram = $11, problems = $12, pitch = $13,
+    message = $14, maps_url = $15, score = $16, score_breakdown = $17::jsonb,
+    phone_sources = $18, site_check = $19, activity = $20, detail = $21, project_type = $22`;
+  const params = [
+    clean.name, clean.niche, clean.city, clean.address, clean.neighborhood, clean.website,
+    clean.email, clean.whatsapp, clean.phone, clean.instagram, clean.problems, clean.pitch,
+    clean.message, clean.mapsUrl, extra.score, extra.breakdown, extra.phoneSources,
+    extra.siteCheck, extra.activity, extra.detail, extra.projectType,
+  ];
+
+  let id: string;
+  if (current) {
+    id = current.id;
+    await db.query(`UPDATE prospect_leads SET ${cols}, updated_at = now() WHERE id = $1`, [id, ...params]);
+    if (current.stage !== stage) {
+      const moved = await moveLead(db, { id, to: stage, actor: "prospector", note });
+      if (!moved.ok) return { status: moved.status, body: { error: moved.error } };
+    }
+  } else {
+    const { rows } = await db.query(
+      `INSERT INTO prospect_leads (
+         name, niche, city, address, neighborhood, website, email, whatsapp, phone,
+         instagram, problems, pitch, message, maps_url, score, score_breakdown,
+         phone_sources, site_check, activity, detail, project_type,
+         source, stage, exit_reason
+       ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16::jsonb,$17,$18,$19,$20,$21,
+         'bot', $22, $23)
+       RETURNING id`,
+      [...params, stage, (EXIT_STAGES as readonly string[]).includes(stage) ? note : ""],
+    );
+    id = String(rows[0].id);
+    await db.query(
+      `INSERT INTO prospect_events (lead_id, from_stage, to_stage, actor, note)
+       VALUES ($1, '', $2, 'bot:dev-bossle', $3)`,
+      [id, stage, note],
+    );
+  }
+
+  // Guarda o texto do bot para comparar com o aprovado (savepoint: não quebra sem o 021)
+  if (!current || body.message !== undefined) {
+    await db.query("SAVEPOINT bot_message");
+    try {
+      await db.query(`UPDATE prospect_leads SET bot_message = $2 WHERE id = $1`, [id, clean.message]);
+      await db.query("RELEASE SAVEPOINT bot_message");
+    } catch {
+      await db.query("ROLLBACK TO SAVEPOINT bot_message");
+    }
+  }
+
+  const { rows } = await db.query(`SELECT * FROM prospect_leads WHERE id = $1`, [id]);
+  return {
+    status: current ? 200 : 201,
+    body: { lead: mapProspect(rows[0] as Record<string, unknown>), ...(current ? { changed: sent } : {}) },
+  };
+}
+
 /**
  * GET ?stage=aprovado[&since=&limit=] → leads da etapa com e-mail, WhatsApp e mensagem final
  *   (chaves com funil ou mensagens).
  * Bot Dev Bossle (chave com funil):
  * GET ?name=&city=&whatsapp= → { exists, stage } para checar duplicado antes de pesquisar.
- * POST { ...lead, stage, note?, score, ... } → cria ou atualiza o lead (só em Encontrado/Aguardando).
+ * POST { ...lead, stage, note?, score, ... } → cria, ou atualiza o mesmo nome + cidade / WhatsApp.
+ *   Ao atualizar, campos que não vierem continuam como estão.
+ * PATCH { id, ...só os campos que mudam, stage?, note? } → edita trechos de um lead
+ *   em Encontrado, Aguardando ou Revisar.
  */
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   const listing = req.method === "GET" && req.query.stage !== undefined;
@@ -121,116 +261,71 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const hit = await withAuth((db) =>
         findExisting(db, clip(req.query.name, 200), clip(req.query.city, 120), clip(req.query.whatsapp, 40)),
       );
-      return json(res, 200, { exists: Boolean(hit), stage: hit?.stage ?? null });
+      return json(res, 200, { exists: Boolean(hit), stage: hit?.stage ?? null, id: hit?.id ?? null });
     }
 
-    if (req.method !== "POST") return json(res, 405, { error: "Method not allowed" });
+    if (req.method !== "POST" && req.method !== "PATCH") return json(res, 405, { error: "Method not allowed" });
 
-    const body = readBody<BotLeadBody>(req);
+    const body = readBody<BotLeadBody & { id?: string }>(req);
     if (!body) return json(res, 400, { error: "JSON inválido" });
-    const clean = sanitizeProspect({ ...body, source: "bot", sent: false, replied: false });
-    if (!clean.name || !clean.city) return json(res, 400, { error: "Nome e cidade são obrigatórios" });
+    if (body.stage !== undefined && !isStage(body.stage)) return json(res, 400, { error: "Etapa inválida" });
+    const note = clip(body.note, 500);
 
+    if (req.method === "PATCH") {
+      const id = String(body.id ?? "").trim();
+      if (!UUID.test(id)) return json(res, 400, { error: "id inválido" });
+      const result = await withAuth(async (db): Promise<Outcome> => {
+        const { rows } = await db.query(`SELECT * FROM prospect_leads WHERE id = $1 FOR UPDATE`, [id]);
+        const row = rows[0] as Record<string, unknown> | undefined;
+        if (!row) return { status: 404, body: { error: "Lead não encontrado" } };
+        const curStage = String(row.stage) as Stage;
+        if (!PROSPECTOR_EDITABLE.includes(curStage)) {
+          return {
+            status: 409,
+            body: {
+              error: `Lead em ${curStage}: o bot só edita leads em ${PROSPECTOR_EDITABLE.join(", ")}. Depois da aprovação, só o Pedro mexe.`,
+              stage: curStage,
+            },
+          };
+        }
+        const stage = (body.stage as Stage | undefined) ?? curStage;
+        if (stage !== curStage && !PROSPECTOR_CREATE.includes(stage)) {
+          return { status: 403, body: { error: `O Dev Bossle não pode mover para ${stage}` } };
+        }
+        if (stage !== curStage && (EXIT_STAGES as readonly string[]).includes(stage) && !note) {
+          return { status: 400, body: { error: "Informe o motivo (note) para descartado, banco_b ou revisar" } };
+        }
+        if (!LEAD_FIELDS.some((k) => body[k] !== undefined) && stage === curStage) {
+          return { status: 400, body: { error: "Nada para mudar: mande ao menos um campo" } };
+        }
+        return saveBotLead(db, body, { id, stage: curStage, row }, stage, note);
+      });
+      return json(res, result.status, result.body);
+    }
+
+    // POST: cria ou atualiza pelo mesmo nome + cidade / WhatsApp
     const stage: Stage = isStage(body.stage) ? body.stage : "encontrado";
     if (!PROSPECTOR_CREATE.includes(stage)) {
       return json(res, 403, { error: `O Dev Bossle não pode registrar na etapa ${stage}` });
     }
-    const note = clip(body.note, 500);
     if ((EXIT_STAGES as readonly string[]).includes(stage) && !note) {
       return json(res, 400, { error: "Informe o motivo (note) para descartado, banco_b ou revisar" });
     }
+    if (!clip(body.name, 200) || !clip(body.city, 120)) {
+      return json(res, 400, { error: "Nome e cidade são obrigatórios" });
+    }
 
-    const score =
-      typeof body.score === "number" && Number.isFinite(body.score)
-        ? Math.max(0, Math.min(100, Math.round(body.score)))
-        : null;
-    const phoneSources = Array.isArray(body.phoneSources)
-      ? body.phoneSources.map((s) => clip(s, 80)).filter(Boolean).slice(0, 6)
-      : [];
-    const extra = {
-      score,
-      breakdown: JSON.stringify(Array.isArray(body.scoreBreakdown) ? body.scoreBreakdown.slice(0, 12) : []),
-      phoneSources,
-      siteCheck: clip(body.siteCheck, 500),
-      activity: clip(body.activity, 500),
-      detail: clip(body.detail, 300),
-      projectType: body.projectType === "sistema" ? "sistema" : "landing",
-    };
-
-    const result = await withAuth(async (db) => {
-      // Regras editáveis no painel (Funil → Regras do funil)
-      const rules = await loadRules(db);
-      const fail = (error: string) => ({ status: 400, body: { error } });
-      if (!cityAllowed(rules, clean.city)) {
-        return fail(`Cidade fora da área configurada no painel: ${rules.cities.join(", ")}`);
-      }
-
-      // Regras garantidas no servidor: só lead A, confirmado, vai para aprovação
-      if (stage === "aguardando") {
-        if (clean.website && !rules.allowWebsite) return fail("Lead com site não entra no funil (regra do painel)");
-        if (!extra.siteCheck) return fail("Descreva as checagens de site (siteCheck)");
-        if (score == null || score < 70) return fail("Só lead A (nota 70 ou mais)");
-        if (!clean.message) return fail("Lead A precisa da mensagem pronta");
-        const channel = leadChannel(clean);
-        if (channel === "none") return fail("Lead precisa de WhatsApp ou e-mail válido");
-        if (channel === "whatsapp" && phoneSources.length < 2) return fail("Telefone precisa de 2 fontes oficiais");
-      }
-
-      const existing = await findExisting(db, clean.name, clean.city, clean.whatsapp);
+    const result = await withAuth(async (db): Promise<Outcome> => {
+      const existing = await findExisting(db, clip(body.name, 200), clip(body.city, 120), clip(body.whatsapp, 40));
       if (existing && !PROSPECTOR_EDITABLE.includes(existing.stage)) {
         return { status: 409, body: { error: "duplicado", id: existing.id, stage: existing.stage } };
       }
-
-      const cols = `name = $2, niche = $3, city = $4, address = $5, neighborhood = $6, website = $7,
-        email = $8, whatsapp = $9, phone = $10, instagram = $11, problems = $12, pitch = $13,
-        message = $14, maps_url = $15, score = $16, score_breakdown = $17::jsonb,
-        phone_sources = $18, site_check = $19, activity = $20, detail = $21, project_type = $22`;
-      const params = [
-        clean.name, clean.niche, clean.city, clean.address, clean.neighborhood, clean.website,
-        clean.email, clean.whatsapp, clean.phone, clean.instagram, clean.problems, clean.pitch,
-        clean.message, clean.mapsUrl, extra.score, extra.breakdown, extra.phoneSources,
-        extra.siteCheck, extra.activity, extra.detail, extra.projectType,
-      ];
-
-      let id: string;
+      let current = null;
       if (existing) {
-        id = existing.id;
-        await db.query(`UPDATE prospect_leads SET ${cols}, updated_at = now() WHERE id = $1`, [id, ...params]);
-        if (existing.stage !== stage) {
-          const moved = await moveLead(db, { id, to: stage, actor: "prospector", note });
-          if (!moved.ok) return { status: moved.status, body: { error: moved.error } };
-        }
-      } else {
-        const { rows } = await db.query(
-          `INSERT INTO prospect_leads (
-             name, niche, city, address, neighborhood, website, email, whatsapp, phone,
-             instagram, problems, pitch, message, maps_url, score, score_breakdown,
-             phone_sources, site_check, activity, detail, project_type,
-             source, stage, exit_reason
-           ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16::jsonb,$17,$18,$19,$20,$21,
-             'bot', $22, $23)
-           RETURNING id`,
-          [...params, stage, (EXIT_STAGES as readonly string[]).includes(stage) ? note : ""],
-        );
-        id = String(rows[0].id);
-        await db.query(
-          `INSERT INTO prospect_events (lead_id, from_stage, to_stage, actor, note)
-           VALUES ($1, '', $2, 'bot:dev-bossle', $3)`,
-          [id, stage, note],
-        );
+        const { rows } = await db.query(`SELECT * FROM prospect_leads WHERE id = $1 FOR UPDATE`, [existing.id]);
+        current = { id: existing.id, stage: existing.stage, row: rows[0] as Record<string, unknown> };
       }
-
-      // Guarda o texto do bot para comparar com o aprovado (savepoint: não quebra sem o 021)
-      await db.query("SAVEPOINT bot_message");
-      try {
-        await db.query(`UPDATE prospect_leads SET bot_message = $2 WHERE id = $1`, [id, clean.message]);
-        await db.query("RELEASE SAVEPOINT bot_message");
-      } catch {
-        await db.query("ROLLBACK TO SAVEPOINT bot_message");
-      }
-
-      const { rows } = await db.query(`SELECT * FROM prospect_leads WHERE id = $1`, [id]);
-      return { status: existing ? 200 : 201, body: { lead: mapProspect(rows[0] as Record<string, unknown>) } };
+      return saveBotLead(db, body, current, stage, note);
     });
 
     return json(res, result.status, result.body);
