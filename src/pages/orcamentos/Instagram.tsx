@@ -1375,6 +1375,101 @@ function Comments({
 
 // ---------- Conta ----------
 
+type WebhookInfo = Awaited<ReturnType<typeof orcamentosApi.igWebhookInfo>>;
+
+function WebhookCard({ showToast }: { showToast: (m: string) => void }) {
+  const [info, setInfo] = useState<WebhookInfo | null>(null);
+  const [error, setError] = useState("");
+
+  const load = useCallback(async () => {
+    try {
+      setInfo(await orcamentosApi.igWebhookInfo());
+      setError("");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Erro ao carregar");
+    }
+  }, []);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    void load();
+  }, [load]);
+
+  const copy = async (text: string | null, label: string) => {
+    if (!text) return;
+    try {
+      await navigator.clipboard.writeText(text);
+      showToast(`${label} copiado`);
+    } catch {
+      showToast("Não deu para copiar");
+    }
+  };
+
+  return (
+    <div className={`${cardClass} lg:col-span-2`}>
+      <div className="flex items-center justify-between gap-3">
+        <h3 className="text-base font-semibold">Webhook da Meta</h3>
+        <button type="button" className={btnSm} onClick={() => void load()}>
+          Atualizar
+        </button>
+      </div>
+      <p className="mt-1 text-sm text-muted">
+        Cole estes dados em developers.facebook.com → seu app → Instagram API → “Configure webhooks” e clique em “Verify and save”.
+        Comentários e menções novos puxam os comentários na hora.
+      </p>
+      {error ? <p className="mt-3 text-sm text-red-600">{error}</p> : null}
+      {info ? (
+        <>
+          <dl className="mt-4 space-y-3 text-sm">
+            <div>
+              <dt className={smallLabel}>Callback URL</dt>
+              <dd className="mt-1 flex items-center gap-2">
+                <code className="min-w-0 flex-1 truncate rounded-md bg-sunken px-2 py-1.5 font-mono text-xs">{info.callbackUrl ?? "Defina ORCAMENTOS_PUBLIC_URL"}</code>
+                <button type="button" className={btnSm} disabled={!info.callbackUrl} onClick={() => void copy(info.callbackUrl, "URL")}>
+                  Copiar
+                </button>
+              </dd>
+            </div>
+            <div>
+              <dt className={smallLabel}>Verify token</dt>
+              <dd className="mt-1 flex items-center gap-2">
+                <code className="min-w-0 flex-1 truncate rounded-md bg-sunken px-2 py-1.5 font-mono text-xs">{info.verifyToken ? "•".repeat(24) : "Defina META_WEBHOOK_VERIFY_TOKEN"}</code>
+                <button type="button" className={btnSm} disabled={!info.verifyToken} onClick={() => void copy(info.verifyToken, "Token")}>
+                  Copiar
+                </button>
+              </dd>
+            </div>
+          </dl>
+          <ul className="mt-4 space-y-1.5 text-sm text-muted">
+            <li>{info.appSecretConfigured ? "META_APP_SECRET configurado: assinaturas conferidas." : "⚠ Defina META_APP_SECRET na Vercel: sem ele todo evento é recusado (401)."}</li>
+            {!info.tableReady ? <li>⚠ Rode npm run db:migrate para criar a tabela meta_webhook_events.</li> : null}
+          </ul>
+          {info.events.length ? (
+            <div className="mt-4">
+              <p className={smallLabel}>Últimos eventos</p>
+              <ul className="mt-2 divide-y divide-line text-sm">
+                {info.events.map((e) => (
+                  <li key={e.id} className="flex items-center justify-between gap-3 py-1.5">
+                    <span className="font-mono text-xs">
+                      {e.object}/{e.field || "?"}
+                    </span>
+                    <span className={`text-xs ${e.error ? "text-red-600" : "text-muted"}`} title={e.error || undefined}>
+                      {e.error ? "erro · " : ""}
+                      {relTime(e.receivedAt)} atrás
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : info.tableReady ? (
+            <p className="mt-4 text-sm text-muted">Nenhum evento recebido ainda.</p>
+          ) : null}
+        </>
+      ) : null}
+    </div>
+  );
+}
+
 function Account({ data, showToast, onChanged }: { data: IgOverview; showToast: (m: string) => void; onChanged: () => void }) {
   const [token, setToken] = useState("");
   const [busy, setBusy] = useState(false);
@@ -1480,6 +1575,8 @@ function Account({ data, showToast, onChanged }: { data: IgOverview; showToast: 
           </ol>
         </details>
       </div>
+
+      <WebhookCard showToast={showToast} />
     </div>
   );
 }

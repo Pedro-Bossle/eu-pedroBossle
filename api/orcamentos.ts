@@ -49,6 +49,9 @@ const loaders: Record<string, () => Promise<{ default: RouteHandler }>> = {
   "instagram/media": () => import("./_handlers/instagram/media.js"),
   "instagram/comments": () => import("./_handlers/instagram/comments.js"),
   "instagram/upload": () => import("./_handlers/instagram/upload.js"),
+  "instagram/webhook": () => import("./_handlers/instagram/webhookInfo.js"),
+  // Webhook público da Meta (assinatura X-Hub-Signature-256) — /webhooks/meta
+  "meta/webhook": () => import("./_handlers/meta/webhook.js"),
   // Finanças (012)
   finance: () => import("./_handlers/finance/index.js"),
   "finance/sync": () => import("./_handlers/finance/sync.js"),
@@ -91,6 +94,8 @@ function routeKey(req: VercelRequest): string {
     const pathOnly = String(raw).split("?")[0] ?? "";
     // Endereço curto do webhook da Pluggy (rewrite em vercel.json)
     if (/^\/webhooks\/pluggy\/?$/.test(pathOnly)) return "finance/webhook";
+    // Endereço curto do webhook da Meta (rewrite em vercel.json)
+    if (/^\/webhooks\/meta\/?$/.test(pathOnly)) return "meta/webhook";
     const marker = "/api/orcamentos/";
     const idx = pathOnly.indexOf(marker);
     if (idx >= 0) {

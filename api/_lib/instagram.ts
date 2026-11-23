@@ -381,16 +381,32 @@ export async function syncInstagram(db: PoolClient, cred: IgCredential, opts: { 
 
   // Comentários dos 25 posts recentes que têm comentário
   const withComments = media.filter((m) => (m.comments_count ?? 0) > 0).slice(0, 25);
-  const me = profile.username.toLowerCase();
-  const threads = await pool(withComments, 5, async (m) => {
+  const commentCount = await syncComments(db, token, profile.username, withComments.map((m) => m.id), warnings);
+
+  return { media: media.length, comments: commentCount, insights: insightCount, warnings };
+}
+
+/**
+ * Baixa de novo os comentários (e respostas) das mídias informadas e grava em ig_comments.
+ * As mídias precisam já existir em ig_media (FK). Devolve quantos comentários foram gravados.
+ */
+export async function syncComments(
+  db: PoolClient,
+  token: string,
+  username: string,
+  mediaIds: string[],
+  warnings: string[] = [],
+): Promise<number> {
+  const me = username.toLowerCase();
+  const threads = await pool(mediaIds, 5, async (mediaId) => {
     try {
-      const r = await ig<{ data?: IgCommentApi[] }>(token, `${m.id}/comments`, {
+      const r = await ig<{ data?: IgCommentApi[] }>(token, `${mediaId}/comments`, {
         params: { fields: "id,text,username,timestamp,hidden,replies{id,text,username,timestamp}", limit: 50 },
       });
-      return { mediaId: m.id, comments: r.data ?? [] };
+      return { mediaId, comments: r.data ?? [] };
     } catch (e) {
-      warnings.push(`Comentários de ${m.id}: ${e instanceof Error ? e.message : e}`);
-      return { mediaId: m.id, comments: [] as IgCommentApi[] };
+      warnings.push(`Comentários de ${mediaId}: ${e instanceof Error ? e.message : e}`);
+      return { mediaId, comments: [] as IgCommentApi[] };
     }
   });
 
@@ -423,8 +439,21 @@ export async function syncInstagram(db: PoolClient, cred: IgCredential, opts: { 
       }
     }
   }
+  return commentCount;
+}
 
-  return { media: media.length, comments: commentCount, insights: insightCount, warnings };
+/**
+ * Atualização puxada pelo webhook (comentário/menção novos).
+ * Com mediaId conhecido em ig_media: só os comentários dessa mídia.
+ * Sem mediaId, ou mídia que ainda não está na biblioteca: sincronização leve (1 página de mídias).
+ */
+export async function refreshCommentsFromWebhook(db: PoolClient, cred: IgCredential, mediaId?: string): Promise<number> {
+  if (mediaId && /^\d{5,30}$/.test(mediaId)) {
+    const { rows } = await db.query(`SELECT 1 FROM ig_media WHERE id = $1`, [mediaId]);
+    if (rows[0]) return syncComments(db, cred.token, cred.meta.username, [mediaId]);
+  }
+  const r = await syncInstagram(db, cred, { pages: 1 });
+  return r.comments;
 }
 
 // ---------- Publicação ----------

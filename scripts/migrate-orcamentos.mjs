@@ -78,6 +78,7 @@ const sqlFiles = [
   resolve("db/017_crm_projects.sql"),
   resolve("db/018_perf_indexes.sql"),
   resolve("db/019_prospect_rules.sql"),
+  resolve("db/020_meta_webhooks.sql"),
 ];
 const pool = new Pool({ connectionString: url });
 const client = await pool.connect();

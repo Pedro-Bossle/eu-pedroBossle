@@ -41,6 +41,10 @@
       "destination": "/api/orcamentos"
     },
     {
+      "source": "/webhooks/meta",
+      "destination": "/api/orcamentos"
+    },
+    {
       "source": "/api/orcamentos/auth/me",
       "destination": "/api/orcamentos-auth-me"
     },
