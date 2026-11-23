@@ -87,9 +87,12 @@ const isExit = (s: string) => (EXITS as readonly string[]).includes(s);
 const channelOf = (l: ProspectLead) =>
   l.whatsapp.replace(/\D/g, "").length >= 10 ? "whatsapp" : /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(l.email.trim()) ? "email" : "none";
 
-/** Abre a tela de "Escrever" do Gmail no navegador, já com destinatário, assunto e mensagem. */
+/** Conta Google usada para escrever os e-mails do funil (VITE_GMAIL_ACCOUNT sobrescreve). */
+const GMAIL_ACCOUNT = (import.meta.env.VITE_GMAIL_ACCOUNT as string | undefined)?.trim() || "pedro.bossle.s@gmail.com";
+
+/** Abre a tela de "Escrever" do Gmail no navegador, já na conta certa, com destinatário, assunto e mensagem. */
 const gmailComposeUrl = (to: string, subject = "", body = "") => {
-  const params: [string, string][] = [["view", "cm"], ["fs", "1"], ["to", to.trim()]];
+  const params: [string, string][] = [["authuser", GMAIL_ACCOUNT], ["view", "cm"], ["fs", "1"], ["to", to.trim()]];
   if (subject) params.push(["su", subject]);
   if (body) params.push(["body", body]);
   return `https://mail.google.com/mail/?${params.map(([k, v]) => `${k}=${encodeURIComponent(v)}`).join("&")}`;
