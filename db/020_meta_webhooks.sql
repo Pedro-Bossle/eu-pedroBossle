@@ -10,6 +10,13 @@ CREATE TABLE IF NOT EXISTS meta_webhook_events (
   error text NOT NULL DEFAULT '',
   received_at timestamptz NOT NULL DEFAULT now()
 );
+-- Se a tabela já existia com outro formato, completa as colunas que a API usa
+ALTER TABLE meta_webhook_events ADD COLUMN IF NOT EXISTS object text NOT NULL DEFAULT '';
+ALTER TABLE meta_webhook_events ADD COLUMN IF NOT EXISTS field text NOT NULL DEFAULT '';
+ALTER TABLE meta_webhook_events ADD COLUMN IF NOT EXISTS entry_id text NOT NULL DEFAULT '';
+ALTER TABLE meta_webhook_events ADD COLUMN IF NOT EXISTS payload jsonb NOT NULL DEFAULT '{}'::jsonb;
+ALTER TABLE meta_webhook_events ADD COLUMN IF NOT EXISTS error text NOT NULL DEFAULT '';
+ALTER TABLE meta_webhook_events ADD COLUMN IF NOT EXISTS received_at timestamptz NOT NULL DEFAULT now();
 CREATE INDEX IF NOT EXISTS meta_webhook_events_received_idx ON meta_webhook_events (received_at DESC);
 
 ALTER TABLE meta_webhook_events ENABLE ROW LEVEL SECURITY;
