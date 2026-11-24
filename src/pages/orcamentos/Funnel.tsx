@@ -100,9 +100,11 @@ function moveProblem(
   return "";
 }
 
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 /** Canal do primeiro contato (espelha leadChannel da API). */
 const channelOf = (l: ProspectLead) =>
-  l.whatsapp.replace(/\D/g, "").length >= 10 ? "whatsapp" : /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(l.email.trim()) ? "email" : "none";
+  l.whatsapp.replace(/\D/g, "").length >= 10 ? "whatsapp" : EMAIL_RE.test(l.email.trim()) ? "email" : "none";
 
 /** Conta Google usada para escrever os e-mails do funil (VITE_GMAIL_ACCOUNT sobrescreve). */
 const GMAIL_ACCOUNT = (import.meta.env.VITE_GMAIL_ACCOUNT as string | undefined)?.trim() || "pedro.bossle.s@gmail.com";
@@ -202,6 +204,10 @@ function LeadCard({
   const stage = lead.stage;
   const editable = stage === "encontrado" || stage === "aguardando" || stage === "aprovado";
   const { best, onlyLandline } = contactInfo(lead);
+  // Botões de contato: mostra cada canal que o lead tem de verdade
+  const canWhatsApp = Boolean(best) && lead.whatsapp.replace(/\D/g, "").length >= 10;
+  const canEmail = EMAIL_RE.test(lead.email.trim());
+  const [openedVia, setOpenedVia] = useState<"whatsapp" | "email" | null>(null);
   const [message, setMessage] = useState(lead.message);
   const [followup, setFollowup] = useState(lead.followupMessage);
   const [note, setNote] = useState("");
@@ -451,26 +457,49 @@ function LeadCard({
             Aprovar mensagem
           </button>
         ) : null}
-        {stage === "aprovado" && channelOf(lead) === "email" ? (
+        {stage === "aprovado" && (canWhatsApp || canEmail) ? (
           <>
-            <a href={leadGmailUrl(lead, message)} target="_blank" rel="noopener noreferrer" className={btnPrimary}>
-              Abrir no Gmail
-            </a>
-            <button type="button" className={btn} disabled={busy} onClick={() => move("enviado", { note: "enviado por e-mail" })}>
+            {canWhatsApp && best ? (
+              <a
+                href={whatsappUrl(best.wa, message)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={btnWhatsApp}
+                onClick={() => setOpenedVia("whatsapp")}
+              >
+                <WhatsAppIcon className="size-4" />
+                Abrir no WhatsApp
+              </a>
+            ) : null}
+            {canEmail ? (
+              <a
+                href={leadGmailUrl(lead, message)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={canWhatsApp ? btn : btnPrimary}
+                onClick={() => setOpenedVia("email")}
+              >
+                Abrir no Gmail
+              </a>
+            ) : null}
+            <button
+              type="button"
+              className={btn}
+              disabled={busy}
+              onClick={() =>
+                move("enviado", {
+                  note:
+                    openedVia === "email" || (!canWhatsApp && canEmail)
+                      ? "enviado por e-mail"
+                      : openedVia === "whatsapp" || !canEmail
+                        ? "enviado pelo WhatsApp"
+                        : "enviado manualmente",
+                })
+              }
+            >
               Marcar como enviado
             </button>
           </>
-        ) : null}
-        {stage === "aprovado" && channelOf(lead) === "whatsapp" && best ? (
-          <a
-            href={whatsappUrl(best.wa, message)}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={btnWhatsApp}
-          >
-            <WhatsAppIcon className="size-4" />
-            Abrir no WhatsApp
-          </a>
         ) : null}
         {stage === "enviado" || stage === "followup" ? (
           <button
