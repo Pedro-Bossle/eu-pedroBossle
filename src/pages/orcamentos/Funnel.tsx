@@ -1369,6 +1369,69 @@ function RulesPanel({ onClose, showToast }: { onClose: () => void; showToast: (m
 
 type Panel = "" | "new" | "import" | "tokens" | "rules";
 
+type SortKey =
+  | "nota"
+  | "recentes"
+  | "antigos"
+  | "vencer"
+  | "atrasados"
+  | "az"
+  | "za"
+  | "cidade"
+  | "cadastro_novo"
+  | "cadastro_antigo";
+
+const SORT_OPTIONS: { value: SortKey; label: string }[] = [
+  { value: "nota", label: "Melhor nota" },
+  { value: "vencer", label: "Próximo a vencer" },
+  { value: "atrasados", label: "Atrasados primeiro" },
+  { value: "antigos", label: "Mais antigos na etapa" },
+  { value: "recentes", label: "Mais recentes na etapa" },
+  { value: "az", label: "Nome (A–Z)" },
+  { value: "za", label: "Nome (Z–A)" },
+  { value: "cidade", label: "Cidade (A–Z)" },
+  { value: "cadastro_novo", label: "Cadastrados há menos tempo" },
+  { value: "cadastro_antigo", label: "Cadastrados há mais tempo" },
+];
+
+const SORT_STORAGE_KEY = "orcamentos:funil:ordem";
+
+const stageSince = (l: ProspectLead) => l.stageChangedAt ?? l.created;
+const byText = (a: string, b: string) => a.localeCompare(b, "pt-BR", { sensitivity: "base" });
+const byNota = (a: ProspectLead, b: ProspectLead) => (b.score ?? -1) - (a.score ?? -1);
+/** Mais recente na etapa primeiro: desempate de quase todas as ordens. */
+const byRecent = (a: ProspectLead, b: ProspectLead) => stageSince(b).localeCompare(stageSince(a));
+/** Sem data de retorno vai para o fim. */
+const byFollowup = (a: ProspectLead, b: ProspectLead) => {
+  if (a.followupAt && b.followupAt) return a.followupAt.localeCompare(b.followupAt);
+  if (a.followupAt) return -1;
+  if (b.followupAt) return 1;
+  return 0;
+};
+
+const SORTERS: Record<SortKey, (a: ProspectLead, b: ProspectLead) => number> = {
+  nota: (a, b) => byNota(a, b) || byRecent(a, b),
+  recentes: byRecent,
+  antigos: (a, b) => -byRecent(a, b),
+  vencer: (a, b) => byFollowup(a, b) || -byRecent(a, b),
+  atrasados: (a, b) => Number(isLate(b)) - Number(isLate(a)) || -byRecent(a, b),
+  az: (a, b) => byText(a.name, b.name),
+  za: (a, b) => byText(b.name, a.name),
+  cidade: (a, b) => byText(a.city, b.city) || byText(a.name, b.name),
+  cadastro_novo: (a, b) => b.created.localeCompare(a.created),
+  cadastro_antigo: (a, b) => a.created.localeCompare(b.created),
+};
+
+function readSort(): SortKey {
+  try {
+    const v = window.localStorage.getItem(SORT_STORAGE_KEY);
+    if (v && v in SORTERS) return v as SortKey;
+  } catch {
+    /* sem storage: usa o padrão */
+  }
+  return "nota";
+}
+
 function Funnel({ showToast }: Props) {
   const [leads, setLeads] = useState<ProspectLead[]>([]);
   const [loading, setLoading] = useState(true);
@@ -1379,6 +1442,16 @@ function Funnel({ showToast }: Props) {
   /** Etapa aberta na lista; "saidas" mostra quem saiu do funil. */
   const [stage, setStage] = useState<string>("");
   const [exitStage, setExitStage] = useState("");
+  const [sort, setSort] = useState<SortKey>(readSort);
+  const changeSort = (value: string) => {
+    const next = value as SortKey;
+    setSort(next);
+    try {
+      window.localStorage.setItem(SORT_STORAGE_KEY, next);
+    } catch {
+      /* ignora */
+    }
+  };
   const [openId, setOpenId] = useState("");
   const [editing, setEditing] = useState(false);
   const [busyId, setBusyId] = useState("");
@@ -1428,15 +1501,9 @@ function Funnel({ showToast }: Props) {
   const byStage = useMemo(() => {
     const map: Record<string, ProspectLead[]> = {};
     for (const l of filtered) (map[l.stage] ??= []).push(l);
-    for (const list of Object.values(map)) {
-      list.sort(
-        (a, b) =>
-          (b.score ?? -1) - (a.score ?? -1) ||
-          (b.stageChangedAt ?? b.created).localeCompare(a.stageChangedAt ?? a.created),
-      );
-    }
+    for (const list of Object.values(map)) list.sort(SORTERS[sort]);
     return map;
-  }, [filtered]);
+  }, [filtered, sort]);
 
   const reached = useMemo(() => FUNNEL.map((_, i) => filtered.filter((l) => reachedIndex(l) >= i).length), [filtered]);
   const exitCount = EXITS.reduce((n, e) => n + (byStage[e]?.length ?? 0), 0);
@@ -1451,10 +1518,12 @@ function Funnel({ showToast }: Props) {
   const searching = query.trim().length > 0;
 
   const list = useMemo(() => {
-    if (searching) return filtered;
-    if (current === "saidas") return exitStage ? (byStage[exitStage] ?? []) : EXITS.flatMap((e) => byStage[e] ?? []);
+    if (searching) return [...filtered].sort(SORTERS[sort]);
+    if (current === "saidas") {
+      return exitStage ? (byStage[exitStage] ?? []) : EXITS.flatMap((e) => byStage[e] ?? []).sort(SORTERS[sort]);
+    }
     return byStage[current] ?? [];
-  }, [searching, filtered, current, exitStage, byStage]);
+  }, [searching, filtered, current, exitStage, byStage, sort]);
 
   const openLead = leads.find((l) => l.id === openId);
   const closeDrawer = useCallback(() => {
@@ -1536,7 +1605,7 @@ function Funnel({ showToast }: Props) {
       ) : null}
 
       {/* Filtros */}
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-[minmax(0,1fr)_200px_200px]">
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-[minmax(0,1fr)_180px_180px_200px]">
         <input
           className={`${inputClass} col-span-2 sm:col-span-1`}
           type="search"
@@ -1557,6 +1626,14 @@ function Funnel({ showToast }: Props) {
           onChange={setNiche}
           options={[{ value: "", label: "Todos os nichos" }, ...niches.map((n) => ({ value: n, label: n }))]}
         />
+        <div className="col-span-2 sm:col-span-1">
+          <Select
+            ariaLabel="Ordenar por"
+            value={sort}
+            onChange={changeSort}
+            options={SORT_OPTIONS.map((o) => ({ value: o.value, label: `Ordenar: ${o.label}` }))}
+          />
+        </div>
       </div>
 
       {/* Etapas */}
