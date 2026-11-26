@@ -5,7 +5,10 @@ import { mapProspect } from "../../_lib/prospects.js";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-/** POST { id, message } — Pedro aprova o texto do follow-up de um lead já enviado. */
+/**
+ * POST { id, message } — Pedro aprova o texto do follow-up de um lead já enviado (etapa enviado).
+ * Na etapa followup (já enviado) só corrige o texto guardado: não aprova de novo nem reenvia.
+ */
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (!(await requireSession(req, res))) return;
   if (req.method !== "POST") return json(res, 405, { error: "Method not allowed" });
@@ -20,20 +23,22 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const lead = await withAuth(async (db) => {
       const { rows } = await db.query(
         `UPDATE prospect_leads
-         SET followup_message = $2, followup_approved_at = now(), updated_at = now()
-         WHERE id = $1 AND stage = 'enviado'
+         SET followup_message = $2,
+             followup_approved_at = CASE WHEN stage = 'enviado' THEN now() ELSE followup_approved_at END,
+             updated_at = now()
+         WHERE id = $1 AND stage IN ('enviado', 'followup')
          RETURNING *`,
         [id, message],
       );
       if (!rows[0]) return null;
       await db.query(
         `INSERT INTO prospect_events (lead_id, from_stage, to_stage, actor, note)
-         VALUES ($1, 'enviado', 'enviado', 'pedro', 'follow-up aprovado')`,
-        [id],
+         VALUES ($1, $2, $2, 'pedro', $3)`,
+        [id, String(rows[0].stage), rows[0].stage === "enviado" ? "follow-up aprovado" : "follow-up corrigido"],
       );
       return mapProspect(rows[0] as Record<string, unknown>);
     });
-    if (!lead) return json(res, 409, { error: "Só leads em Mensagem enviada recebem follow-up" });
+    if (!lead) return json(res, 409, { error: "Só leads em Mensagem enviada ou Follow-up têm follow-up" });
     return json(res, 200, { lead });
   } catch (error) {
     console.error(error);

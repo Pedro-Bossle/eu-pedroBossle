@@ -241,13 +241,30 @@ function LeadCard({
     try {
       const { lead: saved } = await orcamentosApi.approveFollowup(lead.id, followup);
       onChange(saved);
-      showToast("Follow-up aprovado");
+      showToast(stage === "followup" ? "Follow-up salvo" : "Follow-up aprovado");
     } catch (e) {
       showToast(e instanceof Error ? e.message : "Não foi possível aprovar o follow-up");
     } finally {
       setBusy(false);
     }
   };
+
+  /** Corrige a mensagem de um lead que já foi enviado (só o registro; nada é reenviado). */
+  const saveMessage = async () => {
+    setBusy(true);
+    try {
+      const { lead: saved } = await orcamentosApi.patchProspect(lead.id, { message });
+      onChange(saved);
+      showToast("Mensagem salva");
+    } catch (e) {
+      showToast(e instanceof Error ? e.message : "Não foi possível salvar a mensagem");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const messageDirty = message !== lead.message;
+  const followupDirty = followup !== lead.followupMessage;
 
   const needsNote = isExit(target);
   const problem = moveProblem(lead, target, { note, message, result });
@@ -401,9 +418,16 @@ function LeadCard({
             id={`msg-${lead.id}`}
             className={`${areaClass} border-l-2 border-l-emerald-600 dark:border-l-emerald-400`}
             value={message}
-            readOnly={!editable}
             onChange={(e) => setMessage(e.target.value)}
           />
+          {!editable ? (
+            <div className="flex flex-wrap items-center gap-2">
+              <button type="button" className={btnSm} disabled={busy || !messageDirty || !message.trim()} onClick={saveMessage}>
+                Salvar mensagem
+              </button>
+              <span className="text-xs text-muted">Já foi enviada: salvar só corrige o registro, nada é reenviado.</span>
+            </div>
+          ) : null}
         </div>
       ) : null}
 
@@ -424,7 +448,6 @@ function LeadCard({
             id={`fu-${lead.id}`}
             className={`${areaClass} min-h-28`}
             value={followup}
-            readOnly={stage === "followup"}
             onChange={(e) => setFollowup(e.target.value)}
             placeholder="Texto do follow-up que o bot vai enviar"
           />
@@ -432,7 +455,14 @@ function LeadCard({
             <button type="button" className={btnSm} disabled={busy || !followup.trim()} onClick={approveFollowup}>
               {lead.followupApprovedAt ? "Atualizar follow-up aprovado" : "Aprovar follow-up"}
             </button>
-          ) : null}
+          ) : (
+            <div className="flex flex-wrap items-center gap-2">
+              <button type="button" className={btnSm} disabled={busy || !followupDirty || !followup.trim()} onClick={approveFollowup}>
+                Salvar follow-up
+              </button>
+              <span className="text-xs text-muted">Já foi enviado: salvar só corrige o registro, nada é reenviado.</span>
+            </div>
+          )}
         </div>
       ) : null}
 
