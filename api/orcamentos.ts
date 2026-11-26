@@ -42,6 +42,10 @@ const loaders: Record<string, () => Promise<{ default: RouteHandler }>> = {
   "bot/move": () => import("./_handlers/bot/move.js"),
   "bot/instagram/posts": () => import("./_handlers/instagram/posts.js"),
   "bot/rules": () => import("./_handlers/prospects/rules.js"),
+  "bot/guide": () => import("./_handlers/learning/guide.js"),
+  // Aprendizado do funil (022)
+  learning: () => import("./_handlers/learning/index.js"),
+  "learning/guide": () => import("./_handlers/learning/guide.js"),
   // Instagram (011)
   instagram: () => import("./_handlers/instagram/index.js"),
   "instagram/oauth": () => import("./_handlers/instagram/oauth.js"),

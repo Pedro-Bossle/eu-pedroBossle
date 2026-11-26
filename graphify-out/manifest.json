@@ -282,9 +282,9 @@
     "semantic_hash": ""
   },
   "api/orcamentos.ts": {
-    "mtime": 1795716578.4114115,
-    "seen": 1795716750.763351,
-    "ast_hash": "063e5de1cd9a0dba9d77f14990f3e648",
+    "mtime": 1795717832.9058032,
+    "seen": 1795717858.872594,
+    "ast_hash": "58d13a8b44f0837e4fef2d95cdb8a444",
     "semantic_hash": ""
   },
   "eslint.config.js": {
@@ -294,8 +294,8 @@
     "semantic_hash": ""
   },
   "package.json": {
-    "mtime": 1795005001.4676929,
-    "seen": 1795716750.7634397,
+    "mtime": 1795718160.3759587,
+    "seen": 1795718212.1672184,
     "ast_hash": "9ba9b98fdb341eb5e3de2cbec002365f",
     "semantic_hash": ""
   },
@@ -306,9 +306,9 @@
     "semantic_hash": ""
   },
   "scripts/migrate-orcamentos.mjs": {
-    "mtime": 1795716578.4218664,
-    "seen": 1795716750.7635317,
-    "ast_hash": "46519ae368ae0e9ad0d2b6ba7ab4bc76",
+    "mtime": 1795717832.9168491,
+    "seen": 1795717858.8728633,
+    "ast_hash": "0b9fc1512a42225b463af2906e3b227e",
     "semantic_hash": ""
   },
   "scripts/optimize-logos.mjs": {
@@ -504,9 +504,9 @@
     "semantic_hash": ""
   },
   "src/lib/orcamentos/api.ts": {
-    "mtime": 1795716578.4229052,
-    "seen": 1795716750.7665877,
-    "ast_hash": "f29ae1ab691f461694c42df780c70499",
+    "mtime": 1795717832.9196177,
+    "seen": 1795717858.8759372,
+    "ast_hash": "9af549f1c7613598261c5af5a71d2a49",
     "semantic_hash": ""
   },
   "src/lib/orcamentos/contractData.ts": {
@@ -582,9 +582,9 @@
     "semantic_hash": ""
   },
   "src/pages/orcamentos/Funnel.tsx": {
-    "mtime": 1795716702.6406345,
-    "seen": 1795716750.7678363,
-    "ast_hash": "57bd2003eeef9198603f90a198ecc93e",
+    "mtime": 1795717832.9206128,
+    "seen": 1795717858.8775709,
+    "ast_hash": "ac030f352bf1b993fddd264c5b08b539",
     "semantic_hash": ""
   },
   "src/pages/orcamentos/Login.tsx": {
@@ -642,9 +642,9 @@
     "semantic_hash": ""
   },
   "src/types/orcamentos.ts": {
-    "mtime": 1795716578.435148,
-    "seen": 1795716750.7680657,
-    "ast_hash": "8cc328cc8861c9dbf252ad4174739ee3",
+    "mtime": 1795717832.9216115,
+    "seen": 1795717858.88023,
+    "ast_hash": "b9cab1fa7ba2e15bbb892e3a3904bb79",
     "semantic_hash": ""
   },
   "src/types/project.ts": {
@@ -684,9 +684,9 @@
     "semantic_hash": ""
   },
   "vercel.json": {
-    "mtime": 1795716578.4415789,
-    "seen": 1795716750.7684906,
-    "ast_hash": "292025ebd45f318d209b237b6a62cc4e",
+    "mtime": 1795717832.9226077,
+    "seen": 1795717858.88081,
+    "ast_hash": "f61537d78a45ea2b1f2bc4bf6fe04c9f",
     "semantic_hash": ""
   },
   "vite.config.ts": {
@@ -774,15 +774,15 @@
     "semantic_hash": ""
   },
   "db/README.md": {
-    "mtime": 1795716578.4208682,
-    "seen": 1795716750.7697906,
-    "ast_hash": "347203cb1c0bd64ed5591405df626858",
+    "mtime": 1795718157.36808,
+    "seen": 1795718212.1778228,
+    "ast_hash": "56ef7b79ecc0e2d76f9c29303eb7ae68",
     "semantic_hash": ""
   },
   "docs/API-BOTS.md": {
-    "mtime": 1795716578.4218664,
-    "seen": 1795716750.7697928,
-    "ast_hash": "eb9d219b6588daf604fe99cc8ba33400",
+    "mtime": 1795717832.9077969,
+    "seen": 1795717858.8825607,
+    "ast_hash": "b4b17f05cb8c2b6fb4ca1c87df81e28f",
     "semantic_hash": ""
   },
   "index.html": {
@@ -1362,9 +1362,9 @@
     "semantic_hash": ""
   },
   "api/_handlers/cron.ts": {
-    "mtime": 1795005001.450861,
-    "seen": 1795716750.7603202,
-    "ast_hash": "b7dba80b10155386ef99b1b26649b97d",
+    "mtime": 1795717832.904808,
+    "seen": 1795717858.8668368,
+    "ast_hash": "fc031cd984fd220bf740524034eae9e1",
     "semantic_hash": ""
   },
   "api/_handlers/finance/analytics.ts": {
@@ -1686,9 +1686,9 @@
     "semantic_hash": ""
   },
   "docs/PENDENCIAS.md": {
-    "mtime": 1795437133.1444929,
-    "seen": 1795716750.7697947,
-    "ast_hash": "370381744b4f40283fdea4a38e691a02",
+    "mtime": 1795718157.3680384,
+    "seen": 1795718212.1779137,
+    "ast_hash": "2fdfda8779107e0923bd975f965a7d00",
     "semantic_hash": ""
   },
   "public/modelos-demo/advocacia.en.html": {
@@ -1931,9 +1931,33 @@
     "ast_hash": "146fb60d3925793885267735b8aa7ec2",
     "semantic_hash": ""
   },
+  "api/_handlers/learning/guide.ts": {
+    "mtime": 1795717542.5788767,
+    "seen": 1795717858.8684695,
+    "ast_hash": "7ddbaad1effeab8ba4360d1a6849114b",
+    "semantic_hash": ""
+  },
+  "api/_handlers/learning/index.ts": {
+    "mtime": 1795717541.9672573,
+    "seen": 1795717858.8684719,
+    "ast_hash": "63beeb41d6eb917dea87d56a8e740db9",
+    "semantic_hash": ""
+  },
+  "api/_lib/learning.ts": {
+    "mtime": 1795718157.3647075,
+    "seen": 1795718212.1647975,
+    "ast_hash": "2d5e5a6c4914ad3d4798b5f98dded6d6",
+    "semantic_hash": ""
+  },
+  "src/pages/orcamentos/Learning.tsx": {
+    "mtime": 1795718157.3660202,
+    "seen": 1795718212.172876,
+    "ast_hash": "9d9fd89e8b6a681443d264eb39477a52",
+    "semantic_hash": ""
+  },
   "package-lock.json": {
-    "mtime": 1795005001.4667032,
-    "seen": 1795716750.7769458,
+    "mtime": 1795718160.5138967,
+    "seen": 1795718212.1926212,
     "ast_hash": "70e6d13c11b2ab70523afafb684aad69",
     "semantic_hash": ""
   }

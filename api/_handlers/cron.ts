@@ -6,6 +6,7 @@ import { loadIgCredential, publishDue, refreshIfNeeded, syncInstagram } from "..
 import { pluggyConfigured, syncAllItems } from "../_lib/pluggy.js";
 import { loadToday } from "../_lib/crmToday.js";
 import { sendDigest } from "../_lib/digestEmail.js";
+import { generateReport, isMondayBrt } from "../_lib/learning.js";
 
 /**
  * Tarefas automáticas. Autoriza com `Authorization: Bearer $CRON_SECRET`
@@ -13,6 +14,7 @@ import { sendDigest } from "../_lib/digestEmail.js";
  *
  * ?tasks=publish → só publica posts vencidos (rodar a cada 5–10 min)
  * ?tasks=daily   → publica + renova token + sincroniza Instagram e finanças + resumo por e-mail
+ * ?tasks=learning → gera o relatório de aprendizado da última semana (o daily também faz, às segundas)
  */
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   const secret = process.env.CRON_SECRET ?? "";
@@ -57,6 +59,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       } catch (e) {
         out.digest = { error: e instanceof Error ? e.message : String(e) };
       }
+    }
+  }
+
+  // Aprendizado do funil: relatório semanal, às segundas (horário de Brasília) ou sob demanda
+  if (tasks === "learning" || (tasks === "daily" && isMondayBrt())) {
+    try {
+      out.learning = { reportId: await generateReport(withAuth, "last", "cron") };
+    } catch (e) {
+      out.learning = { error: e instanceof Error ? e.message : String(e) };
     }
   }
 

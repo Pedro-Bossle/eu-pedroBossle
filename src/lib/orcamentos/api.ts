@@ -1,4 +1,6 @@
 import type {
+  GuideVersion,
+  LearningReportSummary,
   ProspectRules,
   ContactLead,
   OrcamentoClient,
@@ -265,6 +267,40 @@ export const orcamentosApi = {
     request<{ rules: ProspectRules }>("/api/orcamentos/prospects/rules", {
       method: "PUT",
       body: JSON.stringify(rules),
+    }),
+  learningReports: () =>
+    request<{ reports: LearningReportSummary[]; aiConfigured: boolean }>("/api/orcamentos/learning"),
+  learningReport: (id: string) =>
+    request<{ report: LearningReportSummary; markdown: string }>(
+      `/api/orcamentos/learning?id=${encodeURIComponent(id)}`,
+    ),
+  learningDownloadUrl: (id: string) => `/api/orcamentos/learning?id=${encodeURIComponent(id)}&download=1`,
+  generateLearning: (range: "last" | "current") =>
+    request<{ id: string }>("/api/orcamentos/learning", {
+      method: "POST",
+      body: JSON.stringify({ action: "generate", range }),
+    }),
+  analyzeLearning: (id: string) =>
+    request<{ id: string }>("/api/orcamentos/learning", {
+      method: "POST",
+      body: JSON.stringify({ action: "analyze", id }),
+    }),
+  guide: () =>
+    request<{ current: GuideVersion | null; proposal: GuideVersion | null }>("/api/orcamentos/learning/guide"),
+  approveGuide: (id: string, content: string) =>
+    request<{ current: GuideVersion }>("/api/orcamentos/learning/guide", {
+      method: "POST",
+      body: JSON.stringify({ action: "approve", id, content }),
+    }),
+  rejectGuide: (id: string) =>
+    request<{ ok: boolean }>("/api/orcamentos/learning/guide", {
+      method: "POST",
+      body: JSON.stringify({ action: "reject", id }),
+    }),
+  saveGuide: (content: string) =>
+    request<{ current: GuideVersion }>("/api/orcamentos/learning/guide", {
+      method: "POST",
+      body: JSON.stringify({ action: "save", content }),
     }),
   listBotTokens: () =>
     request<{ tokens: BotToken[] }>("/api/orcamentos/prospects/bot-tokens"),

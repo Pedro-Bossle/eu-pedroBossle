@@ -12,6 +12,7 @@ import {
 import type { BotScope, BotToken, ProspectEvent, ProspectInput, ProspectLead, ProspectRules } from "../../types/orcamentos";
 import Icon from "./ui/Icon";
 import QuickMenu from "./ui/QuickMenu";
+import Learning from "./Learning";
 import Select from "./ui/Select";
 import Sheet from "./ui/Sheet";
 import { convertToClient } from "./crm/events";
@@ -1367,7 +1368,7 @@ function RulesPanel({ onClose, showToast }: { onClose: () => void; showToast: (m
   );
 }
 
-type Panel = "" | "new" | "import" | "tokens" | "rules";
+type Panel = "" | "new" | "import" | "tokens" | "rules" | "learning";
 
 type SortKey =
   | "nota"
@@ -1584,6 +1585,7 @@ function Funnel({ showToast }: Props) {
               onClose={() => setMenu(false)}
               items={[
                 { label: "Importar / exportar", icon: "M12 3v12m0 0-4-4m4 4 4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2", run: () => setPanel("import") },
+                { label: "Aprendizado e guia", icon: "M12 3 2 8l10 5 10-5-10-5ZM6 10.5V15c0 1.5 2.7 3 6 3s6-1.5 6-3v-4.5", run: () => setPanel("learning") },
                 { label: "Regras do funil", icon: "M4 6h16M7 12h10M10 18h4", run: () => setPanel("rules") },
                 { label: "Tokens dos bots", icon: "M15 7a2 2 0 1 1 0 4 2 2 0 0 1 0-4ZM3 21l7.5-7.5M13 11l-2 2m-4 4 2 2", run: () => setPanel("tokens") },
               ]}
@@ -1631,7 +1633,7 @@ function Funnel({ showToast }: Props) {
             ariaLabel="Ordenar por"
             value={sort}
             onChange={changeSort}
-            options={SORT_OPTIONS.map((o) => ({ value: o.value, label: `Ordenar: ${o.label}` }))}
+            options={SORT_OPTIONS.map((o) => ({ value: o.value, label: o.label }))}
           />
         </div>
       </div>
@@ -1781,6 +1783,11 @@ function Funnel({ showToast }: Props) {
       {panel === "rules" ? (
         <Sheet title="Regras do funil" subtitle="O que a API aceita dos bots" onClose={closePanel}>
           <RulesPanel onClose={closePanel} showToast={showToast} />
+        </Sheet>
+      ) : null}
+      {panel === "learning" ? (
+        <Sheet title="Aprendizado do funil" subtitle="Relatórios semanais e guia de comunicação dos bots" onClose={closePanel} width="md:max-w-3xl">
+          <Learning showToast={showToast} />
         </Sheet>
       ) : null}
       {panel === "tokens" ? (

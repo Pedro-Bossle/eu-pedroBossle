@@ -80,6 +80,7 @@ const sqlFiles = [
   resolve("db/019_prospect_rules.sql"),
   resolve("db/020_meta_webhooks.sql"),
   resolve("db/021_bot_scopes.sql"),
+  resolve("db/022_prospect_learning.sql"),
 ];
 const pool = new Pool({ connectionString: url });
 const client = await pool.connect();

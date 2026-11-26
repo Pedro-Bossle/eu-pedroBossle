@@ -55,6 +55,7 @@ npm run db:migrate
 - `019` — Regras do funil (cidades, aceitar site ruim).
 - `020` — Eventos do webhook da Meta.
 - `021` — Permissões das chaves dos bots (`bot_tokens.scopes`: funil, mensagens, instagram) e `prospect_leads.bot_message` (texto original do bot).
+- `022` — Aprendizado do funil: `prospect_learning_reports` (relatório semanal em markdown, baixado pela tela) e `prospect_guide` (guia de comunicação proposto pela IA e aprovado por você).
 
 ### Prospecção
 
@@ -112,7 +113,8 @@ Saldo, faturas, investimentos, entradas × saídas por mês, gastos por categori
 
 | Variável | Uso |
 |---|---|
-| `PLUGGY_CLIENT_ID` / `PLUGGY_CLIENT_SECRET` | Credenciais do dashboard da Pluggy (ficam só no servidor) |
+| `PLUGGY_CLIENT_ID` / `PLUGGY_CLIENT_SECRET` | Credenciais do dashboard da Pluggy (ficam só no servidor) |
+| `GEMINI_API_KEY` / `GEMINI_MODEL` | Liga a análise do Gemini e a proposta de guia do Aprendizado do funil (migration 022). `GEMINI_MODEL` é opcional (padrão `gemini-2.5-flash`). Sem a chave, o relatório semanal sai só com números |
 | `PLUGGY_WEBHOOK_SECRET` | (opcional) segredo do webhook; sem ele é derivado do `ORCAMENTOS_SESSION_SECRET` |
 | `PLUGGY_WEBHOOK_URL` | (opcional) URL pública do webhook; padrão `https://orcamentos.devbossle.com.br/webhooks/pluggy` (vem do `ORCAMENTOS_PUBLIC_URL`) |
 | `PLUGGY_ITEM_IDS` | (opcional) Item IDs separados por vírgula, cadastrados automaticamente no sync |

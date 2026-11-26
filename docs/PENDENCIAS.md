@@ -22,7 +22,8 @@ Vercel → projeto `dev-bossle` → Settings → Environment Variables (marque *
 | `ORCAMENTOS_PUBLIC_URL` | **Sim** | `https://orcamentos.devbossle.com.br` (sem `www`; o domínio com `www.orcamentos` não existe no projeto) |
 | `CRON_SECRET` | **Sim** | Invente 32+ caracteres aleatórios (ex.: `openssl rand -hex 24`). Protege as tarefas automáticas |
 | `INTEGRATIONS_ENC_KEY` | Recomendada | Outros 32+ caracteres aleatórios. Criptografa o token do Instagram no banco. **Não troque depois** (o token salvo deixa de abrir) |
-| `PLUGGY_CLIENT_ID` / `PLUGGY_CLIENT_SECRET` | Para Finanças | dashboard.pluggy.ai → sua aplicação |
+| `PLUGGY_CLIENT_ID` / `PLUGGY_CLIENT_SECRET` | Para Finanças | dashboard.pluggy.ai → sua aplicação |
+| `GEMINI_API_KEY` / `GEMINI_MODEL` | Para a análise da IA no Aprendizado do funil | aistudio.google.com (plano gratuito). `GEMINI_MODEL` é opcional (padrão `gemini-2.5-flash`). Sem a chave, o relatório semanal sai só com números e um prompt pronto para colar em outra IA |
 | `RESEND_API_KEY` / `RESEND_FROM` | Para e-mails | Já devem existir (usados nas propostas). O resumo diário usa os mesmos |
 | `CRM_DIGEST_EMAIL` | Opcional | E-mail que recebe o resumo diário. Sem ela usa `CONTACT_NOTIFY_EMAIL` ou o e-mail de *Meus dados* |
 | `CRM_DIGEST` | Opcional | `off` desliga o resumo diário |

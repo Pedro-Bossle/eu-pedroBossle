@@ -541,3 +541,36 @@ export type CrmPayment = {
 };
 
 export type CrmSearchResult = { type: "client" | "proposal" | "lead" | "task"; id: string; title: string; sub: string };
+
+/** Aprendizado do funil (022). */
+export type LearningReportSummary = {
+  id: string;
+  weekStart: string;
+  weekEnd: string;
+  aiStatus: "gerando" | "ok" | "sem_chave" | "erro" | string;
+  aiError: string;
+  generatedBy: string;
+  createdAt: string;
+  sent: number;
+  replies: number;
+  won: number;
+  partial: boolean;
+};
+
+export type GuideSuggestion = {
+  title: string;
+  why: string;
+  evidence: string;
+  confidence: "baixa" | "media" | "alta";
+  test: string;
+};
+
+export type GuideVersion = {
+  id: string;
+  content: string;
+  status: string;
+  suggestions: GuideSuggestion[];
+  reportId: string | null;
+  createdAt: string | null;
+  decidedAt: string | null;
+};
