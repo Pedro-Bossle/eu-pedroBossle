@@ -7,7 +7,9 @@ import {
   downloadText,
   parseProspectText,
   prospectsToCsv,
+  openContactPopup,
   whatsappUrl,
+  whatsappWebUrl,
 } from "../../lib/orcamentos/prospects";
 import type { BotScope, BotToken, ProspectEvent, ProspectInput, ProspectLead, ProspectRules } from "../../types/orcamentos";
 import Icon from "./ui/Icon";
@@ -338,7 +340,13 @@ function LeadCard({
         </Row>
         {lead.email ? (
           <Row label="E-mail">
-            <a href={gmailComposeUrl(lead.email)} target="_blank" rel="noopener noreferrer" className={`${linkClass} break-all`}>
+            <a
+              href={gmailComposeUrl(lead.email)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={`${linkClass} break-all`}
+              onClick={(e) => openContactPopup(e, "email", gmailComposeUrl(lead.email))}
+            >
               {lead.email}
             </a>
           </Row>
@@ -496,7 +504,10 @@ function LeadCard({
                 target="_blank"
                 rel="noopener noreferrer"
                 className={btnWhatsApp}
-                onClick={() => setOpenedVia("whatsapp")}
+                onClick={(e) => {
+                  setOpenedVia("whatsapp");
+                  openContactPopup(e, "whatsapp", whatsappWebUrl(best.wa, message));
+                }}
               >
                 <WhatsAppIcon className="size-4" />
                 Abrir no WhatsApp
@@ -508,7 +519,10 @@ function LeadCard({
                 target="_blank"
                 rel="noopener noreferrer"
                 className={canWhatsApp ? btn : btnPrimary}
-                onClick={() => setOpenedVia("email")}
+                onClick={(e) => {
+                  setOpenedVia("email");
+                  openContactPopup(e, "email", leadGmailUrl(lead, message));
+                }}
               >
                 Abrir no Gmail
               </a>

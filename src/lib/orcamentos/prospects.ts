@@ -105,6 +105,52 @@ export const messageFor = (lead: ProspectLead, senderName?: string) =>
 export const whatsappUrl = (wa: string, text: string) =>
   `https://wa.me/${wa}?text=${encodeURIComponent(text)}`;
 
+/** Conversa direto no WhatsApp Web (sem a página intermediária do wa.me). */
+export const whatsappWebUrl = (wa: string, text: string) =>
+  `https://web.whatsapp.com/send?phone=${wa}&text=${encodeURIComponent(text)}`;
+
+const POPUP_SIZE = { whatsapp: [860, 720], email: [720, 660] } as const;
+const popups: Partial<Record<keyof typeof POPUP_SIZE, Window>> = {};
+
+/**
+ * No computador, abre o contato numa janelinha pop-up centralizada (sempre a mesma),
+ * em vez de uma aba nova. No celular segue o link normal, que abre o app.
+ * Uso: onClick={(e) => openContactPopup(e, "whatsapp", urlDoPopup)}
+ */
+export function openContactPopup(
+  e: { preventDefault: () => void },
+  kind: keyof typeof POPUP_SIZE,
+  url: string,
+) {
+  if (typeof window === "undefined") return;
+  const desktop = window.matchMedia("(pointer: fine)").matches && window.innerWidth >= 900;
+  if (!desktop) return;
+  // Janelinha já aberta: reaproveita em vez de abrir outra
+  const open = popups[kind];
+  if (open && !open.closed) {
+    try {
+      open.location.href = url;
+      open.focus();
+      e.preventDefault();
+      return;
+    } catch {
+      open.close();
+    }
+  }
+  const [w, h] = POPUP_SIZE[kind];
+  const sx = window.screenX ?? 0;
+  const sy = window.screenY ?? 0;
+  const left = Math.round(sx + (window.outerWidth - w) / 2);
+  const top = Math.round(sy + (window.outerHeight - h) / 2);
+  const win = window.open(url, `devbossle-${kind}`, `popup=yes,width=${w},height=${h},left=${left},top=${top}`);
+  // Pop-up bloqueado: deixa o link abrir como aba normal
+  if (!win) return;
+  e.preventDefault();
+  // Sem zerar o opener: é ele que deixa reaproveitar a janelinha no próximo clique
+  popups[kind] = win;
+  win.focus();
+}
+
 // ---------- Importação ----------
 
 const ALIASES: Record<
