@@ -13,8 +13,10 @@ import {
   parseProspectText,
   plain,
   prospectsToCsv,
+  openContactPopup,
   siteStatus,
   whatsappUrl,
+  whatsappWebUrl,
   type LeadStatus,
   type SiteStatus,
 } from "../../lib/orcamentos/prospects";
@@ -390,7 +392,8 @@ function LeadCard({
             target="_blank"
             rel="noopener noreferrer"
             className={btnWhatsApp}
-            onClick={() => {
+            onClick={(e) => {
+              openContactPopup(e, "whatsapp", whatsappWebUrl(best.wa, draft));
               saveMessage();
               if (!lead.sent) {
                 void patch({ sent: true });
